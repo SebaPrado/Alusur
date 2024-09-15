@@ -1833,7 +1833,7 @@ header {
 
 .dos {
   grid-area: dos;
-  background-image: url("/public/Sofitel.jpg");
+  background-image: url("/public/sofitel.jpg");
   background-size: cover; /* Asegura que la imagen cubra todo el contenedor */
   background-position: center; /* Centra la imagen en el contenedor */
   height: 100%; /* Asegúrate de que el contenedor tenga altura */
