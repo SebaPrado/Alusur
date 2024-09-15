@@ -10,6 +10,7 @@ import {
 import { CiMail } from "react-icons/ci";
 import { FiPhone } from "react-icons/fi";
 import { IoLocationOutline } from "react-icons/io5";
+import sapaImage from '../../../public/sapa.jpg'; // Importar la imagen
 
 function Home() {
   //   const [displayedWord, setDisplayedWord] = useState("");
@@ -179,10 +180,10 @@ function Home() {
           <div className="slider-icons">
             {/* Nuevas imágenes para el slider */}
             <div className="slider-icon">
-              <img src={"/public/iseo.jpg"} alt="Iseo" />
+              <img src={''} alt="Iseo" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/sapa.jpg"} alt="Sapa" />
+              <img src={sapaImage} alt="Sapa" />
             </div>
             <div className="slider-icon">
               <img src={"../../../public/vasa.jpg"} alt="Vasa" />
@@ -195,7 +196,7 @@ function Home() {
               <img src={"../../../public/iseo.jpg"} alt="Iseo" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/sapa.jpg"} alt="Sapa" />
+              <img src={sapaImage} alt="Sapa" />
             </div>
             <div className="slider-icon">
               <img src={"../../../public/vasa.jpg"} alt="Vasa" />
@@ -207,7 +208,7 @@ function Home() {
               <img src={"../../../public/iseo.jpg"} alt="Iseo" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/sapa.jpg"} alt="Sapa" />
+              <img src={sapaImage} alt="Sapa" />
             </div>
             <div className="slider-icon">
               <img src={"../../../public/vasa.jpg"} alt="Vasa" />
@@ -219,7 +220,7 @@ function Home() {
               <img src={"../../../public/iseo.jpg"} alt="Iseo" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/sapa.jpg"} alt="Sapa" />
+              <img src={sapaImage} alt="Sapa" />
             </div>
             <div className="slider-icon">
               <img src={"../../../public/vasa.jpg"} alt="Vasa" />
