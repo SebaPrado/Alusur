@@ -11,6 +11,11 @@ import { CiMail } from "react-icons/ci";
 import { FiPhone } from "react-icons/fi";
 import { IoLocationOutline } from "react-icons/io5";
 import sapaImage from '../../../public/sapa.jpg'; // Importar la imagen
+import iseoImage from '../../../public/iseo.jpg'; // Importar la imagen
+import vasaImage from '../../../public/vasa.jpg'; // Importar la imagen
+import technalImage from '../../../public/technal.jpg'; // Importar la imagen
+
+
 
 function Home() {
   //   const [displayedWord, setDisplayedWord] = useState("");
@@ -178,56 +183,60 @@ function Home() {
         </div>
         <div className="slider-container">
           <div className="slider-icons">
-            {/* Nuevas imágenes para el slider */}
+           
             <div className="slider-icon">
-              <img src={''} alt="Iseo" />
+              <img src={iseoImage} alt="Iseo" />
             </div>
             <div className="slider-icon">
               <img src={sapaImage} alt="Sapa" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/vasa.jpg"} alt="Vasa" />
+              <img src={vasaImage} alt="Vasa" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/technal.jpg"} alt="Technal" />
+              <img src={technalImage} alt="Technal" />
             </div>
-            {/* Duplicamos los iconos para crear un efecto de bucle infinito */}
+
             <div className="slider-icon">
-              <img src={"../../../public/iseo.jpg"} alt="Iseo" />
-            </div>
-            <div className="slider-icon">
-              <img src={sapaImage} alt="Sapa" />
-            </div>
-            <div className="slider-icon">
-              <img src={"../../../public/vasa.jpg"} alt="Vasa" />
-            </div>
-            <div className="slider-icon">
-              <img src={"../../../public/technal.jpg"} alt="Technal" />
-            </div>
-            <div className="slider-icon">
-              <img src={"../../../public/iseo.jpg"} alt="Iseo" />
+              <img src={iseoImage} alt="Iseo" />
             </div>
             <div className="slider-icon">
               <img src={sapaImage} alt="Sapa" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/vasa.jpg"} alt="Vasa" />
+              <img src={vasaImage} alt="Vasa" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/technal.jpg"} alt="Technal" />
+              <img src={technalImage} alt="Technal" />
             </div>
+
             <div className="slider-icon">
-              <img src={"../../../public/iseo.jpg"} alt="Iseo" />
+              <img src={iseoImage} alt="Iseo" />
             </div>
             <div className="slider-icon">
               <img src={sapaImage} alt="Sapa" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/vasa.jpg"} alt="Vasa" />
+              <img src={vasaImage} alt="Vasa" />
             </div>
             <div className="slider-icon">
-              <img src={"../../../public/technal.jpg"} alt="Technal" />
+              <img src={technalImage} alt="Technal" />
             </div>
+
+            <div className="slider-icon">
+              <img src={iseoImage} alt="Iseo" />
+            </div>
+            <div className="slider-icon">
+              <img src={sapaImage} alt="Sapa" />
+            </div>
+            <div className="slider-icon">
+              <img src={vasaImage} alt="Vasa" />
+            </div>
+            <div className="slider-icon">
+              <img src={technalImage} alt="Technal" />
+            </div>
+           
+
           </div>
         </div>
         <div id="contacto"></div>
