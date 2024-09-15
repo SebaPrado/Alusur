@@ -1,0 +1,43 @@
+/* #root{
+  background-color: rgba(178, 189, 236, 0.644);
+} */
+
+/* Estilos para el AppBar */
+.custom-app-bar {
+  width: 440px;
+  height: 73px;
+  box-shadow: none;
+  border-radius: 9999px;
+  overflow: hidden;
+  background-color: black;
+}
+
+/* Estilos para el Toolbar */
+.custom-toolbar {
+  padding: 0 2px;
+  height: 100%;
+  min-height: 54px;
+}
+
+/* Estilos para el contenedor de botones */
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Estilos para los botones */
+.custom-button {
+  text-transform: none;
+  border-radius: 9999px;
+  padding: 2px 16px;
+  height: calc(100% - 12px);
+  color: white;
+}
+
+.custom-button:hover {
+  background-color: #050505;
+  color: black;
+}

@@ -1,0 +1,2046 @@
+/* ============================    ESTILOS GENERALES   ========================== */
+
+/* Estilos base */
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  overflow-x: hidden;
+}
+
+h1 {
+  color: rgb(3, 3, 3);
+  font-weight: 400; /* Reducimos el grosor de la letra */
+}
+
+h3 {
+  font-size: 54px;
+  line-height: 120%;
+  font-weight: 500;
+}
+
+h5 {
+  margin: 0;
+}
+
+/* ======    Tamano de letra responsiva   ====== */
+
+/* =====      p       === */
+@media screen and (min-width: 768px) and (max-width: 1440px) {
+  p {
+    font-size: 15px !important;
+    line-height: 200% !important;
+  }
+}
+
+/* Mediana: 768px a 375px */
+@media screen and (min-width: 375px) and (max-width: 767px) {
+  p {
+    font-size: 16px !important;
+    line-height: 150% !important;
+  }
+  .container {
+    margin-left: 40px;
+    margin-right: 40px;
+  }
+}
+
+/* Chica: menor a 375px */
+@media screen and (max-width: 374px) {
+  p {
+    font-size: 14px !important;
+    line-height: 130% !important;
+  }
+}
+/* =====      p       === */
+
+/* =====      mail       === */
+@media screen and (min-width: 768px) and (max-width: 1440px) {
+  .mail {
+    font-size: 15px !important;
+    line-height: 200% !important;
+  }
+}
+
+/* Mediana: 768px a 375px */
+@media screen and (min-width: 375px) and (max-width: 767px) {
+  .mail {
+    font-size: 16px !important;
+    line-height: 120% !important;
+  }
+}
+
+/* Chica: menor a 375px */
+@media screen and (max-width: 374px) {
+  .mail {
+    font-size: 14px !important;
+    line-height: 100% !important;
+  }
+}
+/* =====      mail       === */
+/* ======    Tamano de letra responsiva   ====== */
+
+/* ======    Márgenes laterales responsivos   ====== */
+
+@media screen and (min-width: 768px) and (max-width: 1940px) {
+  .container {
+    margin-left: 112px !important;
+    margin-right: 112px !important;
+    /* width: calc(100% - 224px) !important;  */
+  }
+  .containerLarge {
+    margin: 56px;
+    padding: 56px;
+  }
+
+  .navbarContainerLarge {
+    margin-left: 56px;
+    margin-right: 56px;
+  }
+}
+
+@media screen and (min-width: 480px) and (max-width: 767px) {
+  .container {
+    margin-left: 40px;
+    margin-right: 40px;
+  }
+  .containerLarge {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  .navbarContainerLarge {
+    margin-left: 40px;
+    margin-right: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+  .containerLarge {
+    margin-left: 16px;
+    margin-right: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .navbarContainerLarge {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+}
+
+/* ======    Márgenes laterales responsivos   ====== */
+
+.navbarContainerLarge {
+  position: relative;
+}
+
+/* ============================    ESTILOS GENERALES   ========================== */
+
+/* ============================         NAVBAR         ========================== */
+
+/* Estilos para el AppBar */
+.custom-app-bar {
+  width: 100%;
+  max-width: 440px;
+  height: 62px;
+}
+
+/* Estilos para el contenedor de botones */
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Estilos para los botones */
+.custom-button {
+  text-transform: none !important;
+  border-radius: 9999px !important;
+  padding: 2px 16px !important;
+  height: calc(100% - 12px) !important;
+  color: white;
+  font-family: "Montserrat", sans-serif !important;
+}
+
+.custom-button:hover {
+  background-color: white !important;
+  color: rgb(0, 0, 0) !important;
+}
+
+/* Estilos para el contenedor principal */
+.main-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  width: 100%;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.main-container.scrolled {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Estilos responsivos */
+@media screen and (max-width: 600px) {
+  .main-container {
+    background-color: transparent; /* Fondo transparente en pantallas pequeñas */
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .custom-app-bar {
+    max-width: 100%;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 56px;
+  }
+
+  .button-container {
+    display: none;
+  }
+
+  .menu-icon {
+    display: block !important;
+  }
+
+  .custom-toolbar {
+    padding: 0 !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  /* Ajuste del tamaño y posición del botón hamburguesa */
+  .menu-icon-button {
+    padding: 8px !important;
+    margin: 0 16px 0 0 !important;
+    color: black !important; /* Cambia el color del icono a negro */
+  }
+
+  /* Eliminar el margen izquierdo adicional */
+  .MuiIconButton-edgeStart {
+    margin-left: 0 !important;
+  }
+}
+
+/* Ocultar el botón hamburguesa en pantallas más grandes que 600px */
+@media (min-width: 601px) {
+  .menu-icon-button {
+    display: none !important;
+  }
+}
+
+/* Estilos responsivos para el Navbar */
+@media screen and (max-width: 450px) {
+  .custom-app-bar {
+    width: 100% !important;
+    height: 56px !important;
+    border-radius: 0 !important;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .custom-toolbar {
+    padding: 0 !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  /* Ajuste del tamaño y posición del botón hamburguesa */
+  .menu-icon-button {
+    padding: 8px !important;
+    margin: 0 16px 0 0 !important;
+    color: black !important;
+  }
+
+  /* Eliminar el margen izquierdo adicional */
+  .MuiIconButton-edgeStart {
+    margin-left: 0 !important;
+  }
+}
+
+/* Estilo para ocultar el icono de menú en pantallas grandes */
+.menu-icon {
+  display: none;
+}
+
+.sticky {
+  position: fixed;
+  top: 0;
+  z-index: 1;
+}
+/* ============================       NAVBAR      ========================== */
+
+/* ============================   Section HERO1   ========================== */
+
+.containerLarge {
+  background-color: #fca211c7;
+  border-radius: 40px;
+  min-height: 15rem; /* Altura mínima base */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Ajustes responsivos para el contenedor */
+@media (min-width: 1300px) {
+  .containerLarge {
+    min-height: 18rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1299px) {
+  .containerLarge {
+    min-height: 18rem !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 767px) {
+  .containerLarge {
+    margin-top: 3rem;
+    min-height: 33rem;
+    padding-top: 2.5rem;
+    padding-bottom: 10px;
+  }
+}
+
+@media (max-width: 599px) {
+  .containerLarge {
+    margin-top: 25px;
+    min-height: 10rem;
+    padding-top: 50px;
+    padding-bottom: 10px;
+  }
+}
+
+/* Estilos para el título principal */
+.titulo-principal {
+  margin-top: 0; /* Eliminamos el margen superior */
+  font-size: 7vw;
+  line-height: 1.2;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+@media screen and (max-width: 830px) {
+  .titulo-principal {
+    min-height: 16rem;
+    font-size: calc(6vw + 1rem);
+  }
+}
+
+/* Ajustes responsivos para el título principal */
+@media screen and (max-width: 768px) {
+  .titulo-principal {
+    min-height: 17.5rem;
+    font-size: calc(7vw + 1.5rem);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .titulo-principal {
+    min-height: 18rem;
+    font-size: calc(7vw + 1.2rem);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .titulo-principal {
+    min-height: 15.3rem;
+    font-size: calc(7vw + 1rem);
+    margin-bottom: 0;
+  }
+  /* .h1Title{
+    min-height: 15rem;
+    margin-top: 30px;
+  } */
+}
+
+.changing-text {
+  font-weight: 200;
+}
+/* ============================   Section HERO1 ========================== */
+
+/* ============================   Section HERO2 ========================== */
+
+.section2 {
+  width: 100%;
+  max-width: 1216px; /* 1440px - (112px * 2) */
+  margin-left: auto;
+  margin-right: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 350px);
+  grid-template-areas: "container2-1 container2-2";
+  gap: 16px;
+}
+
+.container2-1 {
+  grid-area: container2-1;
+  min-width: 0;
+}
+
+.container2-1 h5 {
+  margin-bottom: calc(1rem - 6px);
+}
+
+.container2-1 p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  font-size: 16px; /* Tamaño base */
+}
+
+.heroParagraph {
+  font-size: 20px;
+  line-height: 140%;
+}
+
+.container2-2 {
+  /* background-color: rgb(166, 197, 26); */
+  grid-area: container2-2;
+  text-align: end;
+  min-width: 0;
+}
+
+.container2-2 p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  text-align: justify;
+}
+
+@media screen and (max-width: 768px) {
+  .section2 {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "container2-2"
+      "container2-1";
+  }
+
+  .container2-2 {
+    text-align: start;
+  }
+
+  .container2-1 p,
+  .container2-2 p {
+    font-size: 14px;
+    line-height: 24px;
+  }
+}
+
+.container2-1 h5 {
+  font-size: 24px;
+  line-height: 130%;
+}
+
+.container2-1 a {
+  color: black;
+  text-decoration: underline;
+  transition: transform 1s ease-in-out, font-weight 1s ease-in-out; /* Combina ambas transiciones */
+  font-size: 20px;
+  line-height: 140%;
+}
+
+.container2-1 a:hover {
+  font-weight: bold;
+}
+.mail.container2-2 p {
+  font-size: 20px;
+  line-height: 140%;
+}
+
+/* Ajustes responsivos para el texto en container2-2 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container2-2 p {
+    font-size: 18px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .container2-2 p {
+    font-size: 16px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .container2-2 p {
+    font-size: 14px;
+  }
+}
+
+/* ============================   Section HERO2 ========================== */
+
+/* ============================   Section ENCABEZADO PROJECTS ========================== */
+/* ============================    ESTILOS GENERALES   ========================== */
+
+/* Estilos base */
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  overflow-x: hidden;
+}
+
+h1 {
+  color: rgb(3, 3, 3);
+  font-weight: 400; /* Reducimos el grosor de la letra */
+}
+
+h3 {
+  font-size: 54px;
+  line-height: 120%;
+  font-weight: 500;
+}
+
+h5 {
+  margin: 0;
+}
+
+/* ======    Tamano de letra responsiva   ====== */
+
+/* =====      p       === */
+@media screen and (min-width: 768px) and (max-width: 1440px) {
+  p {
+    font-size: 15px !important;
+    line-height: 200% !important;
+  }
+}
+
+/* Mediana: 768px a 375px */
+@media screen and (min-width: 375px) and (max-width: 767px) {
+  p {
+    font-size: 16px !important;
+    line-height: 150% !important;
+  }
+  .container {
+    margin-left: 40px;
+    margin-right: 40px;
+  }
+}
+
+/* Chica: menor a 375px */
+@media screen and (max-width: 374px) {
+  p {
+    font-size: 14px !important;
+    line-height: 130% !important;
+  }
+}
+/* =====      p       === */
+
+/* =====      mail       === */
+@media screen and (min-width: 768px) and (max-width: 1440px) {
+  .mail {
+    font-size: 15px !important;
+    line-height: 200% !important;
+  }
+}
+
+/* Mediana: 768px a 375px */
+@media screen and (min-width: 375px) and (max-width: 767px) {
+  .mail {
+    font-size: 16px !important;
+    line-height: 120% !important;
+  }
+}
+
+/* Chica: menor a 375px */
+@media screen and (max-width: 374px) {
+  .mail {
+    font-size: 14px !important;
+    line-height: 100% !important;
+  }
+}
+/* =====      mail       === */
+/* ======    Tamano de letra responsiva   ====== */
+
+/* ======    Márgenes laterales responsivos   ====== */
+
+@media screen and (min-width: 768px) and (max-width: 1940px) {
+  .container {
+    margin-left: 112px !important;
+    margin-right: 112px !important;
+    /* width: calc(100% - 224px) !important;  */
+  }
+  .containerLarge {
+    margin: 56px;
+    padding: 56px;
+  }
+
+  .navbarContainerLarge {
+    margin-left: 56px;
+    margin-right: 56px;
+  }
+}
+
+@media screen and (min-width: 480px) and (max-width: 767px) {
+  .container {
+    margin-left: 40px;
+    margin-right: 40px;
+  }
+  .containerLarge {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  .navbarContainerLarge {
+    margin-left: 40px;
+    margin-right: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+  .containerLarge {
+    margin-left: 16px;
+    margin-right: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .navbarContainerLarge {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+}
+
+/* ======    Márgenes laterales responsivos   ====== */
+
+.navbarContainerLarge {
+  position: relative;
+}
+
+/* ============================    ESTILOS GENERALES   ========================== */
+
+/* ============================         NAVBAR         ========================== */
+
+/* Estilos para el AppBar */
+.custom-app-bar {
+  width: 100%;
+  max-width: 440px;
+  height: 62px;
+}
+
+/* Estilos para el contenedor de botones */
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Estilos para los botones */
+.custom-button {
+  text-transform: none !important;
+  border-radius: 9999px !important;
+  padding: 2px 16px !important;
+  height: calc(100% - 12px) !important;
+  color: white;
+  font-family: "Montserrat", sans-serif !important;
+}
+
+.custom-button:hover {
+  background-color: white !important;
+  color: rgb(0, 0, 0) !important;
+}
+
+/* Estilos para el contenedor principal */
+.main-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  width: 100%;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.main-container.scrolled {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Estilos responsivos */
+@media screen and (max-width: 600px) {
+  .main-container {
+    background-color: transparent; /* Fondo transparente en pantallas pequeñas */
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .custom-app-bar {
+    max-width: 100%;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 56px;
+  }
+
+  .button-container {
+    display: none;
+  }
+
+  .menu-icon {
+    display: block !important;
+  }
+
+  .custom-toolbar {
+    padding: 0 !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  /* Ajuste del tamaño y posición del botón hamburguesa */
+  .menu-icon-button {
+    padding: 8px !important;
+    margin: 0 16px 0 0 !important;
+    color: black !important; /* Cambia el color del icono a negro */
+  }
+
+  /* Eliminar el margen izquierdo adicional */
+  .MuiIconButton-edgeStart {
+    margin-left: 0 !important;
+  }
+}
+
+/* Ocultar el botón hamburguesa en pantallas más grandes que 600px */
+@media (min-width: 601px) {
+  .menu-icon-button {
+    display: none !important;
+  }
+}
+
+/* Estilos responsivos para el Navbar */
+@media screen and (max-width: 450px) {
+  .custom-app-bar {
+    width: 100% !important;
+    height: 56px !important;
+    border-radius: 0 !important;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .custom-toolbar {
+    padding: 0 !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  /* Ajuste del tamaño y posición del botón hamburguesa */
+  .menu-icon-button {
+    padding: 8px !important;
+    margin: 0 16px 0 0 !important;
+    color: black !important;
+  }
+
+  /* Eliminar el margen izquierdo adicional */
+  .MuiIconButton-edgeStart {
+    margin-left: 0 !important;
+  }
+}
+
+/* Estilo para ocultar el icono de menú en pantallas grandes */
+.menu-icon {
+  display: none;
+}
+
+.sticky {
+  position: fixed;
+  top: 0;
+  z-index: 1;
+}
+/* ============================       NAVBAR      ========================== */
+
+/* ============================   Section HERO1   ========================== */
+
+.containerLarge {
+  background-color: #fca211c7;
+  border-radius: 40px;
+  min-height: 15rem; /* Altura mínima base */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Ajustes responsivos para el contenedor */
+@media (min-width: 1300px) {
+  .containerLarge {
+    min-height: 18rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1299px) {
+  .containerLarge {
+    min-height: 18rem !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 767px) {
+  .containerLarge {
+    margin-top: 3rem;
+    min-height: 33rem;
+    padding-top: 2.5rem;
+    padding-bottom: 10px;
+  }
+}
+
+@media (max-width: 599px) {
+  .containerLarge {
+    margin-top: 25px;
+    min-height: 10rem;
+    padding-top: 50px;
+    padding-bottom: 10px;
+  }
+}
+
+/* Estilos para el título principal */
+.titulo-principal {
+  margin-top: 0; /* Eliminamos el margen superior */
+  font-size: 7vw;
+  line-height: 1.2;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+@media screen and (max-width: 830px) {
+  .titulo-principal {
+    min-height: 16rem;
+    font-size: calc(6vw + 1rem);
+  }
+}
+
+/* Ajustes responsivos para el título principal */
+@media screen and (max-width: 768px) {
+  .titulo-principal {
+    min-height: 17.5rem;
+    font-size: calc(7vw + 1.5rem);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .titulo-principal {
+    min-height: 18rem;
+    font-size: calc(7vw + 1.2rem);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .titulo-principal {
+    min-height: 15.3rem;
+    font-size: calc(7vw + 1rem);
+    margin-bottom: 0;
+  }
+  /* .h1Title{
+    min-height: 15rem;
+    margin-top: 30px;
+  } */
+}
+
+.changing-text {
+  font-weight: 200;
+}
+/* ============================   Section HERO1 ========================== */
+
+/* ============================   Section HERO2 ========================== */
+
+.section2 {
+  width: 100%;
+  max-width: 1216px; /* 1440px - (112px * 2) */
+  margin-left: auto;
+  margin-right: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 350px);
+  grid-template-areas: "container2-1 container2-2";
+  gap: 16px;
+}
+
+.container2-1 {
+  grid-area: container2-1;
+  min-width: 0;
+}
+
+.container2-1 h5 {
+  margin-bottom: calc(1rem - 6px);
+}
+
+.container2-1 p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  font-size: 16px; /* Tamaño base */
+}
+
+.heroParagraph {
+  font-size: 20px;
+  line-height: 140%;
+}
+
+.container2-2 {
+  /* background-color: rgb(166, 197, 26); */
+  grid-area: container2-2;
+  text-align: end;
+  min-width: 0;
+}
+
+.container2-2 p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  text-align: justify;
+}
+
+@media screen and (max-width: 768px) {
+  .section2 {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "container2-2"
+      "container2-1";
+  }
+
+  .container2-2 {
+    text-align: start;
+  }
+
+  .container2-1 p,
+  .container2-2 p {
+    font-size: 14px;
+    line-height: 24px;
+  }
+}
+
+.container2-1 h5 {
+  font-size: 24px;
+  line-height: 130%;
+}
+
+.container2-1 a {
+  color: black;
+  text-decoration: underline;
+  transition: transform 1s ease-in-out, font-weight 1s ease-in-out; /* Combina ambas transiciones */
+  font-size: 20px;
+  line-height: 140%;
+}
+
+.container2-1 a:hover {
+  font-weight: bold;
+}
+.mail.container2-2 p {
+  font-size: 20px;
+  line-height: 140%;
+}
+
+/* Ajustes responsivos para el texto en container2-2 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container2-2 p {
+    font-size: 18px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .container2-2 p {
+    font-size: 16px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .container2-2 p {
+    font-size: 14px;
+  }
+}
+
+/* ============================   Section HERO2 ========================== */
+
+/* ============================   Section ENCABEZADO PROJECTS ========================== */
+
+.section3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .section3 {
+    margin-top: 80px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .section3 {
+    margin-top: 45px;
+  }
+  .sectionProjects {
+    margin-top: 0 !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .section3 {
+    margin-top: 0;
+  }
+  .titleH3 h3 {
+    margin-bottom: 30px;
+  }
+  .container3-3 {
+    margin-top: 40px;
+  }
+}
+
+.container3-1 {
+  max-width: 15.1rem;
+}
+
+.container3-4 {
+  max-width: 10rem;
+  display: flex;
+  align-items: flex-end;
+  display: none;
+}
+
+.container3-4 p {
+  margin: 0;
+}
+
+.container3-3 p {
+  line-height: 140%;
+}
+
+.column-footer-s4 p {
+  line-height: 140%;
+}
+
+/* ============================   Section ENCABEZADO PROJECTS ========================== */
+
+/* ============================   Section PROJECTS ========================== */
+
+.sectionProjects {
+  margin-top: 2.5rem;
+  margin-bottom: 105px;
+}
+.column-container-s4 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem; /* 32px */
+  justify-content: space-between;
+  max-width: 1216px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 480px) {
+  .sectionProjects .column-container-s4 {
+    justify-content: space-around;
+  }
+
+  .sectionProjects .singleProyectContainer {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+
+.projectsFlexItems h4 {
+  font-size: 22px;
+  line-height: 130%;
+  min-height: 51px;
+  margin-bottom: 0;
+}
+
+.singleProyectContainer {
+  width: 100%;
+  margin-bottom: 45px;
+}
+
+@media (min-width: 451px) and (max-width: 1247px) {
+  .sectionProjects .singleProyectContainer {
+    width: calc(50% - 1rem);
+  }
+}
+
+.column-content-s4 {
+  max-height: 27rem; /* (1629-1129)/16 */
+  /* background-color: rgb(86, 235, 86); */
+
+  aspect-ratio: 1/1;
+  width: 100%;
+  overflow: hidden; /* Añadimos esto para contener la imagen al crecer */
+  /* flex-shrink: 1.5; */
+}
+
+@media (min-width: 1025px) {
+  .singleProyectContainer {
+    max-width: 31rem; /* (500)/16 */
+  }
+}
+
+@media (max-width: 768px) {
+  .sectionProjects {
+    margin-bottom: 50px !important;
+  }
+  .singleProyectContainer {
+    margin-bottom: 0 !important;
+  }
+}
+
+.project-link {
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s ease;
+}
+
+.project-link:hover {
+  transform: scale(1.07);
+  display: inline-block;
+}
+
+.project-container:hover {
+  transform: scale(1.07);
+  transition: transform 1.6s ease;
+}
+
+.project-container {
+  width: 100%;
+  /* padding-top: 56.25%;  */
+  position: relative;
+  overflow: hidden;
+}
+
+.project-container a {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imageProject {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.project-container:hover .imageProject {
+  transform: scale(1.05);
+}
+
+/* ============================    Section PROJECTS     ========================== */
+
+/* ============================    Section EXPERTISE    ========================== */
+
+.section5 {
+  background-color: black;
+  color: white;
+  padding: 56px;
+}
+
+.expertise-title {
+  font-size: 64px;
+  line-height: 110%;
+}
+
+.section5 .titleH3 h3 {
+  color: white;
+}
+
+.ecpertiseFlexContainer {
+  width: 100%;
+  display: flex;
+  row-gap: 40px;
+  column-gap: 2rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.expertiseFlexItems {
+  width: 46%;
+  max-width: 442px;
+  height: fit-content;
+}
+
+.expertiseFlexItems h4 {
+  color: white;
+  font-size: 22px;
+  line-height: 130%;
+  margin-bottom: 30px;
+}
+/* .dot {
+  background-color: white;
+} */
+
+.expertiseFlexItems p {
+  font-size: 20px;
+  line-height: 140%;
+}
+
+@media (max-width: 552px) {
+  .section5 {
+    padding-top: 10px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .ecpertiseFlexContainer {
+    justify-content: space-around;
+    row-gap: 0px;
+  }
+
+  .expertiseFlexItems {
+    width: 100%;
+    /* max-width: 400px; */
+  }
+}
+
+/* ============================    Section EXPERTISE    ========================== */
+
+/* ============================    Section SLIDER    ========================== */
+
+@media (max-width: 480px) {
+  .section-slider {
+    margin-top: 3rem; /* Aumentamos el margen superior para pantallas pequeñas */
+  }
+}
+
+.slider-container {
+  width: 100vw;
+}
+
+.slider-icons {
+  display: flex;
+  animation: slide 20s linear infinite;
+  width: 200%;
+}
+
+.icon {
+  font-size: 2rem;
+}
+
+.icon-name {
+  margin-top: 9px;
+}
+
+@keyframes slide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Para hacer que el desplazamiento sea más suave */
+.slider-icons:hover {
+  animation-play-state: paused;
+}
+
+/* ============================    Section SLIDER    ========================== */
+
+/* ============================    Section TESTIMONIALS    ========================== */
+.section-testimonials {
+  margin-top: 9rem;
+  margin-bottom: 2rem;
+}
+
+.section-testimonials h3 {
+  margin-bottom: 1.5rem;
+  font-size: 64px;
+  line-height: 110%;
+}
+
+.testimonialsFlexContainer {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.testimonialsFlexItems.testimonial-content {
+  flex-grow: 1;
+  flex-shrink: 1;
+  max-width: 60%;
+  font-size: 2rem;
+  line-height: 130%;
+}
+
+.testimonialsFlexItems.testimonial-info {
+  flex-grow: 0;
+  flex-shrink: 0;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.autor {
+  margin-top: auto;
+}
+
+.section-testimonials h3 {
+  font-size: 64px;
+  line-height: 110%;
+}
+
+.testimonial-content {
+  font-size: 48px;
+  line-height: 130%;
+}
+
+.autor h6 {
+  margin-bottom: 0.5rem;
+}
+
+.autor p {
+  margin: 0;
+}
+/* ============================    Section TESTIMONIALS    ========================== */
+/* ============================    Section LET'S TALK    ========================== */
+.section-lets-talk {
+  margin-top: 126px;
+  margin-bottom: 10rem;
+}
+
+.lets-talk-flexContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.lets-talk-flexItem {
+  text-align: center;
+}
+
+.lets-talk-flexItem h2 {
+  font-size: 140px;
+  margin: 0;
+  line-height: 1;
+}
+
+.email-button {
+  background-color: black;
+  color: white;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 25px;
+  display: inline-block;
+  margin-top: 5rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.email-button:hover {
+  transition: "color 0.3s ease";
+}
+.lets-talk-flexItem h2 {
+  font-size: 140px;
+  margin: 0;
+  line-height: 1;
+}
+/* ============================    Section LET'S TALK    ========================== */
+
+/* ============================    SLIDER    ========================== */
+.slider-container {
+  width: 100vw;
+}
+
+.slider-icons {
+  display: flex;
+  animation: slide 20s linear infinite;
+  width: 100%;
+}
+
+.slider-icon {
+  margin: 18px 50px;
+}
+
+.icon {
+  font-size: 2rem;
+}
+
+.iconName {
+  margin-top: 9px;
+}
+
+@keyframes slide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.flexContainerIcons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+}
+
+/* ==================        footer     ================================== */
+
+.footer {
+  background-color: #03045e !important;
+  color: rgb(253, 250, 250) !important;
+  padding: 20px 0 !important;
+  display: block !important; /* Asegura que el footer se muestre */
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media screen and (min-width: 768px) and (max-width: 1440px) {
+  .footer {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* Mediana: 768px a 375px */
+@media screen and (min-width: 450px) and (max-width: 767px) {
+  .footer {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* Chica: menor a 375px */
+@media screen and (max-width: 450px) {
+  .footer {
+    padding-right: 12px !important;
+    padding-left: 12px !important;
+  }
+}
+
+.social-icons {
+  display: flex;
+  gap: 20px;
+}
+
+.social-icons a {
+  color: rgb(255, 255, 255);
+  font-size: 24px;
+  transition: color 0.3s ease;
+}
+
+.social-icons a:hover {
+  color: #caf0f8;
+}
+
+/* ============================    SLIDER    ========================== */
+
+/* ============================    FRAMES PARA OTROS TRABAJOS    ========================== */
+/* ============================    FRAMES PARA OTROS TRABAJOS    ========================== */
+/* ============================    FRAMES PARA OTROS TRABAJOS    ========================== */
+
+@media screen and (min-width: 768px) and (max-width: 1440px) {
+}
+
+/* Mediana: 768px a 375px */
+@media screen and (min-width: 375px) and (max-width: 767px) {
+}
+
+/* Chica: menor a 375px */
+@media screen and (max-width: 374px) {
+}
+
+/* ============================   Flexbox ========================== */
+
+/* Un resumen :  
+  1) Neceitamos un contenedor FLEXBOX-CONTAINER que envuelva un conjunto de FLEXBOX-ITEMS
+  2) Usamos las propiedades Justify-content y Align-items apra alinear esos Items dentro del Container
+  3) Usamos flex-shrink , flex-grow y flex-basis para ajustar mis items individualmente
+
+*/
+
+/* ============================   Flexbox ========================== */
+
+.flexbox-container {
+  height: 500px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  align-content: center;
+
+  background-color: antiquewhite;
+}
+
+.flexbox-item {
+  width: 200px;
+  margin: 10px;
+  border: 3px solid grey;
+  background-color: aquamarine;
+}
+
+.flexbox-item1 {
+  min-height: 100px;
+}
+.flexbox-item2 {
+  min-height: 200px;
+}
+.flexbox-item3 {
+  min-height: 300px;
+}
+
+/* ============================   Flexbox 2 ========================== */
+
+.flexbox-container2 {
+  display: flex;
+  justify-content: center;
+
+  background-color: cadetblue;
+}
+
+.flexbox-item4 {
+  min-height: 200px;
+}
+.flexbox-item5 {
+  min-height: 200px;
+  flex-shrink: 2;
+}
+.flexbox-item6 {
+  min-height: 200px;
+  flex-grow: 1;
+}
+
+/* ============================   Flexbox 3 ========================== */
+
+.flexbox-container3 {
+  height: 300px;
+  display: flex;
+  justify-content: center;
+
+  background-color: rgb(168, 166, 32);
+}
+
+.flexbox-item {
+  margin: 10px;
+  border: 3px solid grey;
+  background-color: aquamarine;
+}
+
+.flexbox-item7 {
+  min-height: 200px;
+  flex-shrink: 2;
+  align-self: flex-end;
+  aspect-ratio: 1 / 1;
+}
+.flexbox-item8 {
+  min-height: 200px;
+  align-self: center;
+  flex-basis: 1;
+  aspect-ratio: 4 / 3;
+}
+.flexbox-item9 {
+  min-height: 200px;
+  flex-grow: 1;
+}
+
+/*=====================      sticky position      ==================== */
+
+.letter {
+  position: sticky;
+  top: 0;
+  background-color: #ff8c00;
+  height: 20px;
+}
+
+/*=====================      sticky position      ==================== */
+/*=====================      efecto paralex      ==================== */
+
+.wrapper {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  perspective: 10px;
+}
+header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  transform-style: preserve-3d;
+  z-index: -1;
+}
+
+.background {
+  transform: translate(-10px) scale(2);
+}
+
+.foreground {
+  transform: translate(-5px) scale(1.5);
+}
+.background,
+.foreground {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+/*=====================      efecto paralex      ==================== */
+
+/* Estilo para el correo electrónico */
+.email-link {
+  font-size: 20px !important;
+  line-height: 140% !important;
+  color: black !important;
+  text-decoration: underline !important;
+  transition: font-weight 0.3s ease !important;
+  font-weight: normal !important;
+}
+
+.email-link:hover {
+  font-weight: bold !important;
+}
+
+/* Ajustes responsivos para el correo electrónico */
+@media (max-width: 768px) {
+  .email-link {
+    font-size: 18px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .email-link {
+    font-size: 16px !important;
+  }
+}
+
+/* Asegurarse de que no haya estilos específicos de sección que sobrescriban */
+.section-hero .email-link,
+.section-lets-talk .email-link {
+  font-size: 20px !important;
+  line-height: 140% !important;
+}
+
+/* Ajustes responsivos específicos si es necesario */
+@media (max-width: 768px) {
+  .section-hero .email-link,
+  .section-lets-talk .email-link {
+    font-size: 18px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-hero .email-link,
+  .section-lets-talk .email-link {
+    font-size: 16px !important;
+  }
+}
+
+/* =================================           NUEVOS FEATURES DE ALUSUR           ============================= */
+/* =================================           NUEVOS FEATURES DE ALUSUR           ============================= */
+/* =================================           NUEVOS FEATURES DE ALUSUR           ============================= */
+
+/* =================================           COLOR1   03045e       ============================= */
+/* =================================           COLOR2     0077b6     ============================= */
+/* =================================           COLOR3    00b4d8      ============================= */
+/* =================================           COLOR4    90e0ef    ============================= */
+/* =================================           COLOR5    caf0f8      ============================= */
+
+/* --------------------------------------------------       Imagen fondo Hero          ------------------------------------------------------------ */
+
+.sebastian {
+  height: 100vh;
+  background-image: url("logo.png"), url("inicio.jpg");
+  background-size: 30% 20%, cover; /* Achica el tamaño del logo a la mitad */
+  background-position: 50% 50%, 50% 50%;
+  background-repeat: no-repeat, no-repeat;
+  animation: diagonalMovement 5s forwards;
+  position: relative; /* Asegúrate de que el contenedor sea relativo */
+}
+
+.sebastian::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px; /* Altura del gradiente */
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.97),
+    rgba(255, 255, 255, 0)
+  ); /* Gradiente de blanco a transparente */
+  pointer-events: none; /* Asegura que no interfiera con los eventos del mouse */
+}
+
+@keyframes diagonalMovement {
+  0% {
+    background-position: 50% 50%, 0% 60%;
+  }
+
+  100% {
+    background-position: 50% 50%, 0% 0%;
+  }
+}
+
+/* --------------------------------------------------       Imagen fondo Hero />         ------------------------------------------------------------ */
+
+/* --------------------------------------------------   <   Section Empresa         ------------------------------------------------------------ */
+
+.sectionEmpresa {
+  height: 50vh;
+  background: white;
+}
+
+@media screen and (min-width: 768px) and (max-width: 1940px) {
+  .sectionEmpresa {
+    margin-top: 150px;
+    margin-left: 112px !important;
+    margin-right: 112px !important;
+    /* width: calc(100% - 224px) !important;  */
+  }
+}
+
+/* --------------------------------------------------      Section Empresa    />     ------------------------------------------------------------ */
+
+.slide-left {
+  animation: slide-left 1.5s ease-out both;
+}
+@keyframes slide-left {
+  0% {
+    transform: translateX(-110px);
+    opacity: 0%;
+  }
+  50% {
+    opacity: 70%;
+  }
+  100% {
+    transform: translateX(0px);
+    opacity: 100%;
+  }
+}
+
+.tituloLaEmpresa {
+  letter-spacing: 4px;
+}
+/* ----------------------------------------------
+  Generated by AnimatiSS
+  Licensed under FreeBSD License
+  URL: https://xsgames.co/animatiss
+  Twitter: @xsgames_
+---------------------------------------------- */
+
+.scale-up-left {
+  animation: scale-up-left 1.4s ease-out;
+}
+@keyframes scale-up-left {
+  0% {
+    transform: scale(0.5);
+    transform-origin: left center;
+    opacity: 10%;
+  }
+  100% {
+    transform: scale(1);
+    transform-origin: left center;
+  }
+}
+/* ================================      SECTION OBRAS =========================================== */
+
+@media screen and (min-width: 768px) and (max-width: 1940px) {
+  .sectionObras {
+    margin-top: 10px;
+    padding-top: 100px;
+    padding-left: 112px !important;
+    padding-right: 112px !important;
+    background-color: #ffffff;
+  }
+}
+
+.tituloObrasDestacadas {
+  letter-spacing: 4px;
+  justify-content: end;
+  margin-bottom: 90px;
+}
+
+.layout {
+  width: 100%;
+
+  display: grid;
+  grid:
+    "uno uno uno uno uno uno uno uno uno uno" 350px
+    "dos dos dos dos dos dos tres tres tres tres" 450px
+    "cuatro  cuatro cuatro cuatro cuatro cinco cinco cinco cinco cinco" 300px
+    / 10fr 10fr 10fr 10fr 10fr 10fr 10fr 10fr 10fr 10fr;
+  gap: 18px;
+}
+
+/* ========================               1                 =========================== */
+.uno {
+  grid-area: uno;
+  background-image: url("/public/ArtCarrasco.jpg");
+  background-size: cover; /* Asegura que la imagen cubra todo el contenedor */
+  background-position: center; /* Centra la imagen en el contenedor */
+  height: 100%; /* Asegúrate de que el contenedor tenga altura */
+  border-radius: 10px;
+  position: relative; /* Añadido para posicionar el contenido */
+  transition: transform 1.3s ease; /* Añadido para suavizar la transición */
+}
+
+.uno:hover {
+  transform: scale(1.05); /* Aumenta el tamaño al 5% al hacer hover */
+  border: solid 1px rgb(6, 6, 7);
+}
+
+.uno p {
+  position: absolute; /* Posiciona el <p> de forma absoluta */
+  top: 10px; /* Ajusta la distancia desde abajo */
+  right: 30px; /* Ajusta la distancia desde la derecha */
+  color: white; /* Cambia el color del texto si es necesario */
+  font-weight: 800;
+}
+
+.uno:hover p {
+  border-bottom: solid 2px #ffffff;
+}
+
+/* ========================               2                =========================== */
+
+.dos {
+  grid-area: dos;
+  background-image: url("/public/Sofitel.jpg");
+  background-size: cover; /* Asegura que la imagen cubra todo el contenedor */
+  background-position: center; /* Centra la imagen en el contenedor */
+  height: 100%; /* Asegúrate de que el contenedor tenga altura */
+  border-radius: 10px;
+  position: relative; /* Añadido para posicionar el contenido */
+  transition: transform 1.3s ease; /* Añadido para suavizar la transición */
+}
+
+.dos:hover {
+  transform: scale(1.05); /* Aumenta el tamaño al 5% al hacer hover */
+  border: solid 1px rgb(6, 6, 7);
+}
+
+.dos p {
+  position: absolute; /* Posiciona el <p> de forma absoluta */
+  top: 10px; /* Ajusta la distancia desde abajo */
+  right: 30px; /* Ajusta la distancia desde la derecha */
+  color: white; /* Cambia el color del texto si es necesario */
+  font-weight: 800;
+}
+.dos:hover p {
+  border-bottom: solid 2px #ffffff;
+}
+
+/* ========================               3                =========================== */
+
+.tres {
+  grid-area: tres;
+  background-image: url("/public/RinconDelBosque.jpg");
+  background-size: cover; /* Asegura que la imagen cubra todo el contenedor */
+  background-position: center; /* Centra la imagen en el contenedor */
+  height: 100%; /* Asegúrate de que el contenedor tenga altura */
+  border-radius: 10px;
+  position: relative; /* Añadido para posicionar el contenido */
+  transition: transform 1.3s ease; /* A��adido para suavizar la transición */
+}
+
+.tres:hover {
+  transform: scale(1.05); /* Aumenta el tamaño al 5% al hacer hover */
+  border: solid 1px rgb(6, 6, 7);
+}
+
+.tres p {
+  position: absolute; /* Posiciona el <p> de forma absoluta */
+  top: 10px; /* Ajusta la distancia desde abajo */
+  right: 30px; /* Ajusta la distancia desde la derecha */
+  color: white; /* Cambia el color del texto si es necesario */
+  font-weight: 800;
+}
+.tres:hover p {
+  border-bottom: solid 2px #ffffff;
+}
+
+/* ---------------------------------       4       ----------------------------------- */
+.cuatro {
+  grid-area: cuatro;
+  background-image: url("/public/RinconDelBosque.jpg");
+  background-size: cover; /* Asegura que la imagen cubra todo el contenedor */
+  background-position: center; /* Centra la imagen en el contenedor */
+  height: 100%; /* Asegúrate de que el contenedor tenga altura */
+  border-radius: 10px;
+  position: relative; /* Añadido para posicionar el contenido */
+  transition: transform 1.3s ease; /* Añadido para suavizar la transición */
+}
+
+.cuatro:hover {
+  transform: scale(1.05); /* Aumenta el tamaño al 5% al hacer hover */
+  border: solid 1px rgb(6, 6, 7);
+}
+
+.cuatro p {
+  position: absolute; /* Posiciona el <p> de forma absoluta */
+  top: 10px; /* Ajusta la distancia desde abajo */
+  right: 30px; /* Ajusta la distancia desde la derecha */
+  color: white; /* Cambia el color del texto si es necesario */
+  font-weight: 800;
+}
+.cuatro:hover p {
+  border-bottom: solid 2px #ffffff;
+}
+
+/* -------------------------------      5            ----------------------------------- */
+.cinco {
+  grid-area: cinco;
+  background-image: url("/public/ArtCarrasco.jpg");
+  background-size: cover; /* Asegura que la imagen cubra todo el contenedor */
+  background-position: center; /* Centra la imagen en el contenedor */
+  height: 100%; /* Asegúrate de que el contenedor tenga altura */
+  border-radius: 10px;
+  position: relative; /* Añadido para posicionar el contenido */
+  transition: transform 1.3s ease; /* Añadido para suavizar la transición */
+}
+
+.cinco:hover {
+  transform: scale(1.05); /* Aumenta el tamaño al 5% al hacer hover */
+  border: solid 1px rgb(6, 6, 7);
+}
+
+.cinco p {
+  position: absolute; /* Posiciona el <p> de forma absoluta */
+  top: 10px; /* Ajusta la distancia desde abajo */
+  right: 30px; /* Ajusta la distancia desde la derecha */
+  color: white; /* Cambia el color del texto si es necesario */
+  font-weight: 800;
+}
+
+.cinco:hover p {
+  border-bottom: solid 2px #ffffff;
+}
+.loAtenderemos {
+  display: flex;
+  justify-content: center;
+  margin-top: -10px;
+  margin-bottom: 60px;
+}
+.titContacto {
+  margin-top: -50px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ================================      SECTION CONTACTO =========================================== */
+/* ================================      SECTION SLIDER =========================================== */
+
+.slider-icon img {
+  width: 60px; /* Añadido: ancho al 50% */
+  height: 60px; /* Añadido: alto al 50% */
+  opacity: 1;
+}
+
+.proveedores {
+  padding-top: 40px;
+  margin-top: 140px;
+  padding-bottom: 40px;
+  color: white;
+}
+
+.section-slider {
+  width: 100vw;
+  background-color: #023e8a;
+  overflow: hidden;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  padding-left: calc(50vw - 50%);
+  padding-right: calc(50vw - 50%);
+  margin-top: 8rem; /* Añadimos un margen superior por defecto */
+}
+
+.itemsContacto {
+  margin-top: 40px;
+  background-color: #fcfcfc;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Asegúrate de que el contenedor tenga un ancho definido */
+}
+
+.item {
+  display: flex; /* Añadido para que los elementos hijos sean flexibles */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1; /* Esto permite que los elementos se distribuyan uniformemente */
+  transition: transform 0.4s ease-in-out, font-weight 0.4s ease-in-out; /* Combina ambas transiciones */
+}
+
+.item:hover {
+  transform: scale(1.0); /* Cambiado de scale a transform: scale */
+  font-weight: bold;
+}
+
+.iconSize {
+  font-size: 50px;
+}
+
+.provTech {
+  padding-left: 112px !important;
+  padding-right: 112px !important;
+}
+
+/* Agrega esto a tu archivo CSS */
+.slider-container {
+  width: 100%; /* Asegúrate de que el contenedor tenga un ancho definido */
+  overflow: hidden; /* Oculta el desbordamiento */
+  white-space: nowrap; /* Mantiene los elementos en una sola línea */
+}
+
+.slider-icons {
+  display: inline-block; /* Permite el desplazamiento horizontal */
+  animation: scroll 33s linear infinite; /* Ajusta la duración según sea necesario */
+}
+
+.slider-icon {
+  display: inline-block; /* Asegúrate de que cada icono se muestre en línea */
+  width: 100px; /* Ajusta el ancho según sea necesario */
+  height: auto; /* Mantiene la proporción de la imagen */
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  } /* Desplaza todo el contenido */
+}
