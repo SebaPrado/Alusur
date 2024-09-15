@@ -1676,7 +1676,7 @@ header {
 
 .sebastian {
   height: 100vh;
-  background-image: url("logo.png"), url("inicio.jpg");
+  background-image: url("/public/logo.png"), url("/public/inicio.jpg");
   background-size: 30% 20%, cover; /* Achica el tamaño del logo a la mitad */
   background-position: 50% 50%, 50% 50%;
   background-repeat: no-repeat, no-repeat;
