@@ -179,7 +179,7 @@ function Home() {
           <div className="slider-icons">
             {/* Nuevas imágenes para el slider */}
             <div className="slider-icon">
-              <img src={"../../../public/iseo.jpg"} alt="Iseo" />
+              <img src={"/public/iseo.jpg"} alt="Iseo" />
             </div>
             <div className="slider-icon">
               <img src={"../../../public/sapa.jpg"} alt="Sapa" />
