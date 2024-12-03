@@ -488,496 +488,6 @@ h5 {
 /* ============================   Section HERO2 ========================== */
 
 /* ============================   Section ENCABEZADO PROJECTS ========================== */
-/* ============================    ESTILOS GENERALES   ========================== */
-
-/* Estilos base */
-body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Montserrat", sans-serif;
-  font-optical-sizing: auto;
-  overflow-x: hidden;
-}
-
-h1 {
-  color: rgb(3, 3, 3);
-  font-weight: 400; /* Reducimos el grosor de la letra */
-}
-
-h3 {
-  font-size: 54px;
-  line-height: 120%;
-  font-weight: 500;
-}
-
-h5 {
-  margin: 0;
-}
-
-/* ======    Tamano de letra responsiva   ====== */
-
-/* =====      p       === */
-@media screen and (min-width: 768px) and (max-width: 1440px) {
-  p {
-    font-size: 15px !important;
-    line-height: 200% !important;
-  }
-}
-
-/* Mediana: 768px a 375px */
-@media screen and (min-width: 375px) and (max-width: 767px) {
-  p {
-    font-size: 16px !important;
-    line-height: 150% !important;
-  }
-  .container {
-    margin-left: 40px;
-    margin-right: 40px;
-  }
-}
-
-/* Chica: menor a 375px */
-@media screen and (max-width: 374px) {
-  p {
-    font-size: 14px !important;
-    line-height: 130% !important;
-  }
-}
-/* =====      p       === */
-
-/* =====      mail       === */
-@media screen and (min-width: 768px) and (max-width: 1440px) {
-  .mail {
-    font-size: 15px !important;
-    line-height: 200% !important;
-  }
-}
-
-/* Mediana: 768px a 375px */
-@media screen and (min-width: 375px) and (max-width: 767px) {
-  .mail {
-    font-size: 16px !important;
-    line-height: 120% !important;
-  }
-}
-
-/* Chica: menor a 375px */
-@media screen and (max-width: 374px) {
-  .mail {
-    font-size: 14px !important;
-    line-height: 100% !important;
-  }
-}
-/* =====      mail       === */
-/* ======    Tamano de letra responsiva   ====== */
-
-/* ======    Márgenes laterales responsivos   ====== */
-
-@media screen and (min-width: 768px) and (max-width: 1940px) {
-  .container {
-    margin-left: 112px !important;
-    margin-right: 112px !important;
-    /* width: calc(100% - 224px) !important;  */
-  }
-  .containerLarge {
-    margin: 56px;
-    padding: 56px;
-  }
-
-  .navbarContainerLarge {
-    margin-left: 56px;
-    margin-right: 56px;
-  }
-}
-
-@media screen and (min-width: 480px) and (max-width: 767px) {
-  .container {
-    margin-left: 40px;
-    margin-right: 40px;
-  }
-  .containerLarge {
-    margin: 20px;
-    padding: 20px;
-  }
-
-  .navbarContainerLarge {
-    margin-left: 40px;
-    margin-right: 40px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    margin-left: 16px;
-    margin-right: 16px;
-  }
-  .containerLarge {
-    margin-left: 16px;
-    margin-right: 16px;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-  .navbarContainerLarge {
-    margin-left: 8px;
-    margin-right: 8px;
-  }
-}
-
-/* ======    Márgenes laterales responsivos   ====== */
-
-.navbarContainerLarge {
-  position: relative;
-}
-
-/* ============================    ESTILOS GENERALES   ========================== */
-
-/* ============================         NAVBAR         ========================== */
-
-/* Estilos para el AppBar */
-.custom-app-bar {
-  width: 100%;
-  max-width: 440px;
-  height: 62px;
-}
-
-/* Estilos para el contenedor de botones */
-.button-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-}
-
-/* Estilos para los botones */
-.custom-button {
-  text-transform: none !important;
-  border-radius: 9999px !important;
-  padding: 2px 16px !important;
-  height: calc(100% - 12px) !important;
-  color: white;
-  font-family: "Montserrat", sans-serif !important;
-}
-
-.custom-button:hover {
-  background-color: white !important;
-  color: rgb(0, 0, 0) !important;
-}
-
-/* Estilos para el contenedor principal */
-.main-container {
-  display: flex;
-  justify-content: center;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  width: 100%;
-  background-color: transparent;
-  transition: background-color 0.3s ease;
-}
-
-.main-container.scrolled {
-  background-color: rgba(255, 255, 255, 0.8);
-}
-
-/* Estilos responsivos */
-@media screen and (max-width: 600px) {
-  .main-container {
-    background-color: transparent; /* Fondo transparente en pantallas pequeñas */
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-
-  .custom-app-bar {
-    max-width: 100%;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    height: 56px;
-  }
-
-  .button-container {
-    display: none;
-  }
-
-  .menu-icon {
-    display: block !important;
-  }
-
-  .custom-toolbar {
-    padding: 0 !important;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-
-  /* Ajuste del tamaño y posición del botón hamburguesa */
-  .menu-icon-button {
-    padding: 8px !important;
-    margin: 0 16px 0 0 !important;
-    color: black !important; /* Cambia el color del icono a negro */
-  }
-
-  /* Eliminar el margen izquierdo adicional */
-  .MuiIconButton-edgeStart {
-    margin-left: 0 !important;
-  }
-}
-
-/* Ocultar el botón hamburguesa en pantallas más grandes que 600px */
-@media (min-width: 601px) {
-  .menu-icon-button {
-    display: none !important;
-  }
-}
-
-/* Estilos responsivos para el Navbar */
-@media screen and (max-width: 450px) {
-  .custom-app-bar {
-    width: 100% !important;
-    height: 56px !important;
-    border-radius: 0 !important;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-
-  .custom-toolbar {
-    padding: 0 !important;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-
-  /* Ajuste del tamaño y posición del botón hamburguesa */
-  .menu-icon-button {
-    padding: 8px !important;
-    margin: 0 16px 0 0 !important;
-    color: black !important;
-  }
-
-  /* Eliminar el margen izquierdo adicional */
-  .MuiIconButton-edgeStart {
-    margin-left: 0 !important;
-  }
-}
-
-/* Estilo para ocultar el icono de menú en pantallas grandes */
-.menu-icon {
-  display: none;
-}
-
-.sticky {
-  position: fixed;
-  top: 0;
-  z-index: 1;
-}
-/* ============================       NAVBAR      ========================== */
-
-/* ============================   Section HERO1   ========================== */
-
-.containerLarge {
-  background-color: #fca211c7;
-  border-radius: 40px;
-  min-height: 15rem; /* Altura mínima base */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Ajustes responsivos para el contenedor */
-@media (min-width: 1300px) {
-  .containerLarge {
-    min-height: 18rem;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1299px) {
-  .containerLarge {
-    min-height: 18rem !important;
-  }
-}
-
-@media (min-width: 600px) and (max-width: 767px) {
-  .containerLarge {
-    margin-top: 3rem;
-    min-height: 33rem;
-    padding-top: 2.5rem;
-    padding-bottom: 10px;
-  }
-}
-
-@media (max-width: 599px) {
-  .containerLarge {
-    margin-top: 25px;
-    min-height: 10rem;
-    padding-top: 50px;
-    padding-bottom: 10px;
-  }
-}
-
-/* Estilos para el título principal */
-.titulo-principal {
-  margin-top: 0; /* Eliminamos el margen superior */
-  font-size: 7vw;
-  line-height: 1.2;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-}
-
-@media screen and (max-width: 830px) {
-  .titulo-principal {
-    min-height: 16rem;
-    font-size: calc(6vw + 1rem);
-  }
-}
-
-/* Ajustes responsivos para el título principal */
-@media screen and (max-width: 768px) {
-  .titulo-principal {
-    min-height: 17.5rem;
-    font-size: calc(7vw + 1.5rem);
-  }
-}
-
-@media screen and (max-width: 600px) {
-  .titulo-principal {
-    min-height: 18rem;
-    font-size: calc(7vw + 1.2rem);
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .titulo-principal {
-    min-height: 15.3rem;
-    font-size: calc(7vw + 1rem);
-    margin-bottom: 0;
-  }
-  /* .h1Title{
-    min-height: 15rem;
-    margin-top: 30px;
-  } */
-}
-
-.changing-text {
-  font-weight: 200;
-}
-/* ============================   Section HERO1 ========================== */
-
-/* ============================   Section HERO2 ========================== */
-
-.section2 {
-  width: 100%;
-  max-width: 1216px; /* 1440px - (112px * 2) */
-  margin-left: auto;
-  margin-right: auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 350px);
-  grid-template-areas: "container2-1 container2-2";
-  gap: 16px;
-}
-
-.container2-1 {
-  grid-area: container2-1;
-  min-width: 0;
-}
-
-.container2-1 h5 {
-  margin-bottom: calc(1rem - 6px);
-}
-
-.container2-1 p {
-  word-break: break-word;
-  overflow-wrap: break-word;
-  font-size: 16px; /* Tamaño base */
-}
-
-.heroParagraph {
-  font-size: 20px;
-  line-height: 140%;
-}
-
-.container2-2 {
-  /* background-color: rgb(166, 197, 26); */
-  grid-area: container2-2;
-  text-align: end;
-  min-width: 0;
-}
-
-.container2-2 p {
-  word-break: break-word;
-  overflow-wrap: break-word;
-  text-align: justify;
-}
-
-@media screen and (max-width: 768px) {
-  .section2 {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "container2-2"
-      "container2-1";
-  }
-
-  .container2-2 {
-    text-align: start;
-  }
-
-  .container2-1 p,
-  .container2-2 p {
-    font-size: 14px;
-    line-height: 24px;
-  }
-}
-
-.container2-1 h5 {
-  font-size: 24px;
-  line-height: 130%;
-}
-
-.container2-1 a {
-  color: black;
-  text-decoration: underline;
-  transition: transform 1s ease-in-out, font-weight 1s ease-in-out; /* Combina ambas transiciones */
-  font-size: 20px;
-  line-height: 140%;
-}
-
-.container2-1 a:hover {
-  font-weight: bold;
-}
-.mail.container2-2 p {
-  font-size: 20px;
-  line-height: 140%;
-}
-
-/* Ajustes responsivos para el texto en container2-2 */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .container2-2 p {
-    font-size: 18px;
-  }
-}
-@media screen and (max-width: 768px) {
-  .container2-2 p {
-    font-size: 16px;
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .container2-2 p {
-    font-size: 14px;
-  }
-}
-
-/* ============================   Section HERO2 ========================== */
-
-/* ============================   Section ENCABEZADO PROJECTS ========================== */
 
 .section3 {
   display: flex;
@@ -1867,7 +1377,7 @@ header {
   height: 100%; /* Asegúrate de que el contenedor tenga altura */
   border-radius: 10px;
   position: relative; /* Añadido para posicionar el contenido */
-  transition: transform 1.3s ease; /* A��adido para suavizar la transición */
+  transition: transform 1.3s ease; /* Aadido para suavizar la transición */
 }
 
 .tres:hover {
@@ -2042,4 +1552,44 @@ header {
   100% {
     transform: translateX(-100%);
   } /* Desplaza todo el contenido */
+}
+
+/* =====================      SECTION SLIDER      ===================== */
+
+/* Estilos para el modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: auto;
+}
+
+.modal-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
 }

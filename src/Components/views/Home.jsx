@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FaArrowRight,
   FaGithub,
@@ -94,6 +93,41 @@ function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // =====================  MOdal ==============================// 
+
+
+  // Nuevo estado para el modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  // Funciones para controlar el modal
+  const openModal = (imageSrc) => {
+    setSelectedImage(imageSrc);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setSelectedImage(null);
+  };
+
+  // Componente Modal
+  const Modal = ({ isOpen, onClose, imageSrc }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <img src={imageSrc} alt="Imagen ampliada" />
+          <button className="modal-close" onClick={onClose}>Cerrar</button>
+        </div>
+      </div>
+    );
+  };
+
+  // =====================  MOdal ==============================// 
+
+
   return (
     <>
       {/* ==========================================      sectionEmpresa        =================================== */}
@@ -147,19 +181,19 @@ function Home() {
         </div>
         <div className="gridImagenes">
           <section class="layout">
-            <div class="uno">
+            <div className="uno" onClick={() => openModal("/ArtCarrasco.jpg")}>
               <p>Art Carrasco</p>
             </div>
-            <div class="dos">
+            <div className="dos" onClick={() => openModal("ruta/a/imagen2.jpg")}>
               <p>Sofitel</p>
             </div>
-            <div class="tres">
+            <div className="tres" onClick={() => openModal("ruta/a/imagen3.jpg")}>
               <p>Rincon del Bosque</p>
             </div>
-            <div class="cuatro">
+            <div className="cuatro" onClick={() => openModal("ruta/a/imagen4.jpg")}>
               <p>Rincon del Bosque</p>
             </div>
-            <div class="cinco">
+            <div className="cinco" onClick={() => openModal("ruta/a/imagen5.jpg")}>
               <p>Art Carrasco</p>
             </div>
           </section>
@@ -623,6 +657,9 @@ function Home() {
           </div>
         </section> */}
       </div>
+
+      {/* Agregar el componente Modal */}
+      <Modal isOpen={modalOpen} onClose={closeModal} imageSrc={selectedImage} />
 
       {/* Nuevo footer */}
       <footer className="footer ">
