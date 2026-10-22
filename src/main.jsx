@@ -1,37 +1,23 @@
-import React, { StrictMode, useEffect } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import { AuthProvider } from "./auth/AuthProvider";
+import { theme } from "./theme";
 import App from "./App.jsx";
-import "./index.css";
-
-function Root() {
-  useEffect(() => {
-    const mainContainer = document.querySelector('.main-container');
-    
-    const handleScroll = () => {
-      if (window.scrollY > 0) {
-        mainContainer.classList.add('scrolled');
-      } else {
-        mainContainer.classList.remove('scrolled');
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  return (
-    <StrictMode>
-      <App />
-    </StrictMode>
-  );
-}
+import "./app.css";
 
 const rootElement = document.getElementById("root");
 if (rootElement) {
-  createRoot(rootElement).render(<Root />);
+  createRoot(rootElement).render(
+    <StrictMode>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ThemeProvider>
+    </StrictMode>,
+  );
 } else {
   console.error("No se encontró el elemento raíz");
 }

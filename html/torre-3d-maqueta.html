@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Torre Cipriani – Seguimiento de fachada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --ground:#0E1117; --card:#1E2736; --raise:#273244; --ink:#F2F4F7; --muted:#A9B3C1; --line:#2E3A4E;
+  --accent:#249596; --ok:#46C08A;
+}
+*{box-sizing:border-box;border-radius:0 !important}
+html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:'Archivo',system-ui,sans-serif;font-size:15px;line-height:1.35}
+button,input,select{font-family:inherit;color:inherit}
+button{cursor:pointer}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.app{height:100%;display:flex;flex-direction:column}
+
+header{flex-shrink:0;display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:12px 20px 10px;background:var(--card)}
+header h1{margin:0;font-size:18px;font-weight:800}
+.sr{position:absolute;left:-9999px}
+.search{margin-left:auto;display:flex;align-items:center;gap:8px;position:relative}
+.search input{width:280px;height:40px;padding:0 12px;border:1px solid var(--line);background:var(--ground);color:var(--ink);font-size:15px;font-family:'JetBrains Mono',monospace}
+.search input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.searchmsg{position:absolute;right:0;top:44px;font-size:12px;color:#F4B183;white-space:nowrap}
+.tabbar{flex-shrink:0;display:flex;gap:2px;padding:0 20px;background:var(--card);border-bottom:1px solid var(--line)}
+.tabbar button{height:44px;padding:0 20px;margin-bottom:-1px;border:1px solid transparent;border-bottom:0;background:transparent;color:var(--muted);font-size:14px;font-weight:700}
+.tabbar button:hover{color:var(--ink);background:var(--raise)}
+.tabbar button.on{background:var(--ground);color:var(--ink);border-color:var(--line);box-shadow:inset 0 3px 0 var(--accent)}
+.viewseg{position:absolute;left:16px;top:16px;background:rgba(30,39,54,.92)}
+.veil{position:fixed;inset:0;background:rgba(5,7,10,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:20}
+.veil.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:460px;max-width:100vw;background:var(--card);border-left:1px solid var(--line);z-index:21;transform:translateX(100%);transition:transform .3s ease;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.drawer-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.drawer-b{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.now{padding:12px 14px;background:var(--ground);border-left:4px solid var(--c)}
+.now .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.now .v{font-size:17px;font-weight:800;margin-top:2px}
+.trace{display:flex;flex-direction:column}
+.ev{display:grid;grid-template-columns:28px 1fr auto;column-gap:12px;position:relative;padding-bottom:18px}
+.ev:not(:last-child)::after{content:"";position:absolute;left:13px;top:28px;bottom:0;width:2px;background:var(--line)}
+.ev.done:not(:last-child)::after{background:var(--ok)}
+.ev .mk{width:28px;height:28px;border:2px solid var(--line);background:var(--ground);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--muted);position:relative;z-index:1}
+.ev.done .mk{background:var(--ok);border-color:var(--ok);color:#0E1117}
+.ev.cur .mk{outline:3px solid rgba(70,192,138,.35)}
+.ev .tt{font-weight:700;font-size:15px}
+.ev:not(.done) .tt{color:var(--muted);font-weight:600}
+.ev .pl{font-size:13px;color:var(--muted)}
+.ev .dt{font-size:13px;color:var(--muted);text-align:right;white-space:nowrap}
+.ev.done .dt{color:var(--ink)}
+.tabs{display:flex;gap:0;border:1px solid var(--line)}
+.tabs button{height:38px;padding:0 16px;border:0;border-right:1px solid var(--line);background:transparent;font-size:14px;font-weight:700;color:var(--muted)}
+.tabs button:last-child{border-right:0}
+.tabs button.on{background:var(--accent);color:#0E1117}
+.seg{display:flex;border:1px solid var(--line)}
+.seg button{height:34px;padding:0 14px;border:0;background:transparent;font-size:13px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--raise);color:var(--ink);box-shadow:inset 0 -3px 0 var(--accent)}
+
+main{flex:1;min-height:0;display:flex}
+.pane{display:none;flex:1;min-height:0}
+.pane.on{display:flex}
+.page{overflow:auto;flex-direction:column;padding:24px 20px 40px}
+.wrap{width:100%;max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h2{margin:0;font-size:22px;font-weight:800}
+.lead{color:var(--muted);font-size:14px;margin-top:4px}
+
+/* torre */
+.stage{flex:1;min-width:0;position:relative}
+#c{width:100%;height:100%;display:block;touch-action:none}
+.help{position:absolute;left:16px;bottom:14px;font-size:12px;color:var(--muted);background:rgba(14,17,23,.8);padding:6px 10px;pointer-events:none}
+.tip{position:absolute;pointer-events:none;padding:6px 10px;background:#F2F4F7;color:#0E1117;font-size:13px;font-weight:600;white-space:nowrap;transform:translate(14px,14px);display:none;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.tip .dot{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:0}
+.faces{position:absolute;right:16px;top:16px;display:flex;gap:6px}
+.faces button{width:40px;height:40px;border:1px solid var(--line);background:rgba(30,39,54,.92);font-weight:800;font-size:14px}
+.faces button:hover{border-color:var(--accent)}
+.floorchip{position:absolute;left:16px;top:60px;display:none;align-items:center;gap:10px;padding:6px 6px 6px 12px;background:var(--accent);color:#0E1117;font-weight:800;font-size:14px}
+.floorchip button{width:30px;height:30px;border:0;background:rgba(14,17,23,.2);font-weight:800}
+aside{width:340px;flex-shrink:0;overflow:auto;border-left:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:16px}
+
+.card{background:var(--card);border:1px solid var(--line);padding:14px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.big{font-size:30px;font-weight:800}
+.note{font-size:12px;color:var(--muted)}
+.bar{height:10px;overflow:hidden;display:flex;background:var(--raise);margin-top:10px}
+.legend{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.lg{display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 10px;border:1px solid transparent;background:transparent;text-align:left;width:100%}
+.lg:hover{background:var(--raise)}
+.lg.on{border-color:var(--accent);background:var(--raise)}
+.sw{width:14px;height:14px;flex-shrink:0;display:inline-block}
+.lg .n{margin-left:auto;font-weight:700}
+.lg .pct{width:44px;text-align:right;color:var(--muted);font-size:13px}
+.links{display:flex;flex-direction:column;gap:4px;margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.link{background:none;border:0;padding:6px 0;text-align:left;font-size:14px;font-weight:700;color:#7FD3D3}
+.link:hover{text-decoration:underline}
+.kv{display:grid;grid-template-columns:96px minmax(0,1fr);row-gap:6px;column-gap:8px;font-size:14px;margin-top:10px}
+.kv .k{color:var(--muted)} .kv .v{font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;font-size:12px;font-weight:800;color:#0E1117;white-space:nowrap}
+.tl{display:flex;flex-direction:column;margin-top:14px}
+.tl-step{display:flex;align-items:center;gap:12px;min-height:40px;position:relative}
+.tl-step:not(:last-child)::after{content:"";position:absolute;left:13px;top:31px;bottom:-9px;width:2px;background:var(--line)}
+.tl-step.reached:not(:last-child)::after{background:var(--ok)}
+.tl-c{width:28px;height:28px;flex-shrink:0;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--muted);background:var(--ground);position:relative;z-index:1}
+.tl-step.reached .tl-c{background:var(--ok);border-color:var(--ok);color:#0E1117}
+.tl-step .lb{font-size:14px;color:var(--muted);flex:1}
+.tl-step .dt{font-size:12px;color:var(--muted)}
+.tl-step.reached .lb{color:var(--ink)}
+.tl-step.current .lb{font-weight:800}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+
+/* formularios */
+.filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.field input,.field select{height:40px;padding:0 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:15px;color-scheme:dark}
+.btn{height:40px;padding:0 14px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#0E1117}
+
+/* flujo */
+.flow{display:flex;align-items:stretch;flex-wrap:nowrap;gap:0}
+.fbox{flex:1 1 0;min-width:0;padding:14px;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c)}
+.fbox .n{font-size:26px;font-weight:800}
+.fbox .l{font-size:13px;color:var(--muted)}
+.farrow{flex:0 0 104px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px;text-align:center}
+.farrow .n{font-size:22px;font-weight:800;color:var(--ok)}
+.farrow .n.zero{color:var(--muted)}
+.farrow .l{font-size:12px;color:var(--muted)}
+.farrow .ar{font-size:20px;color:var(--muted);line-height:1}
+@media (max-width:900px){.flow{flex-wrap:wrap}.fbox{flex-basis:100%}.farrow{flex-basis:100%;flex-direction:row;gap:10px;padding:6px 0}.farrow .ar{transform:rotate(90deg)}}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--card);position:sticky;top:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.total td{font-weight:800;border-top:2px solid var(--line)}
+.tablebox{border:1px solid var(--line);overflow:auto}
+
+/* pisos */
+.floornav{display:flex;align-items:center;gap:8px}
+.floornav .cur{min-width:110px;text-align:center;font-size:22px;font-weight:800}
+.elev{display:grid;grid-template-columns:70px repeat(10,minmax(0,1fr));gap:3px}
+.elev .fl{font-size:13px;color:var(--muted);display:flex;align-items:center}
+.cell{height:44px;border:0;display:flex;align-items:flex-end;justify-content:flex-start;padding:3px 4px;font-size:10px;font-weight:700;color:#0E1117}
+.cell.panel{background-image:repeating-linear-gradient(135deg,rgba(14,17,23,.28) 0 4px,transparent 4px 8px)}
+.cell:hover{outline:2px solid #fff;outline-offset:-2px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{padding:8px 12px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c);font-size:13px}
+.stat b{font-size:18px;margin-right:4px}
+
+/* contenedores */
+.cont{background:var(--card);border:1px solid var(--line)}
+.cont-h{width:100%;display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;padding:12px 14px;background:transparent;border:0;text-align:left}
+.cont-h .id{font-size:17px;font-weight:700}
+.cont-h .meta{font-size:13px;color:var(--muted)}
+.cont-h .tog{margin-left:auto;font-size:13px;font-weight:700;color:#7FD3D3}
+.codes-wrap{overflow:hidden;transition:height .3s ease}
+@media (prefers-reduced-motion:reduce){.codes-wrap,.drawer,.veil{transition:none}}
+.tog .car{display:inline-block;transition:transform .3s ease}
+.cont-h[aria-expanded="true"] .tog .car{transform:rotate(180deg)}
+.cont-h select{height:34px}
+.codes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.codes div{background:var(--ground);padding:8px 10px;font-size:13px}
+.codes .sm{display:block;font-size:11px;color:var(--muted);font-family:'Archivo',sans-serif}
+@media (max-width:700px){.codes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+@media (max-width:860px){
+  #tab-torre{flex-direction:column}
+  .stage{flex:none;height:60vh}
+  aside{width:auto;border-left:0;border-top:1px solid var(--line)}
+  .search{margin-left:0;width:100%} .search input{flex:1;width:auto}
+}
+
+/* ===== versión minimalista ===== */
+h2{font-size:20px}
+.lead{font-size:13px}
+.eyebrow{font-size:11px;letter-spacing:.08em}
+.card{background:transparent;border:0;border-bottom:1px solid var(--line);padding:0 0 18px}
+aside{gap:20px;padding:20px}
+.big{font-size:28px}
+.bar{height:6px}
+.lg{min-height:34px;padding:4px 8px;font-size:14px}
+.lg .pct{font-size:12px}
+.sw{width:10px;height:10px}
+.link{font-size:13px;padding:4px 0}
+.links{border-top:0;padding-top:4px;margin-top:6px}
+.chip{font-size:11px;padding:2px 7px}
+.help{background:none;font-size:11px;opacity:.7}
+.faces button{width:34px;height:34px;font-size:13px;background:rgba(14,17,23,.7)}
+.seg{border:0}
+.seg button{height:32px;padding:0 10px;font-size:13px;background:transparent}
+.seg button.on{background:transparent;color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
+.viewseg{background:transparent}
+.btn{height:34px;padding:0 12px;font-size:13px;background:transparent}
+.btn.ghost{border-color:transparent;color:var(--muted);font-weight:600}
+.btn.ghost:hover{color:var(--ink);border-color:var(--line)}
+.field input,.field select{height:34px;font-size:14px;background:transparent}
+.filters{gap:10px}
+.fbox{background:transparent;border:0;border-top:2px solid var(--c);padding:10px 2px 0}
+.fbox .n{font-size:24px}
+.fbox .l{font-size:12px}
+.farrow .n{font-size:17px}
+.farrow .l{font-size:11px}
+.tablebox{border:0}
+th{background:var(--ground);font-size:11px;font-weight:600}
+th,td{padding:8px 8px}
+td{font-size:13px}
+.stats{gap:18px}
+.stat{background:none;border:0;border-left:3px solid var(--c);padding:0 0 0 8px;font-size:13px;color:var(--muted)}
+.stat b{color:var(--ink);font-size:16px}
+.cell{height:36px;font-size:9px}
+.elev{gap:2px}
+.cont{background:transparent;border:0;border-bottom:1px solid var(--line)}
+.cont-h{padding:12px 2px;gap:6px 16px}
+.cont-h .id{font-size:15px}
+.cont-h .meta{font-size:12px}
+.cont-h .tog{font-size:12px}
+.codes{background:transparent;border-top:0;gap:0;padding:0 0 12px}
+.codes div{background:transparent;padding:6px 2px;font-size:13px}
+.search input{height:34px;width:240px;font-size:13px;background:transparent}
+header{padding:10px 20px 8px}
+.tabbar button{height:40px;font-size:13px;padding:0 18px}
+.user{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px}
+.user button{background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;padding:0}
+.user button:hover{color:var(--ink)}
+
+/* ===== login ===== */
+.login{position:fixed;inset:0;z-index:50;background:var(--ground);display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .35s ease}
+.login.out{opacity:0;pointer-events:none}
+.login-box{width:100%;max-width:340px;display:flex;flex-direction:column;gap:16px}
+.login-box .brand{font-size:26px;font-weight:800}
+.login-box .field input{height:44px;font-size:15px;background:var(--card);border-color:var(--line)}
+.login-box .field input[type=password]{letter-spacing:.2em;font-size:18px}
+.login-box .btn.primary{height:46px;font-size:15px;margin-top:6px}
+.login-box .foot{font-size:12px;color:var(--muted);text-align:center}
+.colh{font-size:11px;color:var(--muted);padding:0 2px 4px;line-height:1.2}
+.colh span{display:block;color:#7E8899}
+</style>
+</head>
+<body>
+<div class="login" id="login">
+  <form class="login-box" id="loginForm">
+    <div>
+      <div class="brand">Torre Cipriani</div>
+      <div class="lead">Seguimiento de fachada · Alusur</div>
+    </div>
+    <label class="field">Correo<input type="email" value="ricardo.prado@alusur.com.uy" readonly></label>
+    <label class="field">Contraseña<input type="password" value="cipriani2027" readonly></label>
+    <button class="btn primary" type="submit" id="loginBtn">Ingresar</button>
+    <div class="foot">Acceso solo para personal autorizado</div>
+  </form>
+</div>
+<div class="app">
+  <header>
+    <h1>Torre Cipriani</h1>
+    <form class="search" id="searchForm" role="search" autocomplete="off">
+      <label for="q" class="sr">Buscar módulo por código</label>
+      <input id="q" list="ids" placeholder="Buscar módulo · T1-S1902" spellcheck="false">
+      <datalist id="ids"></datalist>
+      <button class="btn primary" type="submit">Buscar</button>
+      <span class="searchmsg" id="searchMsg" role="status"></span>
+    </form>
+    <div class="user">Ricardo Prado <button id="logout">Salir</button></div>
+  </header>
+  <nav class="tabbar" role="tablist" aria-label="Secciones">
+    <button role="tab" data-tab="torre" class="on" aria-selected="true">Torre 3D</button>
+    <button role="tab" data-tab="seg" aria-selected="false">Seguimiento de obra</button>
+    <button role="tab" data-tab="piso" aria-selected="false">Por piso</button>
+    <button role="tab" data-tab="cont" aria-selected="false">Contenedores</button>
+  </nav>
+
+  <main>
+    <!-- TORRE -->
+    <section class="pane on" id="tab-torre">
+      <div class="stage" id="stage">
+        <canvas id="c" aria-label="Modelo 3D de la torre. Hacé clic en un módulo para ver su estado."></canvas>
+        <div class="seg viewseg" id="viewSeg" role="group" aria-label="Vista del modelo">
+          <button id="vMat" class="on" aria-pressed="true">Material</button>
+          <button id="vEst" aria-pressed="false">Estado</button>
+        </div>
+        <div class="floorchip" id="floorChip"><span id="floorChipTxt"></span><button id="floorChipX" aria-label="Quitar filtro de piso">✕</button></div>
+        <div class="faces" aria-label="Ver cara">
+          <button data-face="0" title="Cara Norte">N</button>
+          <button data-face="1" title="Cara Este">E</button>
+          <button data-face="2" title="Cara Sur (mar)">S</button>
+          <button data-face="3" title="Cara Oeste">O</button>
+        </div>
+        <div class="help">Arrastrá para girar · Rueda para acercar · Clic derecho o Shift + arrastre para subir/bajar · Doble clic para enfocar</div>
+        <div class="tip" id="tip"></div>
+      </div>
+      <aside>
+        <div class="card">
+          <div class="eyebrow">Avance de instalación</div>
+          <div class="big" id="kpi"></div>
+          <div class="note" id="kpiSub"></div>
+          <div class="bar" id="bar"></div>
+          <div class="legend" id="legend"></div>
+          <div class="note" style="margin-top:6px">Tocá un estado para resaltar solo esos módulos.</div>
+          <div class="links">
+            <button class="link" data-goto-cont="camino">Contenedores en camino →</button>
+            <button class="link" data-goto-cont="prod">Contenedores en producción →</button>
+          </div>
+        </div>
+        <div class="card" id="detail"></div>
+      </aside>
+    </section>
+
+    <!-- SEGUIMIENTO -->
+    <section class="pane page" id="tab-seg">
+      <div class="wrap">
+        <div>
+          <h2>Seguimiento de obra</h2>
+          <div class="lead">Cuántos módulos pasaron de cada etapa a la siguiente entre dos fechas.</div>
+        </div>
+        <div class="filters">
+          <label class="field">Desde<input type="date" id="dFrom"></label>
+          <label class="field">Hasta<input type="date" id="dTo"></label>
+          <button class="btn ghost" data-range="7">Última semana</button>
+          <button class="btn ghost" data-range="28">Últimas 4 semanas</button>
+          <button class="btn ghost" data-range="91">Últimos 3 meses</button>
+          <div class="field" style="margin-left:auto">Equipo de instalación
+            <div class="seg" id="teamSeg" role="group" aria-label="Equipo">
+              <button data-t="" class="on">Todos</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:8px">Por equipo en el período</div>
+          <div class="tablebox"><table id="teamTable"></table></div>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:8px">Detalle por semana</div>
+          <div class="tablebox"><table id="weekTable"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PISO -->
+    <section class="pane page" id="tab-piso">
+      <div class="wrap">
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;justify-content:space-between">
+          <div>
+            <h2>Por piso</h2>
+            <div class="lead">Qué falta instalar y qué ya está instalado en un piso.</div>
+          </div>
+          <div class="floornav">
+            <button class="btn" id="fPrev" aria-label="Piso anterior">◀</button>
+            <label class="field" style="flex-direction:row;align-items:center;gap:8px">
+              <span class="sr" style="position:absolute;left:-9999px">Piso</span>
+              <select id="fSel" aria-label="Elegir piso"></select>
+            </label>
+            <button class="btn" id="fNext" aria-label="Piso siguiente">▶</button>
+            <button class="btn primary" id="fTo3d">Ver en 3D</button>
+          </div>
+        </div>
+        <div class="stats" id="fStats"></div>
+        <div class="card">
+          <div class="eyebrow" style="margin-bottom:10px">Elevación del piso</div>
+          <div class="elev" id="fElev"></div>
+        </div>
+        <div class="grid2">
+          <div>
+            <div class="eyebrow" style="margin-bottom:8px" id="fTodoTitle"></div>
+            <div class="tablebox"><table id="fTodo"></table></div>
+          </div>
+          <div>
+            <div class="eyebrow" style="margin-bottom:8px" id="fDoneTitle"></div>
+            <div class="tablebox"><table id="fDone"></table></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTENEDORES -->
+    <section class="pane page" id="tab-cont">
+      <div class="wrap">
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;justify-content:space-between">
+          <div>
+            <h2>Contenedores</h2>
+            <div class="lead">Contenedores que todavía no llegaron a obra, con los 25 módulos de cada uno.</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <label class="field" style="flex-direction:row;align-items:center"><span class="sr">Origen</span><select id="oSel" aria-label="Origen"></select></label>
+          <div class="seg" id="contSeg">
+            <button data-cs="camino" class="on">En camino</button>
+            <button data-cs="prod">En producción</button>
+          </div>
+          </div>
+        </div>
+        <div id="contList" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="veil" id="veil"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-labelledby="drawerTitle">
+  <div class="drawer-h">
+    <div><div class="eyebrow">Recorrido del módulo</div><div class="mono" id="drawerTitle" style="font-size:22px;font-weight:700"></div></div>
+    <button class="btn" id="drawerX" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="drawer-b" id="drawerBody"></div>
+</aside>
+
+<script>
+// ================= DATOS DE EJEMPLO =================
+const FLOORS=50, COLS=10, MW=1.6, FH=3.3, W=COLS*MW, H=FLOORS*FH, PER_CONT=25;
+const DAY=864e5, TODAY=Date.UTC(2026,9,21), D0=TODAY-147*DAY;
+const ORIGINS=[
+  {k:'GAL',name:'Planta Aluman Galicia',port:'Vigo'},
+  {k:'CAD',name:'Planta Aluman Cádiz',port:'Algeciras'},
+  {k:'LIS',name:'Planta Aluman Lisboa',port:'Lisboa'}
+];
+const FACES=[{k:'N',name:'Norte'},{k:'E',name:'Este'},{k:'S',name:'Sur'},{k:'O',name:'Oeste'}];
+const STATES=[
+  {k:'prod',  label:'En producción', color:'#6E7F96'},
+  {k:'camino',label:'En camino',     color:'#9B7FE8'},
+  {k:'obra',  label:'En obra',       color:'#E3A63B'},
+  {k:'inst',  label:'Instalada',     color:'#2BB3B4'},
+  {k:'term',  label:'Terminada',     color:'#46C08A'}
+];
+const TRANS=[null,
+  {label:'Salieron de fábrica', sub:'Producción → En camino'},
+  {label:'Llegaron a obra',     sub:'En camino → En obra'},
+  {label:'Instalados',          sub:'En obra → Instalada'},
+  {label:'Terminados',          sub:'Instalada → Terminada'}];
+const SI=Object.fromEntries(STATES.map((s,i)=>[s.k,i]));
+const pad=(n,l=2)=>String(n).padStart(l,'0');
+const fmt=t=>{const d=new Date(t);return pad(d.getUTCDate())+'/'+pad(d.getUTCMonth()+1)+'/'+d.getUTCFullYear();};
+const fmtShort=t=>{const d=new Date(t);return pad(d.getUTCDate())+'/'+pad(d.getUTCMonth()+1);};
+const toISO=t=>new Date(t).toISOString().slice(0,10);
+const fromISO=s=>{const [y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d);};
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const rand=rng(20261021);
+
+const faceOff=[0,1.5,3,1];
+const MODS=[];
+for(let f=1;f<=FLOORS;f++) for(let fi=0;fi<4;fi++) for(let c=0;c<COLS;c++){
+  MODS.push({id:`T1-${FACES[fi].k}${pad(f)}${pad(c+1)}`, floor:f, face:fi, col:c, glass:c%2===0, v:f+faceOff[fi]+rand()*1.8});
+}
+// equipo de instalación: cada equipo trabaja sobre todo una cara
+const TEAMS=['Alfa','Beta','Gamma','Delta'], rT=rng(7);
+MODS.forEach(m=>{ m.team = rT()<0.85 ? TEAMS[m.face] : TEAMS[Math.floor(rT()*4)]; });
+// contenedores de 25 módulos, en orden de fabricación; todos los módulos de un contenedor viajan juntos
+const CONTS=[];
+[...MODS].sort((a,b)=>a.v-b.v).forEach((m,i)=>{
+  if(i%PER_CONT===0){
+    const dep=D0+Math.round(5*m.v)*DAY;
+    CONTS.push({id:'MSCU'+String(Math.floor(1e6+rand()*8.99e6)).padStart(7,'0'), dep, arr:0, mods:[]});
+  }
+  const c=CONTS[CONTS.length-1]; c.mods.push(m); m.cont=c;
+});
+CONTS.forEach(c=>{ c.arr=c.dep+(34+Math.floor(rand()*5))*DAY; c.origin=ORIGINS[Math.floor(rand()*3)];
+  c.mods.forEach(m=>{
+    const inst=c.arr+(9+Math.floor(rand()*7))*DAY, term=inst+(21+Math.floor(rand()*9))*DAY;
+    m.t=[c.dep-30*DAY, c.dep, c.arr, inst, term];
+  });
+  c.floors=[Math.min(...c.mods.map(m=>m.floor)),Math.max(...c.mods.map(m=>m.floor))];
+});
+const stateAt=(m,t)=>{let s=0;for(let k=1;k<=4;k++) if(m.t[k]<=t) s=k;return s;};
+const contStateAt=(c,t)=> t<c.dep?0 : t<c.arr?1 : 2;
+MODS.forEach(m=>m.s=stateAt(m,TODAY));
+
+const BY_ID=new Map(MODS.map(m=>[m.id,m]));
+
+// ================= ESCENA 3D =================
+const canvas=document.getElementById('c'), stage=document.getElementById('stage');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x0E1117);
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(0x0E1117,450,900);
+const camera=new THREE.PerspectiveCamera(35,1,1,2000);
+scene.add(new THREE.HemisphereLight(0xcfe2ff,0x0e1117,0.85));
+const sun=new THREE.DirectionalLight(0xffffff,0.95); sun.position.set(120,260,160); scene.add(sun);
+const fill=new THREE.DirectionalLight(0x88aacc,0.35); fill.position.set(-150,80,-120); scene.add(fill);
+
+const core=new THREE.Mesh(new THREE.BoxGeometry(W-0.2,H,W-0.2),new THREE.MeshStandardMaterial({color:0x07090C,roughness:1}));
+core.position.y=H/2; scene.add(core);
+const roof=new THREE.Mesh(new THREE.BoxGeometry(W+0.6,1.2,W+0.6),new THREE.MeshStandardMaterial({color:0x2A3446,roughness:.8}));
+roof.position.y=H+0.6; scene.add(roof);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400),new THREE.MeshStandardMaterial({color:0x10141B,roughness:1}));
+ground.rotation.x=-Math.PI/2; scene.add(ground);
+const grid=new THREE.GridHelper(400,40,0x26303F,0x1A212C); grid.position.y=0.02; scene.add(grid);
+
+// costa del lado Sur (z negativo): arena con borde en zigzag y océano
+(function coast(){
+  const pts=[]; for(let x=700;x>=-700;x-=14){ const k=Math.round((x+700)/14); pts.push([x, 60+(k%2?9:0)+rand()*4]); }
+  const sh=new THREE.Shape(); sh.moveTo(-700,30); sh.lineTo(700,30); pts.forEach(p=>sh.lineTo(p[0],p[1])); sh.closePath();
+  const sand=new THREE.Mesh(new THREE.ShapeGeometry(sh),new THREE.MeshStandardMaterial({color:0x423D33,roughness:1}));
+  sand.rotation.x=-Math.PI/2; sand.position.y=0.45; scene.add(sand);
+  const foam=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts.map(p=>new THREE.Vector3(p[0],0.5,-p[1]))),new THREE.LineBasicMaterial({color:0x7C8A92}));
+  scene.add(foam);
+  const sea=new THREE.Mesh(new THREE.PlaneGeometry(1400,800),new THREE.MeshStandardMaterial({color:0x1A2F3D,roughness:.95,metalness:0}));
+  sea.rotation.x=-Math.PI/2; sea.position.set(0,0.35,-(55+400)); scene.add(sea);
+})();
+
+function label(txt){
+  const cv=document.createElement('canvas'); cv.width=cv.height=128; const g=cv.getContext('2d');
+  g.fillStyle='#249596'; g.fillRect(14,14,100,100);
+  g.fillStyle='#0E1117'; g.font='800 64px Archivo, sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(txt,64,68);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthWrite:false}));
+  sp.scale.set(7,7,1); return sp;
+}
+[[0,4,W/2+14],[W/2+14,4,0],[0,4,-W/2-14],[-W/2-14,4,0]].forEach((p,i)=>{const s=label(FACES[i].k); s.position.set(...p); scene.add(s);});
+
+const geo=new THREE.BoxGeometry(MW-0.08,FH-0.1,0.24);
+const glassIdx=[], panelIdx=[];
+MODS.forEach((m,i)=>(m.glass?glassIdx:panelIdx).push(i));
+const glassMesh=new THREE.InstancedMesh(geo,new THREE.MeshStandardMaterial({color:0xffffff,metalness:.45,roughness:.22}),glassIdx.length);
+const panelMesh=new THREE.InstancedMesh(geo,new THREE.MeshStandardMaterial({color:0xffffff,metalness:.1,roughness:.7}),panelIdx.length);
+const dummy=new THREE.Object3D(), off=W/2+0.12;
+function place(m){
+  const u=-W/2+(m.col+0.5)*MW, y=(m.floor-1)*FH+FH/2;
+  if(m.face===0){dummy.position.set(u,y,off);dummy.rotation.set(0,0,0);}
+  if(m.face===1){dummy.position.set(off,y,-u);dummy.rotation.set(0,Math.PI/2,0);}
+  if(m.face===2){dummy.position.set(-u,y,-off);dummy.rotation.set(0,Math.PI,0);}
+  if(m.face===3){dummy.position.set(-off,y,u);dummy.rotation.set(0,-Math.PI/2,0);}
+  dummy.updateMatrix(); m.matrix=dummy.matrix.clone(); m.pos=dummy.position.clone();
+}
+glassIdx.forEach((mi,i)=>{const m=MODS[mi];place(m);glassMesh.setMatrixAt(i,m.matrix);m.mesh=glassMesh;m.inst=i;});
+panelIdx.forEach((mi,i)=>{const m=MODS[mi];place(m);panelMesh.setMatrixAt(i,m.matrix);m.mesh=panelMesh;m.inst=i;});
+scene.add(glassMesh,panelMesh);
+const selBox=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(MW+0.15,FH+0.12,0.5)),new THREE.LineBasicMaterial({color:0xffffff}));
+selBox.visible=false; selBox.matrixAutoUpdate=false; scene.add(selBox);
+
+let mode='mat', filter=null, floorFilter=null, hovered=null, selected=null;
+const C={glass:new THREE.Color('#6FB6C6'), panel:new THREE.Color('#1E2736'), dimG:new THREE.Color('#1C232D'), dimP:new THREE.Color('#12161D')};
+const stCol=STATES.map(s=>new THREE.Color(s.color)), tmp=new THREE.Color(), white=new THREE.Color('#fff');
+function colorOf(m){
+  const out=(filter!==null && m.s!==filter) || (floorFilter!==null && m.floor!==floorFilter);
+  if(out) tmp.copy(m.glass?C.dimG:C.dimP);
+  else if(mode==='est'){ tmp.copy(stCol[m.s]); if(!m.glass) tmp.multiplyScalar(.72); }
+  else tmp.copy(m.glass?C.glass:C.panel);
+  if(m===hovered) tmp.lerp(white,.4);
+  return tmp;
+}
+function paint(m){ m.mesh.setColorAt(m.inst,colorOf(m)); m.mesh.instanceColor.needsUpdate=true; }
+function paintAll(){ MODS.forEach(m=>m.mesh.setColorAt(m.inst,colorOf(m))); glassMesh.instanceColor.needsUpdate=true; panelMesh.instanceColor.needsUpdate=true; }
+paintAll();
+
+const cam={theta:.65,phi:1.42,dist:330,ty:H*.5}, goal={...cam};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function updateCamera(){
+  for(const k in cam) cam[k]+=(goal[k]-cam[k])*.16;
+  camera.position.set(cam.dist*Math.sin(cam.phi)*Math.sin(cam.theta), cam.ty+cam.dist*Math.cos(cam.phi), cam.dist*Math.sin(cam.phi)*Math.cos(cam.theta));
+  camera.lookAt(0,cam.ty,0);
+}
+function faceTheta(fi){ let t=[0,Math.PI/2,Math.PI,-Math.PI/2][fi]; while(t-goal.theta>Math.PI)t-=2*Math.PI; while(t-goal.theta<-Math.PI)t+=2*Math.PI; return t; }
+
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+function pick(x,y){
+  const r=canvas.getBoundingClientRect();
+  ndc.set(((x-r.left)/r.width)*2-1, -((y-r.top)/r.height)*2+1);
+  ray.setFromCamera(ndc,camera);
+  const hit=ray.intersectObjects([glassMesh,panelMesh])[0];
+  if(!hit) return null;
+  return MODS[(hit.object===glassMesh?glassIdx:panelIdx)[hit.instanceId]];
+}
+const tip=document.getElementById('tip');
+function setHover(m,x,y){
+  if(m!==hovered){ const p=hovered; hovered=m; if(p) paint(p); if(m) paint(m); }
+  if(m){ const r=stage.getBoundingClientRect(), s=STATES[m.s];
+    tip.innerHTML=`<span class="dot" style="background:${s.color}"></span>Piso ${m.floor} · ${FACES[m.face].name} · Eje ${m.col+1} — ${s.label}`;
+    tip.style.left=(x-r.left)+'px'; tip.style.top=(y-r.top)+'px'; tip.style.display='block'; canvas.style.cursor='pointer';
+  } else { tip.style.display='none'; canvas.style.cursor='grab'; }
+}
+const ptrs=new Map(); let down=null, pinch=null;
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('pointerdown',e=>{
+  canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1) down={lx:e.clientX,ly:e.clientY,pan:e.button===2||e.shiftKey,moved:0};
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y),my:(a.y+b.y)/2}; down=null; }
+});
+canvas.addEventListener('pointermove',e=>{
+  if(ptrs.has(e.pointerId)) ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch && ptrs.size===2){ const [a,b]=[...ptrs.values()], d=Math.hypot(a.x-b.x,a.y-b.y), my=(a.y+b.y)/2;
+    goal.dist=clamp(goal.dist*pinch.d/d,22,450); goal.ty=clamp(goal.ty+(my-pinch.my)*goal.dist*.003,0,H); pinch={d,my}; return; }
+  if(down){ const dx=e.clientX-down.lx, dy=e.clientY-down.ly; down.lx=e.clientX; down.ly=e.clientY; down.moved+=Math.abs(dx)+Math.abs(dy);
+    if(down.pan) goal.ty=clamp(goal.ty+dy*goal.dist*.0028,0,H); else { goal.theta-=dx*.006; goal.phi=clamp(goal.phi-dy*.004,.25,1.5); }
+    setHover(null); canvas.style.cursor='grabbing'; return; }
+  if(e.pointerType==='mouse') setHover(pick(e.clientX,e.clientY),e.clientX,e.clientY);
+});
+function endPtr(e){ ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null;
+  if(down && ptrs.size===0){ if(down.moved<6) select(pick(e.clientX,e.clientY)); down=null; canvas.style.cursor='grab'; } }
+canvas.addEventListener('pointerup',endPtr); canvas.addEventListener('pointercancel',endPtr);
+canvas.addEventListener('pointerleave',()=>{ if(!down) setHover(null); });
+canvas.addEventListener('wheel',e=>{e.preventDefault(); goal.dist=clamp(goal.dist*Math.exp(e.deltaY*.0012),22,450);},{passive:false});
+canvas.addEventListener('dblclick',e=>{ const m=pick(e.clientX,e.clientY); if(m){ select(m); focus(m); } });
+function focus(m){ goal.ty=m.pos.y; goal.dist=48; goal.phi=1.45; goal.theta=faceTheta(m.face); }
+document.querySelectorAll('.faces button').forEach(b=>b.addEventListener('click',()=>{ goal.theta=faceTheta(+b.dataset.face); goal.phi=1.3; }));
+
+function setMode(m){ mode=m; ['vMat','vEst'].forEach(id=>{const on=(id==='vMat')===(m==='mat'); const b=document.getElementById(id); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on);}); paintAll(); }
+document.getElementById('vMat').onclick=()=>setMode('mat');
+document.getElementById('vEst').onclick=()=>setMode('est');
+
+function setFloorFilter(f){
+  floorFilter=f; paintAll();
+  const chip=document.getElementById('floorChip');
+  chip.style.display=f?'flex':'none';
+  if(f){ document.getElementById('floorChipTxt').textContent='Piso '+f; goal.ty=(f-1)*FH+FH/2; goal.dist=95; goal.phi=1.38; }
+}
+document.getElementById('floorChipX').onclick=()=>setFloorFilter(null);
+
+// ================= PANEL LATERAL =================
+function timeline(m){
+  return STATES.map((x,i)=>{
+    const reached=i<=m.s;
+    let dt='';
+    if(i===0) dt=reached?'desde '+fmtShort(m.t[0]):'';
+    else if(reached) dt=fmtShort(m.t[i]);
+    else if(i<=2) dt='previsto '+fmtShort(m.t[i]);
+    return `<div class="tl-step ${reached?'reached':''} ${i===m.s?'current':''}"><div class="tl-c">${reached?'✓':i+1}</div><div class="lb">${x.label}</div><div class="dt">${dt}</div></div>`;
+  }).join('');
+}
+function select(m){
+  selected=m; const el=document.getElementById('detail');
+  if(!m){ selBox.visible=false; el.innerHTML='<div class="eyebrow">Módulo seleccionado</div><div class="empty">Hacé clic en un módulo de la torre para ver en qué estado está.</div>'; return; }
+  selBox.matrix.copy(m.matrix); selBox.visible=true;
+  const s=STATES[m.s];
+  el.innerHTML=`<div class="eyebrow">Módulo seleccionado</div>
+    <div class="mono" style="font-size:22px;font-weight:700;margin-top:6px">${m.id}</div>
+    <div style="margin-top:10px"><span class="chip" style="background:${s.color}">${s.label}</span></div>
+    <div class="kv">
+      <span class="k">Tipo</span><span class="v">${m.glass?'Vidrio':'Panel oscuro'}</span>
+      <span class="k">Ubicación</span><span class="v">Piso ${m.floor} · ${FACES[m.face].name} · Eje ${m.col+1}</span>
+      <span class="k">Origen</span><span class="v">${m.cont.origin.name}</span>
+      <span class="k">Contenedor</span><span class="v mono">${m.cont.id}</span>
+      ${m.s>=3?`<span class="k">Equipo</span><span class="v">${m.team}</span>`:''}
+    </div>
+    <div class="tl">${timeline(m)}</div>
+    <button class="link" id="openTrace" style="margin-top:8px">Ver recorrido completo →</button>`;
+  document.getElementById('openTrace').onclick=()=>openTrace(m);
+}
+select(null);
+
+function buildLegend(){
+  const counts=STATES.map((_,i)=>MODS.filter(m=>m.s===i).length), tot=MODS.length, done=counts[3]+counts[4];
+  document.getElementById('kpi').textContent=Math.round(done/tot*100)+' %';
+  document.getElementById('kpiSub').textContent=`${done.toLocaleString('es')} de ${tot.toLocaleString('es')} módulos instalados o terminados`;
+  document.getElementById('bar').innerHTML=[4,3,2,1,0].map(i=>`<div style="width:${counts[i]/tot*100}%;background:${STATES[i].color}"></div>`).join('');
+  document.getElementById('legend').innerHTML=STATES.map((s,i)=>`<button class="lg ${filter===i?'on':''}" data-i="${i}" aria-pressed="${filter===i}">
+    <span class="sw" style="background:${s.color}"></span><span>${s.label}</span><span class="n">${counts[i].toLocaleString('es')}</span><span class="pct">${Math.round(counts[i]/tot*100)} %</span></button>`).join('');
+  document.querySelectorAll('.lg').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; filter=filter===i?null:i; buildLegend(); paintAll(); });
+}
+buildLegend();
+
+// ================= PESTAÑAS =================
+function showTab(t){
+  document.querySelectorAll('.tabbar button').forEach(b=>{const on=b.dataset.tab===t; b.classList.toggle('on',on); b.setAttribute('aria-selected',on);});
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='tab-'+t));
+  if(t==='torre') resize();
+}
+document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+document.querySelectorAll('[data-goto-cont]').forEach(b=>b.onclick=()=>{ contState=b.dataset.gotoCont; renderConts(); showTab('cont'); });
+
+// ================= SEGUIMIENTO =================
+const dFrom=document.getElementById('dFrom'), dTo=document.getElementById('dTo');
+dTo.value=toISO(TODAY); dFrom.value=toISO(TODAY-27*DAY);
+dFrom.max=dTo.max=toISO(TODAY);
+let segTeam='';
+const teamSeg=document.getElementById('teamSeg');
+teamSeg.innerHTML+=TEAMS.map(t=>`<button data-t="${t}">${t}</button>`).join('');
+teamSeg.querySelectorAll('button').forEach(b=>b.onclick=()=>{ segTeam=b.dataset.t; teamSeg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); renderSeg(); });
+function renderSeg(){
+  let a=fromISO(dFrom.value), b=fromISO(dTo.value); if(a>b) [a,b]=[b,a];
+  const end=b+DAY, inR=(t,f,e)=>t>=f&&t<e;
+  // la instalación y la terminación las hace un equipo; salir de fábrica y llegar a obra, no
+  const counts=(k,f,e)=>MODS.filter(m=>inR(m.t[k],f,e)&&(k<3||!segTeam||m.team===segTeam)).length;
+  const dow=(new Date(a).getUTCDay()+6)%7; let ws=a-dow*DAY; const rows=[];
+  while(ws<end){ const we=ws+7*DAY, from=Math.max(ws,a), to=Math.min(we,end);
+    rows.push({ws,we:we-DAY,r:[0,1,2,3,4].map(k=>k?counts(k,from,to):0)}); ws=we; }
+  const tag=k=> k>=3&&segTeam?` · ${segTeam}`:'';
+  const head=`<thead><tr><th>Semana</th>${[1,2,3,4].map(k=>`<th class="num">${TRANS[k].label}${tag(k)}<div style="font-weight:500;text-transform:none;letter-spacing:0">${TRANS[k].sub}</div></th>`).join('')}</tr></thead>`;
+  const body=[...rows].reverse().map(x=>`<tr><td>${fmtShort(x.ws)} – ${fmtShort(x.we)}</td>${[1,2,3,4].map(k=>`<td class="num">${x.r[k]}</td>`).join('')}</tr>`).join('');
+  const total=`<tr class="total"><td>Total del período</td>${[1,2,3,4].map(k=>`<td class="num">${counts(k,a,end)}</td>`).join('')}</tr>`;
+  document.getElementById('weekTable').innerHTML=head+'<tbody>'+body+total+'</tbody>';
+
+  const weeks=Math.max(1,(end-a)/(7*DAY));
+  const tr=TEAMS.map(t=>{
+    const inst=MODS.filter(m=>m.team===t&&inR(m.t[3],a,end)), term=MODS.filter(m=>m.team===t&&inR(m.t[4],a,end)).length;
+    const fl=[...new Set(inst.map(m=>m.floor))].sort((x,y)=>x-y);
+    return {t,inst:inst.length,term,avg:(inst.length/weeks).toFixed(1).replace('.',','),fl:fl.length?`${fl[0]}–${fl[fl.length-1]}`:'—'};
+  });
+  document.getElementById('teamTable').innerHTML=`<thead><tr><th>Equipo</th><th class="num">Instalados</th><th class="num">Terminados</th><th class="num">Instalados por semana</th><th class="num">Pisos</th></tr></thead><tbody>`+
+    tr.map(x=>`<tr ${segTeam&&segTeam!==x.t?'style="opacity:.4"':''}><td>Equipo ${x.t}</td><td class="num">${x.inst}</td><td class="num">${x.term}</td><td class="num">${x.avg}</td><td class="num">${x.fl}</td></tr>`).join('')+
+    `<tr class="total"><td>Total</td><td class="num">${tr.reduce((s,x)=>s+x.inst,0)}</td><td class="num">${tr.reduce((s,x)=>s+x.term,0)}</td><td class="num">${(tr.reduce((s,x)=>s+x.inst,0)/weeks).toFixed(1).replace('.',',')}</td><td></td></tr></tbody>`;
+}
+dFrom.onchange=dTo.onchange=renderSeg;
+document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{ dTo.value=toISO(TODAY); dFrom.value=toISO(TODAY-(+b.dataset.range-1)*DAY); renderSeg(); });
+renderSeg();
+
+// ================= POR PISO =================
+const fSel=document.getElementById('fSel');
+fSel.innerHTML=Array.from({length:FLOORS},(_,i)=>`<option value="${FLOORS-i}">Piso ${FLOORS-i}</option>`).join('');
+let curFloor=20; fSel.value=curFloor;
+function renderFloor(){
+  const mods=MODS.filter(m=>m.floor===curFloor);
+  const counts=STATES.map((_,i)=>mods.filter(m=>m.s===i).length);
+  document.getElementById('fStats').innerHTML=STATES.map((s,i)=>`<div class="stat" style="--c:${s.color}"><b>${counts[i]}</b>${s.label}</div>`).join('');
+  let el='';
+  el+='<div></div>'+Array.from({length:COLS},(_,c)=>`<div class="colh">Eje ${c+1}<span>${c%2===0?'Vidrio':'Panel'}</span></div>`).join('');
+  FACES.forEach((f,fi)=>{
+    el+=`<div class="fl">${f.name}</div>`;
+    mods.filter(m=>m.face===fi).sort((a,b)=>a.col-b.col).forEach(m=>{
+      el+=`<button class="cell" style="background-color:${STATES[m.s].color}" title="${m.id} · Eje ${m.col+1} · ${m.glass?'Vidrio':'Panel'} · ${STATES[m.s].label}" aria-label="${m.id}, ${STATES[m.s].label}" data-id="${m.id}"></button>`;
+    });
+  });
+  document.getElementById('fElev').innerHTML=el;
+  document.querySelectorAll('#fElev .cell').forEach(c=>c.onclick=()=>{ const m=MODS.find(x=>x.id===c.dataset.id); showTab('torre'); select(m); focus(m); });
+
+  const todo=mods.filter(m=>m.s<3).sort((a,b)=>a.s-b.s||a.face-b.face||a.col-b.col);
+  const done=mods.filter(m=>m.s>=3).sort((a,b)=>b.t[3]-a.t[3]);
+  document.getElementById('fTodoTitle').textContent=`Por instalar · ${todo.length}`;
+  document.getElementById('fDoneTitle').textContent=`Instalados · ${done.length}`;
+  const chip=s=>`<span class="chip" style="background:${STATES[s].color}">${STATES[s].label}</span>`;
+  document.getElementById('fTodo').innerHTML=todo.length
+    ? `<thead><tr><th>Módulo</th><th>Ubicación</th><th>Estado</th><th>Contenedor</th></tr></thead><tbody>`+
+      todo.map(m=>`<tr><td class="mono">${m.id}</td><td>${FACES[m.face].k} · Eje ${m.col+1} · ${m.glass?'Vidrio':'Panel'}</td><td>${chip(m.s)}</td><td class="mono">${m.cont.id}</td></tr>`).join('')+'</tbody>'
+    : '<tbody><tr><td class="empty">Todo el piso está instalado.</td></tr></tbody>';
+  document.getElementById('fDone').innerHTML=done.length
+    ? `<thead><tr><th>Módulo</th><th>Ubicación</th><th>Estado</th><th>Instalado</th><th>Equipo</th></tr></thead><tbody>`+
+      done.map(m=>`<tr><td class="mono">${m.id}</td><td>${FACES[m.face].k} · Eje ${m.col+1} · ${m.glass?'Vidrio':'Panel'}</td><td>${chip(m.s)}</td><td>${fmt(m.t[3])}</td><td>${m.team}</td></tr>`).join('')+'</tbody>'
+    : '<tbody><tr><td class="empty">Todavía no hay módulos instalados en este piso.</td></tr></tbody>';
+}
+fSel.onchange=()=>{ curFloor=+fSel.value; renderFloor(); };
+document.getElementById('fPrev').onclick=()=>{ curFloor=Math.max(1,curFloor-1); fSel.value=curFloor; renderFloor(); };
+document.getElementById('fNext').onclick=()=>{ curFloor=Math.min(FLOORS,curFloor+1); fSel.value=curFloor; renderFloor(); };
+document.getElementById('fTo3d').onclick=()=>{ showTab('torre'); setFloorFilter(curFloor); };
+renderFloor();
+
+// ================= CONTENEDORES =================
+let contState='camino', contOrigin='', contInit=false; const open=new Set();
+function renderConts(){
+  const si=SI[contState];
+  const inOrigin=c=>!contOrigin||c.origin.k===contOrigin;
+  document.querySelectorAll('#contSeg button').forEach(b=>{
+    const n=CONTS.filter(c=>contStateAt(c,TODAY)===SI[b.dataset.cs]&&inOrigin(c)).length;
+    b.textContent=`${STATES[SI[b.dataset.cs]].label} (${n})`; b.classList.toggle('on',b.dataset.cs===contState);
+  });
+  const list=CONTS.filter(c=>contStateAt(c,TODAY)===si&&inOrigin(c)).sort((a,b)=>a.dep-b.dep);
+  if(!contInit && si===1 && list.length){ open.add(list[0].id); contInit=true; }
+  document.getElementById('contList').innerHTML=list.map(c=>{
+    const isOpen=open.has(c.id);
+    const meta= si===1 ? `llega ${fmtShort(c.arr)}` : `embarca ${fmtShort(c.dep)}`;
+    const codes=`<div class="codes">${[...c.mods].sort((a,b)=>a.floor-b.floor||a.face-b.face||a.col-b.col).map(m=>`<div><span class="mono">${m.id}</span><span class="sm">${m.glass?'Vidrio':'Panel'}</span></div>`).join('')}</div>`;
+    return `<div class="cont"><button class="cont-h" data-c="${c.id}" aria-expanded="${isOpen}">
+      <span class="id mono">${c.id}</span>
+      <span class="meta">${c.origin.name.replace('Planta Aluman ','')} · Pisos ${c.floors[0]}–${c.floors[1]} · ${meta}</span>
+      <span class="tog"><span class="txt">${isOpen?'Ocultar':'25 códigos'}</span> <span class="car">▼</span></span></button>
+      <div class="codes-wrap" style="height:${isOpen?'auto':'0px'}">${codes}</div></div>`;
+  }).join('') || '<div class="empty">No hay contenedores en este estado.</div>';
+  document.querySelectorAll('.cont-h').forEach(b=>b.onclick=()=>toggleCont(b));
+}
+function toggleCont(btn){
+  const wrap=btn.nextElementSibling, id=btn.dataset.c, willOpen=!open.has(id);
+  if(willOpen){
+    open.add(id);
+    wrap.style.height=wrap.scrollHeight+'px';
+    wrap.addEventListener('transitionend',function h(){ if(open.has(id)) wrap.style.height='auto'; wrap.removeEventListener('transitionend',h); });
+  } else {
+    open.delete(id);
+    wrap.style.height=wrap.scrollHeight+'px'; void wrap.offsetHeight; wrap.style.height='0px';
+  }
+  btn.setAttribute('aria-expanded',willOpen);
+  btn.querySelector('.txt').textContent=willOpen?'Ocultar':'25 códigos';
+}
+document.querySelectorAll('#contSeg button').forEach(b=>b.onclick=()=>{ contState=b.dataset.cs; renderConts(); });
+const oSel=document.getElementById('oSel');
+oSel.innerHTML='<option value="">Todos los orígenes</option>'+ORIGINS.map(o=>`<option value="${o.k}">${o.name}</option>`).join('');
+oSel.onchange=()=>{ contOrigin=oSel.value; renderConts(); };
+renderConts();
+
+// ================= BÚSQUEDA Y RECORRIDO =================
+document.getElementById('ids').innerHTML=MODS.map(m=>`<option value="${m.id}">`).join('');
+function norm(q){
+  let s=q.toUpperCase().replace(/[\s_]/g,'');
+  s=s.replace(/^(T1-?[NESO]\d{2})-(\d{2})$/,'$1$2');
+  if(/^[NESO]\d{4}$/.test(s)) s='T1-'+s;
+  if(/^T1[NESO]\d{4}$/.test(s)) s='T1-'+s.slice(2);
+  return s;
+}
+document.getElementById('searchForm').onsubmit=e=>{
+  e.preventDefault();
+  const q=document.getElementById('q').value.trim(), msg=document.getElementById('searchMsg');
+  if(!q){ msg.textContent=''; return; }
+  const m=BY_ID.get(norm(q));
+  if(!m){ msg.textContent=`No existe el módulo "${q}"`; return; }
+  msg.textContent=''; openTrace(m);
+};
+function events(m){
+  const c=m.cont,o=c.origin;
+  return [
+    {t:m.t[0], title:'Inicio de fabricación', place:o.name},
+    {t:c.dep-2*DAY, title:'Cargado en contenedor', place:`${o.name} · ${c.id}`},
+    {t:c.dep, title:'Salida en barco', place:`Puerto de ${o.port}`},
+    {t:c.arr-DAY, title:'Llegada a puerto', place:'Puerto de Montevideo'},
+    {t:c.arr, title:'Recepción en obra', place:'Torre Cipriani · Punta del Este', extra:'Inspección: sano'},
+    {t:m.t[3], title:'Instalado', place:`Piso ${m.floor} · Cara ${FACES[m.face].name} · Eje ${m.col+1} · Equipo ${m.team}`, own:true},
+    {t:m.t[4], title:'Terminado', place:'Sellado y verificación', own:true}
+  ].map(e=>Object.assign(e,{done:e.t<=TODAY}));
+}
+function whereNow(m,ev){
+  const o=m.cont.origin, last=ev.filter(e=>e.done).length;
+  return ['Fabricación no iniciada · '+o.name,'En fabricación · '+o.name,'En contenedor, en planta · '+o.name,
+    `Navegando · ${o.port} → Montevideo`,'En el puerto de Montevideo','En obra, sin instalar',
+    `Instalado · Piso ${m.floor} · ${FACES[m.face].name}`,'Terminado'][last];
+}
+function openTrace(m){
+  const ev=events(m), lastDone=ev.filter(e=>e.done).length-1, s=STATES[m.s];
+  document.getElementById('drawerTitle').textContent=m.id;
+  document.getElementById('drawerBody').innerHTML=`
+    <div><span class="chip" style="background:${s.color}">${s.label}</span></div>
+    <div class="now" style="--c:${s.color}"><div class="l">Dónde está ahora</div><div class="v">${whereNow(m,ev)}</div></div>
+    <div class="kv" style="margin-top:0">
+      <span class="k">Tipo</span><span class="v">${m.glass?'Vidrio':'Panel'}</span>
+      <span class="k">Destino</span><span class="v">Piso ${m.floor} · ${FACES[m.face].name} · Eje ${m.col+1}</span>
+      <span class="k">Origen</span><span class="v">${m.cont.origin.name}</span>
+      <span class="k">Contenedor</span><span class="v mono">${m.cont.id}</span>
+    </div>
+    <div class="trace">${ev.map((e,i)=>`<div class="ev ${e.done?'done':''} ${i===lastDone?'cur':''}">
+      <div class="mk">${e.done?'✓':i+1}</div>
+      <div><div class="tt">${e.title}</div><div class="pl">${e.place}${e.done&&e.extra?' · '+e.extra:''}</div></div>
+      <div class="dt">${e.done?fmt(e.t):(e.own?'pendiente':'previsto '+fmtShort(e.t))}</div></div>`).join('')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" id="trace3d">Ver en 3D</button>
+      <button class="btn" id="traceFloor">Ver piso ${m.floor}</button>
+    </div>`;
+  document.getElementById('trace3d').onclick=()=>{ closeTrace(); showTab('torre'); select(m); focus(m); };
+  document.getElementById('traceFloor').onclick=()=>{ closeTrace(); curFloor=m.floor; fSel.value=curFloor; renderFloor(); showTab('piso'); };
+  document.getElementById('drawer').classList.add('on'); document.getElementById('drawer').setAttribute('aria-hidden','false');
+  document.getElementById('veil').classList.add('on');
+  document.getElementById('drawerX').focus();
+}
+function closeTrace(){ document.getElementById('drawer').classList.remove('on'); document.getElementById('drawer').setAttribute('aria-hidden','true'); document.getElementById('veil').classList.remove('on'); }
+document.getElementById('drawerX').onclick=closeTrace;
+document.getElementById('veil').onclick=closeTrace;
+addEventListener('keydown',e=>{ if(e.key==='Escape') closeTrace(); });
+
+// ================= LOGIN (simulado) =================
+const login=document.getElementById('login'), loginBtn=document.getElementById('loginBtn');
+document.getElementById('loginForm').onsubmit=e=>{
+  e.preventDefault(); loginBtn.disabled=true; loginBtn.textContent='Ingresando…';
+  setTimeout(()=>{ login.classList.add('out'); resize(); },700);
+};
+document.getElementById('logout').onclick=()=>{ loginBtn.disabled=false; loginBtn.textContent='Ingresar'; login.classList.remove('out'); };
+
+// ================= LOOP =================
+function resize(){ const r=stage.getBoundingClientRect(); if(!r.width) return; renderer.setSize(r.width,r.height,false); camera.aspect=r.width/r.height; camera.updateProjectionMatrix(); }
+addEventListener('resize',resize); resize();
+canvas.style.cursor='grab';
+(function loop(){ if(document.getElementById('tab-torre').classList.contains('on')){ updateCamera(); renderer.render(scene,camera); } requestAnimationFrame(loop); })();
+</script>
+</body>
+</html>

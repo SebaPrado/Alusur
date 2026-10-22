@@ -1,0 +1,107 @@
+-- =====================================================================
+-- CÓMO EJECUTAR: pegar TODO en Supabase → SQL Editor → Run.
+-- Va dentro de una transacción: si algo falla, no se aplica nada.
+-- Al final se registra en el historial de migraciones.
+-- =====================================================================
+begin;
+
+-- =====================================================================
+-- Login por PIN: 10 intentos + bloqueo progresivo
+--
+--   * 10 fallos seguidos → bloqueo.
+--   * Cada bloqueo dura el doble que el anterior: 15 min, 30 min, 1 h, 2 h…
+--     con un máximo de 24 h.
+--   * Un login correcto (o un reset de PIN por un SuperAdmin) pone todo a cero.
+--   * La respuesta incluye los intentos restantes, para mostrarlos en pantalla.
+-- =====================================================================
+
+alter table public.worker_credentials
+  add column lockouts int not null default 0;   -- bloqueos consecutivos (para escalar)
+
+create or replace function public.verify_worker_pin(p_worker_code text, p_pin text)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare
+  max_intentos constant int := 10;
+  v_c        public.worker_credentials;
+  v_fallos   int;
+  v_bloqueo  interval;
+begin
+  select * into v_c from public.worker_credentials
+  where worker_code = upper(trim(p_worker_code)) for update;
+
+  if not found then
+    return jsonb_build_object('status', 'invalid');
+  end if;
+
+  if v_c.locked_until is not null and v_c.locked_until > now() then
+    return jsonb_build_object('status', 'locked', 'locked_until', v_c.locked_until);
+  end if;
+
+  if extensions.crypt(p_pin, v_c.pin_hash) = v_c.pin_hash then
+    update public.worker_credentials
+    set failed_attempts = 0, lockouts = 0, locked_until = null, updated_at = now()
+    where user_id = v_c.user_id;
+    return jsonb_build_object('status', 'ok', 'user_id', v_c.user_id);
+  end if;
+
+  v_fallos := v_c.failed_attempts + 1;
+
+  if v_fallos >= max_intentos then
+    -- 15 min × 2^(bloqueos previos), máximo 24 h
+    v_bloqueo := least(interval '15 minutes' * power(2, v_c.lockouts), interval '24 hours');
+    update public.worker_credentials
+    set failed_attempts = 0,
+        lockouts        = v_c.lockouts + 1,
+        locked_until    = now() + v_bloqueo,
+        updated_at      = now()
+    where user_id = v_c.user_id;
+    return jsonb_build_object('status', 'locked', 'locked_until', now() + v_bloqueo);
+  end if;
+
+  update public.worker_credentials
+  set failed_attempts = v_fallos, locked_until = null, updated_at = now()
+  where user_id = v_c.user_id;
+
+  return jsonb_build_object('status', 'invalid', 'attempts_left', max_intentos - v_fallos);
+end $$;
+
+-- El reset de PIN también debe limpiar los bloqueos acumulados
+create or replace function public.set_worker_pin(p_user uuid, p_pin text)
+returns text language plpgsql security definer set search_path = '' as $$
+declare v_code text;
+begin
+  if p_pin !~ '^[0-9]{4}$' then
+    raise exception 'El PIN debe tener 4 dígitos';
+  end if;
+
+  select worker_code into v_code from public.worker_credentials where user_id = p_user;
+
+  if v_code is null then
+    loop
+      v_code := 'W-' || lpad((floor(random() * 100000))::int::text, 5, '0');
+      exit when not exists (select 1 from public.worker_credentials where worker_code = v_code);
+    end loop;
+    insert into public.worker_credentials (user_id, worker_code, pin_hash)
+    values (p_user, v_code, extensions.crypt(p_pin, extensions.gen_salt('bf', 8)));
+  else
+    update public.worker_credentials
+    set pin_hash = extensions.crypt(p_pin, extensions.gen_salt('bf', 8)),
+        failed_attempts = 0, lockouts = 0, locked_until = null, updated_at = now()
+    where user_id = p_user;
+  end if;
+
+  return v_code;
+end $$;
+
+-- `create or replace` conserva los privilegios, pero lo dejamos explícito
+revoke execute on function public.verify_worker_pin(text, text) from public, anon, authenticated;
+revoke execute on function public.set_worker_pin(uuid, text)    from public, anon, authenticated;
+grant  execute on function public.verify_worker_pin(text, text) to service_role;
+grant  execute on function public.set_worker_pin(uuid, text)    to service_role;
+
+-- Registrar en el historial (así la CLI y el repo siguen sincronizados)
+insert into supabase_migrations.schema_migrations (version, name)
+values ('20261022150000', 'pin_10_intentos')
+on conflict (version) do nothing;
+
+commit;
