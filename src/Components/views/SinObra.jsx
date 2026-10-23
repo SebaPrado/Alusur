@@ -1,22 +1,26 @@
 import React from "react";
-import { Alert, Button, Paper, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useAuth } from "../../auth/AuthProvider";
 
 export default function SinObra() {
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 520 }}>
-      <Typography variant="h5" fontWeight={600} gutterBottom>
-        Sin obra asignada
+    <Box
+      sx={{
+        maxWidth: 520,
+        mx: "auto",
+        px: { xs: 2, sm: 3 },
+        py: { xs: 3, sm: 4 },
+      }}
+    >
+      <Typography component="h1" sx={{ fontWeight: 700, fontSize: "1.25rem", mb: 1.5 }}>
+        Sin obras asignadas
       </Typography>
-      <Alert severity="warning" sx={{ mb: 2 }}>
-        Hola {profile?.full_name || ""}. No perteneces a ninguna obra activa.
-        Pide a un SuperAdmin o al CEO que te den de alta.
-      </Alert>
-      <Button variant="outlined" onClick={() => signOut()}>
-        Cerrar sesión
-      </Button>
-    </Paper>
+      <Typography color="text.secondary">
+        Hola {profile?.full_name || ""}. Todavía no tenés obras asignadas.
+        Pedile a un SuperAdmin o al CEO que te den de alta.
+      </Typography>
+    </Box>
   );
 }

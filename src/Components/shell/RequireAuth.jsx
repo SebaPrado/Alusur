@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Box, CircularProgress } from "@mui/material";
 import { useAuth } from "../../auth/AuthProvider";
 
@@ -26,5 +26,13 @@ export default function RequireAuth({ children }) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  return children;
+  const mustChange =
+    session.user?.app_metadata?.must_change_password === true;
+  const onChangePassword = location.pathname === "/elegir-contrasena";
+
+  if (mustChange && !onChangePassword) {
+    return <Navigate to="/elegir-contrasena" replace />;
+  }
+
+  return children ?? <Outlet />;
 }

@@ -203,12 +203,36 @@ begin
   code := public.set_worker_pin('00000000-0000-0000-0000-00000000000e', '4321');
   r := public.verify_worker_pin(code, '4321');
   insert into results (caso, esperado, obtenido) values ('PIN correcto', 'ok', r->>'status');
-  for i in 1..5 loop r := public.verify_worker_pin(code, '0000'); end loop;
+  for i in 1..10 loop r := public.verify_worker_pin(code, '0000'); end loop;
   r := public.verify_worker_pin(code, '4321');
-  insert into results (caso, esperado, obtenido) values ('Bloqueo tras 5 fallos (aun con PIN bueno)', 'locked', r->>'status');
+  insert into results (caso, esperado, obtenido) values ('Bloqueo tras 10 fallos (aun con PIN bueno)', 'locked', r->>'status');
   r := public.verify_worker_pin('W-99999', '4321');
   insert into results (caso, esperado, obtenido) values ('Código inexistente → respuesta genérica', 'invalid', r->>'status');
 end $$;
+
+-- ---------- Fachada ----------
+\set FACHADA '''{"modo":"torre","vista_simple":"plano","piso_desde":0,"piso_hasta":54,"ancho_modulo_m":1.6,"alto_piso_m":3.3,"caras":[{"codigo":"N","nombre":"Norte","modulos_por_piso":10,"secuencia":["ventana","panel"],"entorno":"calle"},{"codigo":"E","nombre":"Este","modulos_por_piso":6,"secuencia":["ventana","ventana","panel"],"entorno":"parque"},{"codigo":"S","nombre":"Sur","modulos_por_piso":10,"secuencia":["ventana","panel"],"entorno":"mar"},{"codigo":"O","nombre":"Oeste","modulos_por_piso":10,"secuencia":["ventana","panel"],"entorno":"calle"}]}'''
+\set FACHADA_SIMPLE '''{"modo":"simple","vista_simple":"lamina","piso_desde":0,"piso_hasta":10,"ancho_modulo_m":1.6,"alto_piso_m":3.3,"caras":[{"codigo":"F","nombre":"Frente","modulos_por_piso":8,"secuencia":["ventana","panel"],"entorno":"nada"}]}'''
+select pg_temp.t('Obrero NO guarda fachada', :PEPE, format($$ select public.guardar_fachada(%L, %L)::text $$, (select v from ctx where k='obra'), :FACHADA), 'ERR');
+select pg_temp.t('Admin NO guarda fachada', :ADM, format($$ select public.guardar_fachada(%L, %L)::text $$, (select v from ctx where k='obra'), :FACHADA), 'ERR');
+select pg_temp.t('Owner NO guarda fachada', :OWNER, format($$ select public.guardar_fachada(%L, %L)::text $$, (select v from ctx where k='obra'), :FACHADA), 'ERR');
+select pg_temp.t('SA guarda fachada', :SA2, format($$ select public.guardar_fachada(%L, %L)::text $$, (select v from ctx where k='obra'), :FACHADA), 'OK');
+select pg_temp.t('Owner lee caras y entornos', :OWNER, $$ select string_agg(codigo || ':' || entorno, ',' order by orden) from public.fachada_caras $$, 'N:calle,E:parque,S:mar,O:calle');
+select pg_temp.t('obtener_fachada devuelve la forma del asistente', :PEPE, format($$ select public.obtener_fachada(%L) #>> '{caras,1,secuencia}' $$, (select v from ctx where k='obra')), '["ventana", "ventana", "panel"]');
+select pg_temp.t('No miembro no ve la fachada', :OUT, format($$ select coalesce(public.obtener_fachada(%L)::text, 'sin fachada') $$, (select v from ctx where k='obra')), 'sin fachada');
+select pg_temp.t('Pisos invertidos → mensaje del asistente', :SA2, format($$ select public.guardar_fachada(%L, jsonb_set(%L::jsonb, '{piso_desde}', '60'))::text $$, (select v from ctx where k='obra'), :FACHADA), 'ERR: El piso desde (60) no puede ser mayor que el piso hasta (54).');
+select pg_temp.t('Entorno inválido → error', :SA2, format($$ select public.guardar_fachada(%L, jsonb_set(%L::jsonb, '{caras,0,entorno}', '"montaña"'))::text $$, (select v from ctx where k='obra'), :FACHADA), 'ERR: La cara N no tiene un entorno válido (mar, calle, parque o nada).');
+select pg_temp.t('Devuelve todos los errores juntos', :SA2, format($$ select public.guardar_fachada(%L, jsonb_set(jsonb_set(%L::jsonb, '{caras,1,codigo}', '"N"'), '{caras,2,secuencia}', '[]'))::text $$, (select v from ctx where k='obra'), :FACHADA), E'ERR: La cara S tiene la secuencia vacía.\nEl código de cara "N" está repetido.');
+select pg_temp.t('Un error no pisa la fachada guardada', :OWNER, $$ select count(*)::text from public.fachada_caras $$, '4');
+select pg_temp.t('Insert directo en fachada_caras bloqueado', :SA2, format($$ insert into public.fachada_caras (obra_id, orden, codigo, modulos_por_piso, secuencia, entorno) values (%L, 4, 'X', 1, '{panel}', 'mar') returning 'OK' $$, (select v from ctx where k='obra')), 'ERR');
+select pg_temp.t('Update directo de fachada bloqueado (0 filas)', :SA2, $$ with u as (update public.fachadas set piso_hasta = 99 returning 1) select count(*)::text from u $$, '0');
+select pg_temp.t('SA guarda solo mar al sur', :SA2, format($$ select public.guardar_fachada(%L, jsonb_set(jsonb_set(jsonb_set(%L::jsonb, '{caras,0,entorno}', '"nada"'), '{caras,1,entorno}', '"nada"'), '{caras,3,entorno}', '"nada"'))::text $$, (select v from ctx where k='obra'), :FACHADA), 'OK');
+select pg_temp.t('Owner lee entornos con nada', :OWNER, $$ select string_agg(codigo || ':' || entorno, ',' order by orden) from public.fachada_caras $$, 'N:nada,E:nada,S:mar,O:nada');
+select pg_temp.t('Torre con 3 caras → error', :CEO, format($$ select public.guardar_fachada(%L, jsonb_set(%L::jsonb, '{caras}', (%2$L::jsonb -> 'caras') - 3))::text $$, (select v from ctx where k='obra'), :FACHADA), 'ERR: El modo torre necesita exactamente 4 caras (hay 3).');
+select pg_temp.t('SA guarda fachada simple', :SA2, format($$ select public.guardar_fachada(%L, %L)::text $$, (select v from ctx where k='obra'), :FACHADA_SIMPLE), 'OK');
+select pg_temp.t('Owner lee modo simple', :OWNER, $$ select modo || '/' || vista_simple || '/' || count(*)::text from public.fachadas f join public.fachada_caras c using (obra_id) group by modo, vista_simple $$, 'simple/lamina/1');
+select pg_temp.t('CEO vuelve a torre', :CEO, format($$ select public.guardar_fachada(%L, %L)::text $$, (select v from ctx where k='obra'), :FACHADA), 'OK');
+select pg_temp.t('Guardar reemplaza las caras', :OWNER, $$ select count(*)::text from public.fachada_caras $$, '4');
 
 -- ---------- Resultado ----------
 select n, case when obtenido like esperado || '%' then '✅' else '❌' end as ok, caso, left(obtenido, 90) as obtenido

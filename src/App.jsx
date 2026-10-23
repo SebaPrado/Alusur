@@ -1,13 +1,43 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import RequireAuth from "./Components/shell/RequireAuth";
-import AppShell from "./Components/shell/AppShell";
+import GlobalLayout from "./Components/shell/GlobalLayout";
+import ObraLayout from "./Components/shell/ObraLayout";
 import HomeRedirect from "./Components/shell/HomeRedirect";
 import Login from "./Components/views/Login";
 import PinLogin from "./Components/views/PinLogin";
 import SinObra from "./Components/views/SinObra";
-import ElegirObra from "./Components/views/ElegirObra";
-import PlaceholderPage from "./Components/views/PlaceholderPage";
+import ObraPlaceholder from "./Components/views/ObraPlaceholder";
 import NotFound from "./Components/views/NotFound";
+import MisObrasPage from "./features/obras/MisObrasPage";
+import ObraEntry from "./features/obras/ObraEntry";
+import HoyPage from "./features/obra/HoyPage";
+import ResumenPage from "./features/obra/ResumenPage";
+import ProgresoPage from "./features/obra/ProgresoPage";
+import TorreTab from "./features/progreso/TorreTab";
+import PisosTab from "./features/progreso/PisosTab";
+import SeguimientoTab from "./features/progreso/SeguimientoTab";
+import LogisticaPage from "./features/obra/LogisticaPage";
+import ContenedoresPage from "./features/logistica/ContenedoresPage";
+import RecepcionesPage from "./features/logistica/RecepcionesPage";
+import IncidenciasPage from "./features/obra/IncidenciasPage";
+import PersonalPage from "./features/personal/PersonalPage";
+import TrabajadoresTab from "./features/personal/TrabajadoresTab";
+import EquiposTab from "./features/personal/EquiposTab";
+import UsuariosTab from "./features/personal/UsuariosTab";
+import MaquinasTab from "./features/personal/MaquinasTab";
+import ElegirContrasena from "./Components/views/ElegirContrasena";
+import { ObraProvider } from "./obras/ObraProvider";
+
+const FachadaWizard = lazy(() => import("./features/fachada/FachadaWizard"));
+
+function ObraLayoutWithProvider() {
+  return (
+    <ObraProvider>
+      <ObraLayout />
+    </ObraProvider>
+  );
+}
 
 const router = createBrowserRouter([
   {
@@ -19,77 +49,100 @@ const router = createBrowserRouter([
     element: <PinLogin />,
   },
   {
+    path: "/dev/fachada",
+    element: <Navigate to="/obras/nueva" replace />,
+  },
+  {
+    path: "/elegir-contrasena",
+    element: <RequireAuth />,
+    children: [{ index: true, element: <ElegirContrasena /> }],
+  },
+  {
     path: "/",
-    element: (
-      <RequireAuth>
-        <AppShell />
-      </RequireAuth>
-    ),
+    element: <RequireAuth />,
     children: [
       { index: true, element: <HomeRedirect /> },
-      { path: "elegir-obra", element: <ElegirObra /> },
-      { path: "sin-obra", element: <SinObra /> },
       {
-        path: "obras",
-        element: (
-          <PlaceholderPage
-            title="Obras"
-            paso={2}
-            menuVisible={({ isCeo }) => isCeo}
-          />
-        ),
+        element: <GlobalLayout />,
+        children: [
+          { path: "obras", element: <MisObrasPage /> },
+          {
+            path: "obras/nueva",
+            element: (
+              <Suspense fallback={null}>
+                <FachadaWizard />
+              </Suspense>
+            ),
+          },
+          { path: "sin-obras", element: <SinObra /> },
+          // Alias legado
+          { path: "sin-obra", element: <Navigate to="/sin-obras" replace /> },
+        ],
       },
       {
-        path: "equipo",
-        element: (
-          <PlaceholderPage
-            title="Equipo y logística"
-            paso={3}
-            menuVisible={({ isCeo, role }) =>
-              isCeo || role === "superadmin"
-            }
-          />
-        ),
+        path: "obra/:obraId",
+        element: <ObraLayoutWithProvider />,
+        children: [
+          { index: true, element: <ObraEntry /> },
+          { path: "hoy", element: <HoyPage /> },
+          { path: "resumen", element: <ResumenPage /> },
+          {
+            path: "progreso",
+            element: <ProgresoPage />,
+            children: [
+              { index: true, element: <Navigate to="torre" replace /> },
+              { path: "torre", element: <TorreTab /> },
+              { path: "pisos", element: <PisosTab /> },
+              { path: "seguimiento", element: <SeguimientoTab /> },
+            ],
+          },
+          {
+            path: "logistica",
+            element: <LogisticaPage />,
+            children: [
+              { index: true, element: <Navigate to="contenedores" replace /> },
+              {
+                path: "contenedores/:contenedorId?",
+                element: <ContenedoresPage />,
+              },
+              {
+                path: "recepciones",
+                element: <RecepcionesPage />,
+              },
+            ],
+          },
+          { path: "incidencias", element: <IncidenciasPage /> },
+          {
+            path: "personal",
+            element: <PersonalPage />,
+            children: [
+              { path: "trabajadores", element: <TrabajadoresTab /> },
+              { path: "equipos", element: <EquiposTab /> },
+              { path: "usuarios", element: <UsuariosTab /> },
+              { path: "maquinas", element: <MaquinasTab /> },
+            ],
+          },
+          // Alias legados → rutas anidadas
+          {
+            path: "torre",
+            element: <Navigate to="../progreso/torre" replace />,
+          },
+          {
+            path: "seguimiento",
+            element: <Navigate to="../progreso/seguimiento" replace />,
+          },
+          {
+            path: "contenedores",
+            element: <Navigate to="../logistica/contenedores" replace />,
+          },
+        ],
       },
-      {
-        path: "campo",
-        element: (
-          <PlaceholderPage
-            title="Campo"
-            paso={4}
-            menuVisible={({ role, profile }) =>
-              role === "obrero" || profile?.is_worker
-            }
-          />
-        ),
-      },
-      {
-        path: "incidencias",
-        element: (
-          <PlaceholderPage
-            title="Incidencias"
-            paso={5}
-            menuVisible={({ isCeo, role }) =>
-              isCeo || role === "admin" || role === "superadmin"
-            }
-          />
-        ),
-      },
-      {
-        path: "avance",
-        element: (
-          <PlaceholderPage
-            title="Avance"
-            paso={6}
-            menuVisible={({ isCeo, role }) =>
-              isCeo ||
-              role === "owner" ||
-              role === "admin" ||
-              role === "superadmin"
-            }
-          />
-        ),
-      },
+      // Rutas legacy globales → home (no borrar componentes PlaceholderPage/ElegirObra)
+      { path: "equipo", element: <Navigate to="/" replace /> },
+      { path: "campo", element: <Navigate to="/" replace /> },
+      { path: "incidencias", element: <Navigate to="/" replace /> },
+      { path: "avance", element: <Navigate to="/" replace /> },
+      { path: "elegir-obra", element: <Navigate to="/obras" replace /> },
     ],
   },
   {

@@ -1,43 +1,49 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import {
   List,
   ListItemButton,
   ListItemText,
-  Paper,
+  Box,
   Typography,
 } from "@mui/material";
-import { useAuth } from "../../auth/AuthProvider";
+import { useMisObras } from "../../obras/MisObrasProvider";
 
+/** Legado: el flujo actual usa `/obras`. Se mantiene por si se abre la ruta. */
 export default function ElegirObra() {
-  const { availableObras, setObraActiva } = useAuth();
+  const { obras, ready } = useMisObras();
   const navigate = useNavigate();
 
-  function choose(id) {
-    setObraActiva(id);
-    navigate("/", { replace: true });
+  if (ready && obras.length === 0) {
+    return <Navigate to="/sin-obras" replace />;
+  }
+
+  if (ready && obras.length === 1) {
+    return <Navigate to={`/obra/${obras[0].id}`} replace />;
   }
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 520 }}>
+    <Box sx={{ p: 3, maxWidth: 520, mx: "auto" }}>
       <Typography variant="h5" fontWeight={600} gutterBottom>
-        Elige una obra
+        Elegí una obra
       </Typography>
       <Typography variant="body2" color="text.secondary" mb={2}>
-        Perteneces a varias obras. La elegida se recordará en este dispositivo.
+        Pertenecés a varias obras.
       </Typography>
       <List>
-        {availableObras.map((o) => (
-          <ListItemButton key={o.id} onClick={() => choose(o.id)} divider>
+        {obras.map((o) => (
+          <ListItemButton
+            key={o.id}
+            onClick={() => navigate(`/obra/${o.id}`)}
+            divider
+          >
             <ListItemText
               primary={o.nombre}
-              secondary={
-                [o.ubicacion, o.role].filter(Boolean).join(" · ") || null
-              }
+              secondary={[o.ubicacion, o.mi_rol].filter(Boolean).join(" · ") || null}
             />
           </ListItemButton>
         ))}
       </List>
-    </Paper>
+    </Box>
   );
 }
