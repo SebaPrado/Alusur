@@ -26,7 +26,7 @@ export default function HoyPage() {
 
   return (
     <PageActionsProvider>
-      <PageHeader title="Hoy" />
+      <PageHeader title="Hoy" titleIconSrc="/calendario.png" />
       <Box sx={{ px: pagePadX, py: pagePadX, maxWidth: 1200 }}>
         <Typography color="text.secondary">En construcción</Typography>
       </Box>

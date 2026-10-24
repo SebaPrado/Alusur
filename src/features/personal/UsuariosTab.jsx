@@ -148,7 +148,7 @@ export default function UsuariosTab() {
         <Typography sx={{ color: C.muted, fontSize: "0.875rem" }}>
           {loading
             ? "Cargando…"
-            : `${rows.length} usuario${rows.length === 1 ? "" : "s"}`}
+            : `${rows.length} administrador${rows.length === 1 ? "" : "es"}`}
         </Typography>
       </Box>
 
@@ -185,7 +185,7 @@ export default function UsuariosTab() {
 
       {!loading && rows.length === 0 && (
         <Typography sx={{ color: C.muted }}>
-          No hay usuarios web en esta obra.
+          No hay administradores en esta obra.
         </Typography>
       )}
 

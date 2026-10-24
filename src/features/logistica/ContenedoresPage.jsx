@@ -2,9 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
+  Chip,
+  Collapse,
   TextField,
   Typography,
 } from "@mui/material";
+import { FiFilter, FiHome, FiCheckCircle, FiLoader, FiMapPin } from "react-icons/fi";
+import { MdCompareArrows, MdTerrain } from "react-icons/md";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useObra } from "../../obras/ObraProvider";
@@ -15,12 +19,12 @@ import ImportarPackingDialog from "./ImportarPackingDialog";
 import NuevoContenedorDialog from "./NuevoContenedorDialog";
 import {
   CONTENEDOR_CONTEO_LABEL,
-  CONTENEDOR_ESTADOS,
+  CONTENEDOR_LISTA_ORDEN,
   ESTADOS_CON_LLEGADA,
   formatLlegada,
   labelEstadoContenedor,
+  ordenListaEstado,
   plantaCorta,
-  rangoEstado,
 } from "./estados";
 
 function modulosCount(row) {
@@ -28,6 +32,36 @@ function modulosCount(row) {
   if (Array.isArray(m) && m[0]?.count != null) return Number(m[0].count);
   if (typeof m === "number") return m;
   return 0;
+}
+
+const ICON_SIZE = 16;
+
+function EstadoIcon({ estado }) {
+  const common = { size: ICON_SIZE, style: { flexShrink: 0 } };
+  switch (estado) {
+    case "en_obra":
+      return <FiMapPin {...common} color="currentColor" style={{ ...common.style, color: "#249596" }} />;
+    case "en_deposito":
+      return <FiHome {...common} />;
+    case "en_puerto":
+      return <MdTerrain {...common} />;
+    case "en_camino":
+      return <MdCompareArrows {...common} />;
+    case "en_produccion":
+      return (
+        <FiLoader
+          {...common}
+          style={{
+            ...common.style,
+            animation: "alusur-spin 4.5s linear infinite",
+          }}
+        />
+      );
+    case "descargado":
+      return <FiCheckCircle {...common} style={{ ...common.style, color: "#4caf50" }} />;
+    default:
+      return null;
+  }
 }
 
 export default function ContenedoresPage() {
@@ -42,6 +76,7 @@ export default function ContenedoresPage() {
   const [error, setError] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState(null);
   const [q, setQ] = useState("");
+  const [filtrosOpen, setFiltrosOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [nuevoOpen, setNuevoOpen] = useState(false);
   const [createdBanner, setCreatedBanner] = useState(
@@ -49,6 +84,7 @@ export default function ContenedoresPage() {
   );
 
   const base = `/obra/${obraId}/logistica/contenedores`;
+  const filtrosActivos = Boolean(filtroEstado) || Boolean(q.trim());
 
   const load = useCallback(async () => {
     if (!obraId) return;
@@ -77,7 +113,7 @@ export default function ContenedoresPage() {
   }, [location.state, location.pathname, navigate]);
 
   const conteos = useMemo(() => {
-    const map = Object.fromEntries(CONTENEDOR_ESTADOS.map((e) => [e, 0]));
+    const map = Object.fromEntries(CONTENEDOR_LISTA_ORDEN.map((e) => [e, 0]));
     for (const r of rows) {
       if (map[r.estado] != null) map[r.estado] += 1;
     }
@@ -96,8 +132,8 @@ export default function ContenedoresPage() {
       );
     }
     return [...list].sort((a, b) => {
-      const ra = rangoEstado(a.estado);
-      const rb = rangoEstado(b.estado);
+      const ra = ordenListaEstado(a.estado);
+      const rb = ordenListaEstado(b.estado);
       if (ra !== rb) return ra - rb;
       return String(a.codigo).localeCompare(String(b.codigo));
     });
@@ -105,6 +141,7 @@ export default function ContenedoresPage() {
 
   function toggleFiltro(estado) {
     setFiltroEstado((prev) => (prev === estado ? null : estado));
+    setFiltrosOpen(false);
   }
 
   function openDetalle(id) {
@@ -127,7 +164,14 @@ export default function ContenedoresPage() {
   }
 
   return (
-    <Box>
+    <Box
+      sx={{
+        "@keyframes alusur-spin": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+      }}
+    >
       {canImport && (
         <PageActions>
           <Button
@@ -149,65 +193,90 @@ export default function ContenedoresPage() {
         </PageActions>
       )}
 
-      {/* Conteo */}
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: { xs: 1, sm: 0 },
-          mb: 2,
-          pb: 1.5,
-          borderBottom: 1,
-          borderColor: C.line,
-        }}
-      >
-        {CONTENEDOR_ESTADOS.map((estado, i) => {
-          const active = filtroEstado === estado;
-          const n = conteos[estado] ?? 0;
-          return (
-            <React.Fragment key={estado}>
-              {i > 0 && (
-                <Typography
-                  component="span"
-                  sx={{
-                    color: C.muted,
-                    px: 0.75,
-                    display: { xs: "none", sm: "inline" },
-                  }}
-                >
-                  ·
-                </Typography>
-              )}
-              <Typography
-                component="button"
-                type="button"
-                onClick={() => toggleFiltro(estado)}
-                sx={{
-                  all: "unset",
-                  cursor: "pointer",
-                  color: active ? C.accent : C.muted,
-                  fontWeight: active ? 600 : 400,
-                  fontSize: "0.875rem",
-                  borderBottom: active ? `1px solid` : "1px solid transparent",
-                  borderColor: active ? C.accent : "transparent",
-                  "&:hover": { color: C.text },
-                }}
-              >
-                {CONTENEDOR_CONTEO_LABEL[estado]} {n}
-              </Typography>
-            </React.Fragment>
-          );
-        })}
-      </Box>
+      <Box sx={{ mb: 1.5 }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            size="small"
+            startIcon={<FiFilter size={16} />}
+            onClick={() => setFiltrosOpen((o) => !o)}
+            sx={{
+              borderRadius: 0,
+              textTransform: "none",
+              color: filtrosActivos || filtrosOpen ? C.accent : C.muted,
+              borderBottom: 1,
+              borderColor:
+                filtrosActivos || filtrosOpen ? C.accent : "transparent",
+              px: 0.5,
+              minWidth: 0,
+              "&:hover": { color: C.text, bgcolor: "transparent" },
+            }}
+          >
+            Filtrar
+            {filtrosActivos ? " · activo" : ""}
+          </Button>
+        </Box>
 
-      <TextField
-        size="small"
-        placeholder="Buscar por código o número ISO"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        sx={{ ...fieldSx, mb: 2, maxWidth: 360 }}
-        fullWidth
-      />
+        <Collapse in={filtrosOpen} unmountOnExit>
+          <Box
+            sx={{
+              mt: 1.25,
+              pt: 1.25,
+              borderTop: 1,
+              borderColor: C.line,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: 1.25,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 0.75,
+                justifyContent: "flex-end",
+              }}
+            >
+              {CONTENEDOR_LISTA_ORDEN.map((estado) => {
+                const active = filtroEstado === estado;
+                const n = conteos[estado] ?? 0;
+                return (
+                  <Chip
+                    key={estado}
+                    size="small"
+                    icon={<EstadoIcon estado={estado} />}
+                    label={`${CONTENEDOR_CONTEO_LABEL[estado]} ${n}`}
+                    onClick={() => toggleFiltro(estado)}
+                    variant={active ? "filled" : "outlined"}
+                    sx={{
+                      borderRadius: 0,
+                      height: 26,
+                      fontSize: "0.75rem",
+                      color: active ? C.text : C.muted,
+                      borderColor: active ? C.accent : C.line,
+                      bgcolor: active
+                        ? "rgba(36, 149, 150, 0.2)"
+                        : "transparent",
+                      "& .MuiChip-icon": { ml: 0.5, color: "inherit" },
+                      "&:hover": {
+                        bgcolor: "rgba(46, 58, 78, 0.45)",
+                        borderColor: C.muted,
+                      },
+                    }}
+                  />
+                );
+              })}
+            </Box>
+            <TextField
+              size="small"
+              placeholder="Buscar contenedor…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              sx={{ ...fieldSx, maxWidth: 280, width: "100%" }}
+            />
+          </Box>
+        </Collapse>
+      </Box>
 
       {error && (
         <Typography sx={{ color: C.danger, mb: 2, fontSize: "0.875rem" }}>
@@ -251,10 +320,11 @@ export default function ContenedoresPage() {
               sx={{
                 display: "grid",
                 gridTemplateColumns: {
-                  xs: "1fr 1fr",
-                  md: "90px 130px 100px 80px 110px 1fr",
+                  xs: "auto 1fr 1fr",
+                  md: "28px 90px 130px 100px 80px 140px 1fr",
                 },
-                gap: { xs: 0.5, md: 2 },
+                alignItems: "center",
+                gap: { xs: 0.75, md: 2 },
                 py: 1.5,
                 borderBottom: 1,
                 borderColor: C.line,
@@ -263,22 +333,61 @@ export default function ContenedoresPage() {
                 "&:hover": { bgcolor: "rgba(46, 58, 78, 0.45)" },
               }}
             >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 22,
+                }}
+              >
+                <EstadoIcon estado={row.estado} />
+              </Box>
               <Typography sx={{ fontWeight: 600, fontFamily: "monospace" }}>
                 {row.codigo}
               </Typography>
-              <Typography sx={{ color: C.muted, fontSize: "0.875rem" }}>
+              <Typography
+                sx={{
+                  color: C.muted,
+                  fontSize: "0.875rem",
+                  display: { xs: "none", md: "block" },
+                }}
+              >
                 {row.codigo_iso || "—"}
               </Typography>
-              <Typography sx={{ color: C.muted, fontSize: "0.875rem" }}>
+              <Typography
+                sx={{
+                  color: C.muted,
+                  fontSize: "0.875rem",
+                  display: { xs: "none", md: "block" },
+                }}
+              >
                 {planta}
               </Typography>
-              <Typography sx={{ color: C.muted, fontSize: "0.875rem" }}>
+              <Typography
+                sx={{
+                  color: C.muted,
+                  fontSize: "0.875rem",
+                  display: { xs: "none", md: "block" },
+                }}
+              >
                 {n} mód.
               </Typography>
-              <Typography sx={{ fontSize: "0.875rem" }}>
+              <Typography
+                sx={{
+                  fontSize: "0.875rem",
+                  gridColumn: { xs: "3", md: "auto" },
+                }}
+              >
                 {labelEstadoContenedor(row.estado)}
               </Typography>
-              <Typography sx={{ color: C.muted, fontSize: "0.875rem" }}>
+              <Typography
+                sx={{
+                  color: C.muted,
+                  fontSize: "0.875rem",
+                  display: { xs: "none", md: "block" },
+                }}
+              >
                 {llegada ? `llega ${llegada}` : ""}
               </Typography>
             </Box>

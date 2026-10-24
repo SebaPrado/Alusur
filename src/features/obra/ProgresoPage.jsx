@@ -6,9 +6,9 @@ import RecorridoDrawer from "../progreso/RecorridoDrawer";
 import SectionTabs from "./SectionTabs";
 
 const TABS = [
-  { path: "torre", label: "Torre 3D" },
-  { path: "pisos", label: "Por piso" },
-  { path: "seguimiento", label: "Seguimiento" },
+  { path: "torre", label: "Torre 3D", iconSrc: "/progress.png" },
+  { path: "pisos", label: "Por piso", iconSrc: "/piso.png" },
+  { path: "seguimiento", label: "Seguimiento", iconSrc: "/seguimiento.png" },
 ];
 
 /** Progreso: visible para todos (Owner en solo lectura). */

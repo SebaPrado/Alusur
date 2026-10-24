@@ -17,14 +17,30 @@ function usePersonalTabs() {
   return useMemo(() => {
     const tabs = [];
     if (canTrabEquipos) {
-      tabs.push({ path: "trabajadores", label: "Trabajadores" });
-      tabs.push({ path: "equipos", label: "Equipos" });
+      tabs.push({
+        path: "trabajadores",
+        label: "Trabajadores",
+        iconSrc: "/personal.png",
+      });
+      tabs.push({
+        path: "equipos",
+        label: "Equipos",
+        iconSrc: "/usuario.png",
+      });
     }
     if (canMembers) {
-      tabs.push({ path: "usuarios", label: "Usuarios" });
+      tabs.push({
+        path: "usuarios",
+        label: "Administradores",
+        iconSrc: "/admin.png",
+      });
     }
     if (canMaquina) {
-      tabs.push({ path: "maquinas", label: "Máquinas" });
+      tabs.push({
+        path: "maquinas",
+        label: "Máquinas",
+        iconSrc: "/maquinas.png",
+      });
     }
     return tabs;
   }, [canTrabEquipos, canMembers, canMaquina]);

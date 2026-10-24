@@ -36,6 +36,7 @@ export function nombreCara(config, codigo) {
 
 export function ubicacion(fila, config, conPiso = true) {
   const cara = nombreCara(config, fila.caraCodigo);
-  const lugar = `${cara} · Eje ${fila.eje}`;
+  const codigo = fila.codigo ? ` · ${fila.codigo}` : "";
+  const lugar = `${cara} · Eje ${fila.eje}${codigo}`;
   return conPiso ? `Piso ${fila.piso} · ${lugar}` : lugar;
 }

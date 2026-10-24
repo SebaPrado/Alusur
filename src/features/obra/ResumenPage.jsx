@@ -26,7 +26,7 @@ export default function ResumenPage() {
 
   return (
     <PageActionsProvider>
-      <PageHeader title="Resumen" />
+      <PageHeader title="Resumen" titleIconSrc="/calendario.png" />
       <Box sx={{ px: pagePadX, py: pagePadX, maxWidth: 1200 }}>
         <Typography color="text.secondary">En construcción</Typography>
       </Box>

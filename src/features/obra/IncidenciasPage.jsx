@@ -26,7 +26,7 @@ export default function IncidenciasPage() {
 
   return (
     <PageActionsProvider>
-      <PageHeader title="Incidencias" />
+      <PageHeader title="Incidencias" titleIconSrc="/advertencia.png" />
       <Box sx={{ px: pagePadX, py: pagePadX, maxWidth: 1200 }}>
         <Typography color="text.secondary">En construcción</Typography>
       </Box>

@@ -23,6 +23,7 @@ import {
   PLANTILLA_CSV,
 } from "./estados";
 import { parsePackingFile } from "./packingList";
+import { useCatalogo } from "./useCatalogo";
 
 function descargarPlantilla() {
   const blob = new Blob([PLANTILLA_CSV], { type: "text/csv;charset=utf-8" });
@@ -39,11 +40,16 @@ function descargarPlantilla() {
  *   open: boolean,
  *   onClose: () => void,
  *   obraId: string,
- *   onImported: (result: { id: string, codigo: string }) => void,
+ *   onImported: (result: { id: string, codigo: string, partial?: boolean }) => void,
  * }} props
  */
 export default function ImportarPackingDialog({ open, onClose, obraId, onImported }) {
   const fileRef = useRef(null);
+  const { catalogo, loading: catLoading, error: catError } = useCatalogo(
+    open ? obraId : null,
+  );
+  const conCatalogo = catalogo.length > 0;
+
   const [step, setStep] = useState(1);
   const [codigoIso, setCodigoIso] = useState("");
   const [bl, setBl] = useState("");
@@ -82,9 +88,50 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
     })();
   }, [open]);
 
+  useEffect(() => {
+    if (catError) setError(catError);
+  }, [catError]);
+
+  // Re-parsear cuando llega el catálogo y ya hay archivo.
+  useEffect(() => {
+    if (!open || catLoading || !fileRef.current?.files?.[0]) return;
+    const file = fileRef.current.files[0];
+    let cancel = false;
+    setParseBusy(true);
+    parsePackingFile(file, { catalogo })
+      .then((result) => {
+        if (!cancel) setParsed(result);
+      })
+      .catch((err) => {
+        if (!cancel) {
+          setParsed({
+            rows: [],
+            errors: [err?.message || "No se pudo leer el archivo"],
+            resumen: conCatalogo
+              ? { total: 0, porCodigo: [] }
+              : { total: 0, ventana: 0, panel: 0 },
+            ok: false,
+          });
+        }
+      })
+      .finally(() => {
+        if (!cancel) setParseBusy(false);
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [open, catLoading, catalogo, conCatalogo]);
+
   const isoOk = ISO_RE.test(codigoIso);
+  // Vista previa aunque haya códigos desconocidos (se ven en rojo); Importar exige ok.
   const canPreview =
-    isoOk && parsed?.ok && !parseBusy && Boolean(fileName);
+    isoOk &&
+    parsed &&
+    parsed.rows.length > 0 &&
+    !parseBusy &&
+    !catLoading &&
+    Boolean(fileName);
+  const puedeImportar = Boolean(parsed?.ok) && !busy;
 
   async function onFileChange(e) {
     const file = e.target.files?.[0];
@@ -97,13 +144,15 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
     setFileName(file.name);
     setParseBusy(true);
     try {
-      const result = await parsePackingFile(file);
+      const result = await parsePackingFile(file, { catalogo });
       setParsed(result);
     } catch (err) {
       setParsed({
         rows: [],
         errors: [err?.message || "No se pudo leer el archivo"],
-        resumen: { total: 0, ventana: 0, panel: 0 },
+        resumen: conCatalogo
+          ? { total: 0, porCodigo: [] }
+          : { total: 0, ventana: 0, panel: 0 },
         ok: false,
       });
     } finally {
@@ -118,10 +167,16 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
 
     const p_data = {
       codigo_iso: codigoIso,
-      modulos: parsed.rows.map((r) => ({
-        tipo: r.tipo,
-        referencia: r.referencia,
-      })),
+      modulos: conCatalogo
+        ? parsed.rows.map((r) => ({
+            codigo_tipo: r.codigo_tipo,
+            pieza: r.pieza,
+            referencia: r.referencia,
+          }))
+        : parsed.rows.map((r) => ({
+            tipo: r.tipo,
+            referencia: r.referencia,
+          })),
     };
 
     const { data: created, error: impErr } = await supabase.rpc(
@@ -252,10 +307,14 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
             <Box>
               <Typography sx={{ color: C.muted, fontSize: "0.875rem", mb: 1 }}>
                 Packing list (.csv o .xlsx)
+                {conCatalogo
+                  ? " · columnas referencia y código (pieza opcional)"
+                  : " · columnas referencia y tipo"}
               </Typography>
               <Button
                 variant="outlined"
                 component="label"
+                disabled={catLoading}
                 sx={{ borderRadius: 0, textTransform: "none", mr: 2 }}
               >
                 Elegir archivo
@@ -267,18 +326,20 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
                   onChange={onFileChange}
                 />
               </Button>
-              <Link
-                component="button"
-                type="button"
-                onClick={descargarPlantilla}
-                sx={{ color: C.accent, fontSize: "0.875rem", verticalAlign: "middle" }}
-              >
-                Descargar plantilla
-              </Link>
+              {!conCatalogo && (
+                <Link
+                  component="button"
+                  type="button"
+                  onClick={descargarPlantilla}
+                  sx={{ color: C.accent, fontSize: "0.875rem", verticalAlign: "middle" }}
+                >
+                  Descargar plantilla
+                </Link>
+              )}
               {fileName && (
                 <Typography sx={{ color: C.text, fontSize: "0.875rem", mt: 1 }}>
                   {fileName}
-                  {parseBusy ? " · leyendo…" : ""}
+                  {parseBusy || catLoading ? " · leyendo…" : ""}
                 </Typography>
               )}
               {parsed && !parsed.ok && (
@@ -306,15 +367,38 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
           <Box sx={{ pt: 1 }}>
             <Typography sx={{ color: C.text, mb: 2 }}>
               {resumen.total} módulos
-              {resumen.ventana
+              {!conCatalogo && resumen.ventana
                 ? ` · ${resumen.ventana} ${MODULO_TIPO_PLURAL.ventana}`
                 : ""}
-              {resumen.panel
+              {!conCatalogo && resumen.panel
                 ? ` · ${resumen.panel} ${MODULO_TIPO_PLURAL.panel}`
+                : ""}
+              {conCatalogo && resumen.porCodigo?.length
+                ? ` · ${resumen.porCodigo.map((c) => `${c.n}× ${c.codigo_tipo}`).join(" · ")}`
                 : ""}
               {" · "}
               ISO {codigoIso}
             </Typography>
+
+            {conCatalogo && resumen.porCodigo?.length > 0 && (
+              <Box sx={{ mb: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {resumen.porCodigo.map((c) => (
+                  <Box
+                    key={`${c.codigo_tipo}|${c.pieza}`}
+                    sx={{
+                      border: 1,
+                      borderColor: C.line,
+                      px: 1.25,
+                      py: 0.5,
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    {c.n}× {c.codigo_tipo}
+                    {c.pieza === "complemento" ? " (complemento)" : ""}
+                  </Box>
+                ))}
+              </Box>
+            )}
 
             {!parsed.ok && (
               <Box sx={{ mb: 2 }}>
@@ -340,7 +424,9 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 100px 1fr",
+                  gridTemplateColumns: conCatalogo
+                    ? "1fr 120px 100px 1fr"
+                    : "1fr 100px 1fr",
                   gap: 1,
                   px: 1.5,
                   py: 1,
@@ -355,8 +441,13 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
                   Referencia
                 </Typography>
                 <Typography sx={{ color: C.muted, fontSize: "0.75rem" }}>
-                  Tipo
+                  {conCatalogo ? "Código" : "Tipo"}
                 </Typography>
+                {conCatalogo && (
+                  <Typography sx={{ color: C.muted, fontSize: "0.75rem" }}>
+                    Pieza
+                  </Typography>
+                )}
                 <Typography sx={{ color: C.muted, fontSize: "0.75rem" }}>
                   Error
                 </Typography>
@@ -366,21 +457,30 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
                   key={`${row.referencia}-${i}`}
                   sx={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 100px 1fr",
+                    gridTemplateColumns: conCatalogo
+                      ? "1fr 120px 100px 1fr"
+                      : "1fr 100px 1fr",
                     gap: 1,
                     px: 1.5,
                     py: 1,
                     borderBottom: 1,
                     borderColor: C.line,
-                    color: row.error ? C.danger : C.text,
+                    color: row.error || row.desconocido ? C.danger : C.text,
                   }}
                 >
                   <Typography sx={{ fontSize: "0.875rem" }}>
                     {row.referencia || "—"}
                   </Typography>
                   <Typography sx={{ fontSize: "0.875rem" }}>
-                    {MODULO_TIPO_LABEL[row.tipo] ?? row.tipo ?? "—"}
+                    {conCatalogo
+                      ? row.codigo_tipo || "—"
+                      : (MODULO_TIPO_LABEL[row.tipo] ?? row.tipo ?? "—")}
                   </Typography>
+                  {conCatalogo && (
+                    <Typography sx={{ fontSize: "0.875rem" }}>
+                      {row.pieza || "principal"}
+                    </Typography>
+                  )}
                   <Typography sx={{ fontSize: "0.8rem" }}>
                     {row.error || ""}
                   </Typography>
@@ -416,7 +516,7 @@ export default function ImportarPackingDialog({ open, onClose, obraId, onImporte
             </Button>
             <Button
               variant="contained"
-              disabled={!parsed?.ok || busy}
+              disabled={!puedeImportar}
               onClick={confirmar}
               sx={{ borderRadius: 0 }}
             >

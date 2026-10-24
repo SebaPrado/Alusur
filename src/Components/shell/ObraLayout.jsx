@@ -68,15 +68,26 @@ function useObraNavItems(incidenciasCount) {
 
   // Hoy ↔ Resumen: mutuamente excluyentes. Owner ve Resumen; el resto (y CEO) ve Hoy.
   if (role === "owner" && !isCeo) {
-    items.push({ to: `${base}/resumen`, label: "Resumen", match: "/resumen" });
+    items.push({
+      to: `${base}/resumen`,
+      label: "Resumen",
+      match: "/resumen",
+      iconSrc: "/calendario.png",
+    });
   } else {
-    items.push({ to: `${base}/hoy`, label: "Hoy", match: "/hoy" });
+    items.push({
+      to: `${base}/hoy`,
+      label: "Hoy",
+      match: "/hoy",
+      iconSrc: "/calendario.png",
+    });
   }
 
   items.push({
     to: `${base}/progreso/torre`,
     label: "Progreso",
     match: "/progreso",
+    iconSrc: "/progress.png",
   });
 
   if (isCeo || role !== "owner") {
@@ -84,11 +95,13 @@ function useObraNavItems(incidenciasCount) {
       to: `${base}/logistica/contenedores`,
       label: "Logística",
       match: "/logistica",
+      iconSrc: "/contenedor.png",
     });
     items.push({
       to: `${base}/incidencias`,
       label: "Incidencias",
       match: "/incidencias",
+      iconSrc: "/advertencia.png",
       badge: incidenciasCount > 0 ? incidenciasCount : null,
     });
   }
@@ -103,6 +116,7 @@ function useObraNavItems(incidenciasCount) {
       to: `${base}/personal`,
       label: "Personal",
       match: "/personal",
+      iconSrc: "/personal.png",
     });
   }
 
@@ -144,26 +158,48 @@ function NavList({ onNavigate, incidenciasCount }) {
           >
             <ListItemText
               primary={
-                item.badge != null ? (
+                <Box
+                  component="span"
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  {item.iconSrc ? (
+                    <Box
+                      component="img"
+                      src={item.iconSrc}
+                      alt=""
+                      aria-hidden
+                      sx={{
+                        width: 18,
+                        height: 18,
+                        objectFit: "contain",
+                        flexShrink: 0,
+                        opacity: selected ? 1 : 0.75,
+                      }}
+                    />
+                  ) : null}
                   <Box
                     component="span"
                     sx={{ display: "inline-flex", alignItems: "baseline", gap: 1 }}
                   >
                     {item.label}
-                    <Box
-                      component="span"
-                      sx={{
-                        color: selected ? "text.primary" : "text.secondary",
-                        fontSize: "0.8125rem",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {item.badge}
-                    </Box>
+                    {item.badge != null ? (
+                      <Box
+                        component="span"
+                        sx={{
+                          color: selected ? "text.primary" : "text.secondary",
+                          fontSize: "0.8125rem",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {item.badge}
+                      </Box>
+                    ) : null}
                   </Box>
-                ) : (
-                  item.label
-                )
+                </Box>
               }
               primaryTypographyProps={{
                 fontSize: "0.875rem",

@@ -7,8 +7,8 @@ import SectionTabs from "./SectionTabs";
 import SinAcceso from "./SinAcceso";
 
 const TABS = [
-  { path: "contenedores", label: "Contenedores" },
-  { path: "recepciones", label: "Recepciones" },
+  { path: "contenedores", label: "Contenedores", iconSrc: "/contenedor.png" },
+  { path: "recepciones", label: "Recepciones", iconSrc: "/recepciones.png" },
 ];
 
 /** Logística: todos menos Owner. CEO puede entrar. */

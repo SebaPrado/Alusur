@@ -72,6 +72,7 @@ function TorreVista() {
           caraOrden: f.caraOrden,
           eje: f.eje,
           tipo: f.tipo,
+          codigo: f.codigo ?? null,
           color: meta.color,
           estado: meta.label,
           estadoVisual: f.visual in VISUAL ? f.visual : "sin_modulo",
@@ -375,6 +376,7 @@ function Detalle({ fila, config, onRecorrido }) {
       ? ` · llega ${formatLlegada(fila.llegada)}`
       : "";
   const instalado = fila.visual === "instalado" || fila.visual === "terminado";
+  const faltaComplemento = fila.requiereComplemento && !fila.tieneComplemento;
 
   return (
     <Box sx={{ border: 1, borderColor: "divider", p: 1.5 }}>
@@ -387,6 +389,11 @@ function Detalle({ fila, config, onRecorrido }) {
       </Box>
       <Ficha label="Tipo" value={tipo} />
       <Ficha label="Ubicación" value={donde} />
+      {faltaComplemento && (
+        <Typography sx={{ mt: 0.75, fontSize: 14, color: "warning.main" }}>
+          Falta la ventana corrediza
+        </Typography>
+      )}
       <Ficha label="Planta" value={fila.planta} />
       <Ficha label="Contenedor" value={`${cont}${llega}`} />
       {instalado && <Ficha label="Equipo" value={fila.equipo?.nombre || "—"} />}

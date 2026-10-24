@@ -8,6 +8,16 @@ export const CONTENEDOR_ESTADOS = [
   "descargado",
 ];
 
+/** Orden de la lista en pantalla (prioridad operativa). */
+export const CONTENEDOR_LISTA_ORDEN = [
+  "en_obra",
+  "en_deposito",
+  "en_puerto",
+  "en_camino",
+  "en_produccion",
+  "descargado",
+];
+
 export const CONTENEDOR_LABEL = {
   en_produccion: "En producción",
   en_camino: "En camino",
@@ -58,6 +68,12 @@ export function plantaCorta(nombre) {
 export function rangoEstado(estado) {
   const i = CONTENEDOR_ESTADOS.indexOf(estado);
   return i < 0 ? 0 : i;
+}
+
+/** Índice para ordenar la lista de contenedores (menor = más arriba). */
+export function ordenListaEstado(estado) {
+  const i = CONTENEDOR_LISTA_ORDEN.indexOf(estado);
+  return i < 0 ? CONTENEDOR_LISTA_ORDEN.length : i;
 }
 
 /** Estados donde se muestra "llega dd/mm". */

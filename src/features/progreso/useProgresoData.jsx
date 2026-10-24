@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Box } from "@mui/material";
 import { supabase } from "../../lib/supabase";
-import { buildSlots } from "../fachada/buildSlots";
+import { fetchAll } from "../../lib/fetchAll";
+import { loadSlots } from "../fachada/loadSlots";
 import { plantaCorta } from "../logistica/estados";
 import {
   clavePos,
@@ -13,22 +14,7 @@ import {
   pisoInicial,
 } from "./model";
 
-const PAGE = 1000;
 const ProgresoContext = createContext(null);
-
-async function fetchAll(makeQuery) {
-  const all = [];
-  let from = 0;
-  for (;;) {
-    const { data, error } = await makeQuery().range(from, from + PAGE - 1);
-    if (error) throw error;
-    const rows = data ?? [];
-    all.push(...rows);
-    if (rows.length < PAGE) break;
-    from += PAGE;
-  }
-  return all;
-}
 
 function actorDe(evento) {
   const p = evento.profiles;
@@ -60,7 +46,28 @@ function nombrePlanta(contenedor) {
   return p.nombre ?? null;
 }
 
-async function cargar(obraId) {
+function configDe(obraNombre, fachada, caras) {
+  return {
+    nombre: obraNombre || "Obra",
+    modo: fachada.modo,
+    vista_simple: fachada.vista_simple,
+    piso_desde: num(fachada.piso_desde),
+    piso_hasta: num(fachada.piso_hasta),
+    ancho_modulo_m: num(fachada.ancho_modulo_m),
+    alto_piso_m: num(fachada.alto_piso_m),
+    caras: [...caras]
+      .sort((a, b) => a.orden - b.orden)
+      .map((c) => ({
+        codigo: c.codigo,
+        nombre: c.nombre,
+        modulos_por_piso: num(c.modulos_por_piso),
+        secuencia: secuenciaDe(c.secuencia),
+        entorno: c.entorno,
+      })),
+  };
+}
+
+async function cargar(obraId, obraNombre) {
   const fachadaQ = supabase
     .from("fachadas")
     .select("piso_desde, piso_hasta, ancho_modulo_m, alto_piso_m, modo, vista_simple")
@@ -127,25 +134,46 @@ async function cargar(obraId) {
   if (carasRes.error) throw carasRes.error;
   if (equiposRes.error) throw equiposRes.error;
 
+  let slots = [];
+  let fuente = "buildSlots";
+  if (fachadaRes.data) {
+    const config = configDe(obraNombre, fachadaRes.data, carasRes.data ?? []);
+    const loaded = await loadSlots(obraId, config);
+    slots = loaded.slots;
+    fuente = loaded.fuente;
+  }
+
+  const eventosNorm = eventos.map((e) => ({
+    id: e.id,
+    modulo_id: e.modulo_id,
+    contenedor_id: e.contenedor_id,
+    from_state: e.from_state,
+    to_state: e.to_state,
+    nota: e.nota,
+    user_id: e.user_id,
+    created_at: e.created_at,
+    actor: actorDe(e),
+  }));
+
+  // #region agent log
+  const toStates = {};
+  for (const e of eventosNorm) toStates[e.to_state] = (toStates[e.to_state] || 0) + 1;
+  const modConCont = modulos.filter((m) => m.contenedor_id).length;
+  const posConMod = posiciones.filter((p) => p.modulo_id).length;
+  fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b3ed7e'},body:JSON.stringify({sessionId:'b3ed7e',runId:'pre-fix',hypothesisId:'A',location:'useProgresoData.jsx:cargar',message:'progreso raw loaded',data:{obraId,fuente,nContenedores:contenedores.length,nModulos:modulos.length,modConCont,nPosiciones:posiciones.length,posConMod,nSlots:slots.length,nEventos:eventosNorm.length,toStates,ultimosContenedores:contenedores.slice(-3).map((c)=>({id:c.id,codigo:c.codigo,estado:c.estado}))},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+
   return {
     fachada: fachadaRes.data,
     caras: carasRes.data ?? [],
     posiciones,
     modulos,
     contenedores,
-    eventos: eventos.map((e) => ({
-      id: e.id,
-      modulo_id: e.modulo_id,
-      contenedor_id: e.contenedor_id,
-      from_state: e.from_state,
-      to_state: e.to_state,
-      nota: e.nota,
-      user_id: e.user_id,
-      created_at: e.created_at,
-      actor: actorDe(e),
-    })),
+    eventos: eventosNorm,
     equipos: equiposRes.data ?? [],
     miembros,
+    slots,
+    fuente,
   };
 }
 
@@ -162,28 +190,12 @@ function armar(obraNombre, raw) {
     };
   }
 
-  const config = {
-    nombre: obraNombre || "Obra",
-    modo: raw.fachada.modo,
-    vista_simple: raw.fachada.vista_simple,
-    piso_desde: num(raw.fachada.piso_desde),
-    piso_hasta: num(raw.fachada.piso_hasta),
-    ancho_modulo_m: num(raw.fachada.ancho_modulo_m),
-    alto_piso_m: num(raw.fachada.alto_piso_m),
-    caras: [...raw.caras]
-      .sort((a, b) => a.orden - b.orden)
-      .map((c) => ({
-        codigo: c.codigo,
-        nombre: c.nombre,
-        modulos_por_piso: num(c.modulos_por_piso),
-        secuencia: secuenciaDe(c.secuencia),
-        entorno: c.entorno,
-      })),
-  };
+  const config = configDe(obraNombre, raw.fachada, raw.caras);
+  const slots = raw.slots ?? [];
+  const desdeTorre = raw.fuente === "v_torre";
 
-  const slots = buildSlots(config);
   const asigPorClave = new Map(
-    raw.posiciones.map((p) => [clavePos(p.piso, p.cara_codigo, p.eje), p]),
+    (raw.posiciones ?? []).map((p) => [clavePos(p.piso, p.cara_codigo, p.eje), p]),
   );
   const modPorId = new Map(raw.modulos.map((m) => [m.id, m]));
   const contPorId = new Map(raw.contenedores.map((c) => [c.id, c]));
@@ -216,8 +228,13 @@ function armar(obraNombre, raw) {
   }
 
   const filas = slots.map((slot) => {
-    const asig = asigPorClave.get(clavePos(slot.piso, slot.caraCodigo, slot.eje)) ?? null;
-    const modulo = asig ? (modPorId.get(asig.modulo_id) ?? null) : null;
+    let modulo = null;
+    if (desdeTorre) {
+      modulo = slot.moduloId ? (modPorId.get(slot.moduloId) ?? null) : null;
+    } else {
+      const asig = asigPorClave.get(clavePos(slot.piso, slot.caraCodigo, slot.eje)) ?? null;
+      modulo = asig ? (modPorId.get(asig.modulo_id) ?? null) : null;
+    }
     const contenedor = modulo ? (contPorId.get(modulo.contenedor_id) ?? null) : null;
     const visual = estadoVisual(
       { modulo_id: modulo?.id ?? null },
@@ -239,6 +256,17 @@ function armar(obraNombre, raw) {
     };
   });
 
+  // Con v_torre, piso_desde/hasta y modulos_por_piso del dibujo salen de los slots.
+  if (desdeTorre && filas.length > 0) {
+    const pisos = filas.map((f) => f.piso);
+    config.piso_desde = Math.min(...pisos);
+    config.piso_hasta = Math.max(...pisos);
+    for (const cara of config.caras) {
+      const ejes = filas.filter((f) => f.caraCodigo === cara.codigo).map((f) => f.eje);
+      if (ejes.length) cara.modulos_por_piso = Math.max(...ejes);
+    }
+  }
+
   const filaPorModulo = new Map(filas.filter((f) => f.modulo).map((f) => [f.modulo.id, f]));
   const fechasSeg = raw.modulos.map((modulo) => {
     const { fechas, equipo } = ficha(modulo);
@@ -256,12 +284,25 @@ function armar(obraNombre, raw) {
 
   const porCodigo = new Map(filas.filter((f) => f.modulo).map((f) => [f.modulo.codigo, f]));
 
+  const conteo = conteos(filas);
+  // #region agent log
+  const conFecha = {
+    salio: fechasSeg.filter((f) => f.salio).length,
+    llego: fechasSeg.filter((f) => f.llego).length,
+    instalado: fechasSeg.filter((f) => f.instalado).length,
+    terminado: fechasSeg.filter((f) => f.terminado).length,
+  };
+  const filasConModulo = filas.filter((f) => f.modulo).length;
+  const modsSinSlot = raw.modulos.length - filasConModulo;
+  fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b3ed7e'},body:JSON.stringify({sessionId:'b3ed7e',runId:'pre-fix',hypothesisId:'B',location:'useProgresoData.jsx:armar',message:'progreso armado',data:{fuente:raw.fuente,nFilas:filas.length,filasConModulo,modsSinSlot,nModulosRaw:raw.modulos.length,nContenedoresRaw:raw.contenedores.length,conteo,conFecha},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+
   return {
     config,
     filas,
     fechasSeg,
     equipos: raw.equipos,
-    conteo: conteos(filas),
+    conteo,
     pisoDefault: pisoInicial(filas) ?? config.piso_desde,
     porCodigo,
   };
@@ -290,9 +331,12 @@ export function ProgresoProvider({ obraId, obraNombre, children }) {
 
   useEffect(() => {
     let cancel = false;
+    // #region agent log
+    fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b3ed7e'},body:JSON.stringify({sessionId:'b3ed7e',runId:'pre-fix',hypothesisId:'D',location:'useProgresoData.jsx:ProgresoProvider',message:'progreso reload effect',data:{obraId,obraNombre,tick},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     setLoading(true);
     setError(null);
-    cargar(obraId)
+    cargar(obraId, obraNombre)
       .then((data) => {
         if (!cancel) {
           setRaw(data);
@@ -308,7 +352,7 @@ export function ProgresoProvider({ obraId, obraNombre, children }) {
     return () => {
       cancel = true;
     };
-  }, [obraId, tick]);
+  }, [obraId, obraNombre, tick]);
 
   const { modelo, armadoError } = useMemo(() => {
     if (!raw) return { modelo: VACIO, armadoError: null };

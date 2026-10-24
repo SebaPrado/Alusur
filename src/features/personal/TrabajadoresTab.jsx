@@ -3,16 +3,19 @@ import { useOutletContext } from "react-router-dom";
 import {
   Box,
   Button,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
   Typography,
 } from "@mui/material";
+import { FiMoreVertical } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
 import { useObra } from "../../obras/ObraProvider";
 import { PageActions } from "../obra/PageActions";
@@ -57,6 +60,7 @@ export default function TrabajadoresTab() {
   const [habDlg, setHabDlg] = useState(null); // { row, selectedIds: Set }
   const [bajaDlg, setBajaDlg] = useState(null);
   const [actionBusy, setActionBusy] = useState(false);
+  const [openActionsId, setOpenActionsId] = useState(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [infoTopic, setInfoTopic] = useState("acceso");
 
@@ -89,6 +93,9 @@ export default function TrabajadoresTab() {
 
   // worker_code / pin solo vienen de listar_trabajadores con members.manage o CEO
   const showCredenciales = canMembers && rows.some((r) => r.worker_code != null);
+  const cols = showCredenciales
+    ? "minmax(140px, 1.4fr) 90px 72px 1fr 1fr 140px 36px"
+    : "minmax(140px, 1.4fr) 1fr 1fr 140px 36px";
 
   async function handleNuevoPin(row) {
     setActionBusy(true);
@@ -274,7 +281,7 @@ export default function TrabajadoresTab() {
           <Box
             sx={{
               display: { xs: "none", md: "grid" },
-              gridTemplateColumns: "minmax(140px, 1.4fr) 90px 72px 1fr 1fr 140px",
+              gridTemplateColumns: cols,
               gap: 2,
               pb: 1,
               borderBottom: 1, borderColor: C.line,
@@ -300,6 +307,7 @@ export default function TrabajadoresTab() {
             <Typography sx={{ color: C.muted, fontSize: "0.75rem" }}>Equipo</Typography>
             <Typography sx={{ color: C.muted, fontSize: "0.75rem" }}>Habilitaciones</Typography>
             <Typography sx={{ color: C.muted, fontSize: "0.75rem" }}>Estado</Typography>
+            <Box />
           </Box>
         )}
         {rows.map((row) => {
@@ -307,6 +315,8 @@ export default function TrabajadoresTab() {
             Array.isArray(row.habilitaciones) && row.habilitaciones.length
               ? row.habilitaciones.join(", ")
               : "—";
+          const actionsOpen = openActionsId === row.user_id;
+          const spanXs = { gridColumn: { xs: "1 / -1", md: "auto" } };
           return (
             <Box
               key={row.user_id}
@@ -314,26 +324,39 @@ export default function TrabajadoresTab() {
                 py: 1.5,
                 borderBottom: 1, borderColor: C.line,
                 display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  md: showCredenciales
-                    ? "minmax(140px, 1.4fr) 90px 72px 1fr 1fr 140px"
-                    : "minmax(140px, 1.4fr) 1fr 1fr 140px",
-                },
-                gap: { xs: 0.5, md: 2 },
+                gridTemplateColumns: { xs: "1fr 36px", md: cols },
+                columnGap: { xs: 1, md: 2 },
+                rowGap: { xs: 0.5, md: 0 },
                 alignItems: "center",
                 opacity: row.activo ? 1 : 0.55,
               }}
             >
-              <Typography sx={{ fontWeight: 600, color: C.text }}>{row.full_name}</Typography>
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  color: C.text,
+                  gridColumn: { xs: "1", md: "auto" },
+                  gridRow: { xs: "1", md: "auto" },
+                }}
+              >
+                {row.full_name}
+              </Typography>
               {showCredenciales && (
-                <Typography sx={{ color: C.muted, fontFamily: "monospace", fontSize: "0.875rem" }}>
+                <Typography
+                  sx={{
+                    color: C.muted,
+                    fontFamily: "monospace",
+                    fontSize: "0.875rem",
+                    ...spanXs,
+                  }}
+                >
                   {row.worker_code ?? "—"}
                 </Typography>
               )}
               {showCredenciales && (
                 <Typography
                   sx={{
+                    ...spanXs,
                     color: row.pin ? C.text : C.muted,
                     fontFamily: "monospace",
                     fontSize: "0.875rem",
@@ -349,22 +372,52 @@ export default function TrabajadoresTab() {
                   {row.pin ?? "—"}
                 </Typography>
               )}
-              <Typography sx={{ color: C.muted, fontSize: "0.875rem" }}>
+              <Typography sx={{ color: C.muted, fontSize: "0.875rem", ...spanXs }}>
                 {row.equipo || "Sin equipo"}
               </Typography>
-              <Typography sx={{ color: C.muted, fontSize: "0.875rem" }}>{habs}</Typography>
-              <Typography sx={{ color: C.muted, fontSize: "0.875rem" }}>
+              <Typography sx={{ color: C.muted, fontSize: "0.875rem", ...spanXs }}>{habs}</Typography>
+              <Typography sx={{ color: C.muted, fontSize: "0.875rem", ...spanXs }}>
                 {estadoLabel(row)}
               </Typography>
 
               {row.activo && (
+                <IconButton
+                  size="small"
+                  aria-label={`Acciones de ${row.full_name}`}
+                  aria-expanded={actionsOpen}
+                  onClick={() =>
+                    setOpenActionsId((id) => (id === row.user_id ? null : row.user_id))
+                  }
+                  sx={{
+                    gridColumn: { xs: "2", md: "auto" },
+                    gridRow: { xs: "1", md: "auto" },
+                    justifySelf: "end",
+                    width: 28,
+                    height: 28,
+                    p: 0,
+                    borderRadius: 0,
+                    color: actionsOpen ? C.accent : C.muted,
+                    "&:hover": { color: C.accent, bgcolor: "transparent" },
+                  }}
+                >
+                  <FiMoreVertical size={16} />
+                </IconButton>
+              )}
+
+              <Collapse
+                in={actionsOpen}
+                timeout={180}
+                unmountOnExit
+                sx={{ gridColumn: "1 / -1" }}
+              >
                 <Box
                   sx={{
-                    gridColumn: "1 / -1",
                     display: "flex",
-                    flexWrap: "wrap",
-                    gap: 1,
-                    mt: 0.5,
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    gap: 0.25,
+                    pt: 1,
+                    pr: 0.5,
                   }}
                 >
                   {canEquipo && (
@@ -404,7 +457,7 @@ export default function TrabajadoresTab() {
                     </ActionLink>
                   )}
                 </Box>
-              )}
+              </Collapse>
             </Box>
           );
         })}
@@ -572,7 +625,9 @@ function ActionLink({ children, onClick, disabled, danger }) {
       onClick={onClick}
       sx={{
         minWidth: 0,
-        p: 0,
+        px: 0.5,
+        py: 0.25,
+        justifyContent: "flex-end",
         color: danger ? C.danger : C.accent,
         textTransform: "none",
         fontSize: "0.8rem",

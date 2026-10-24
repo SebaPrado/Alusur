@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Box, Button, MenuItem, Select, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { useObra } from "../../obras/ObraProvider";
 import { TIPOS } from "../fachada/buildSlots";
+import { medidasDesdeSlots } from "../fachada/slotsDesdeTorre";
 import { ORDEN_VISUAL, VISUAL, formatFechaUY } from "./model";
 import { ProgresoGate, useProgreso } from "./useProgresoData.jsx";
 import { CajaTabla, EstadoMarca, tablaSx, ubicacion } from "./ui";
@@ -24,17 +25,20 @@ function PisosVista() {
   const navigate = useNavigate();
   const pisoParam = params.get("piso");
 
-  const pisos = useMemo(() => {
-    const list = [];
-    for (let p = config.piso_hasta; p >= config.piso_desde; p -= 1) list.push(p);
-    return list;
-  }, [config]);
+  const { pisos, maxEje, pisoMasBajo } = useMemo(() => {
+    const m = medidasDesdeSlots(filas, config.caras);
+    return {
+      pisos: m.pisos,
+      maxEje: Math.max(0, ...m.anchos),
+      pisoMasBajo: m.pisoMin ?? config.piso_desde,
+    };
+  }, [filas, config]);
 
   const pisoDefault = useMemo(() => {
     const pendientes = filas.filter((f) => f.visual !== "instalado" && f.visual !== "terminado");
-    if (!pendientes.length) return config.piso_desde;
+    if (!pendientes.length) return pisoMasBajo;
     return Math.min(...pendientes.map((f) => f.piso));
-  }, [filas, config]);
+  }, [filas, pisoMasBajo]);
 
   useEffect(() => {
     if (pisoParam != null && pisoParam !== "") return;
@@ -46,7 +50,7 @@ function PisosVista() {
   const piso = Number(pisoParam);
   const pisoOk = pisos.includes(piso) ? piso : pisoDefault;
   const delPiso = filas.filter((f) => f.piso === pisoOk);
-  const maxEje = Math.max(0, ...config.caras.map((c) => c.modulos_por_piso));
+  const idxPiso = pisos.indexOf(pisoOk);
 
   function ir(n) {
     const next = new URLSearchParams(params);
@@ -75,7 +79,11 @@ function PisosVista() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, alignItems: "center" }}>
-        <Button aria-label="Piso anterior" disabled={pisoOk <= config.piso_desde} onClick={() => ir(pisoOk - 1)}>
+        <Button
+          aria-label="Piso anterior"
+          disabled={idxPiso < 0 || idxPiso >= pisos.length - 1}
+          onClick={() => ir(pisos[idxPiso + 1])}
+        >
           ◀
         </Button>
         <Select
@@ -91,7 +99,11 @@ function PisosVista() {
             </MenuItem>
           ))}
         </Select>
-        <Button aria-label="Piso siguiente" disabled={pisoOk >= config.piso_hasta} onClick={() => ir(pisoOk + 1)}>
+        <Button
+          aria-label="Piso siguiente"
+          disabled={idxPiso <= 0}
+          onClick={() => ir(pisos[idxPiso - 1])}
+        >
           ▶
         </Button>
         <Button
@@ -232,9 +244,11 @@ function CaraFila({ cara, maxEje, celda, onAbrir }) {
       <Box sx={{ display: "flex", alignItems: "center", fontSize: 13 }}>{cara.nombre || cara.codigo}</Box>
       {Array.from({ length: maxEje }, (_, i) => {
         const eje = i + 1;
-        if (eje > cara.modulos_por_piso) return <Box key={eje} />;
         const fila = celda(cara, eje);
-        if (!fila) return <Box key={eje} />;
+        if (!fila) {
+          // Sin slot: vacío, sin borde ni fondo (distinto de "Sin módulo").
+          return <Box key={eje} sx={{ height: 32 }} />;
+        }
         const tipo = TIPOS[fila.tipo]?.label ?? fila.tipo;
         return (
           <Box
@@ -246,7 +260,8 @@ function CaraFila({ cara, maxEje, celda, onAbrir }) {
             onClick={() => onAbrir(fila)}
             sx={{
               height: 32,
-              border: 0,
+              border: "1px solid",
+              borderColor: "divider",
               p: 0,
               cursor: "pointer",
               bgcolor: VISUAL[fila.visual].color,

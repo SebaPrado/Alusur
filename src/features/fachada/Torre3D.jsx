@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Box } from "@mui/material";
 import * as THREE from "three";
 import { ENTORNOS, TIPOS, validateConfig } from "./buildSlots";
+import { medidasDesdeSlots } from "./slotsDesdeTorre";
 
 // La maqueta usa r128, sin gestión de color: los hex se toman como lineales y la salida no se convierte.
 THREE.ColorManagement.enabled = false;
@@ -315,14 +316,19 @@ function buildEntorno(i, caras, W, D) {
 }
 
 function buildWorld(config, slots) {
-  const { caras, piso_desde, piso_hasta } = config;
+  const { caras } = config;
   const MW = config.ancho_modulo_m;
   const FH = config.alto_piso_m;
-  const W = Math.max(caras[0].modulos_por_piso, caras[2].modulos_por_piso) * MW;
-  const D = Math.max(caras[1].modulos_por_piso, caras[3].modulos_por_piso) * MW;
-  // Pisos por debajo de piso_desde: zócalo semiopaco para que la sección no flote.
-  const baseH = Math.max(0, piso_desde) * FH;
-  const activeH = (piso_hasta - piso_desde + 1) * FH;
+  const { anchos, pisoMin, pisoMax } = medidasDesdeSlots(slots, caras);
+  const colsNS = Math.max(anchos[0] ?? 0, anchos[2] ?? 0);
+  const colsEO = Math.max(anchos[1] ?? 0, anchos[3] ?? 0);
+  const W = colsNS * MW;
+  const D = colsEO * MW;
+  // Pisos por debajo del mínimo presente: zócalo semiopaco para que la sección no flote.
+  const pisoDesde = pisoMin ?? config.piso_desde;
+  const pisoHasta = pisoMax ?? config.piso_hasta;
+  const baseH = Math.max(0, pisoDesde) * FH;
+  const activeH = (pisoHasta - pisoDesde + 1) * FH;
   const H = baseH + activeH;
   const escala = Math.max(1, H / MAQUETA_ALTO);
   const maxDist = 450 * escala;
@@ -406,9 +412,9 @@ function buildWorld(config, slots) {
   slots.forEach((slot) => {
     const faceIdx = slot.caraOrden - 1;
     const cara = caras[faceIdx];
-    if (!cara || slot.eje < 1 || slot.eje > cara.modulos_por_piso) return;
-    if (slot.piso < piso_desde || slot.piso > piso_hasta) return;
-    const u = -(cara.modulos_por_piso * MW) / 2 + (slot.eje - 0.5) * MW;
+    const nEjes = anchos[faceIdx];
+    if (!cara || nEjes == null || slot.eje < 1) return;
+    const u = -(nEjes * MW) / 2 + (slot.eje - 0.5) * MW;
     const y = slot.piso * FH + FH / 2;
     if (faceIdx === 0) {
       dummy.position.set(u, y, offZ);
@@ -583,9 +589,10 @@ export default function Torre3D({
           : (TIPOS[slot.tipo]?.color ?? TIPOS.panel.color);
         const detalle = estado ? (slot.estado ?? "Sin estado") : (TIPOS[slot.tipo]?.label ?? slot.tipo);
         const cara = world.caras[item.faceIdx];
+        const codigo = slot.codigo ? ` · ${slot.codigo}` : "";
         tip.replaceChildren(
           dot,
-          `Piso ${slot.piso} · ${cara?.nombre || slot.caraCodigo} · Eje ${slot.eje} — ${detalle}`,
+          `Piso ${slot.piso} · ${cara?.nombre || slot.caraCodigo} · Eje ${slot.eje}${codigo} — ${detalle}`,
         );
         const r = stage.getBoundingClientRect();
         tip.style.left = `${x - r.left}px`;

@@ -61,6 +61,9 @@ function SeguimientoVista() {
   }
 
   const data = seguimiento(fechasSeg, equipos, desde, hasta, equipo || null);
+  // #region agent log
+  fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b3ed7e'},body:JSON.stringify({sessionId:'b3ed7e',runId:'pre-fix',hypothesisId:'C',location:'SeguimientoTab.jsx:SeguimientoVista',message:'seguimiento computed',data:{desde,hasta,equipo:equipo||null,nFechasSeg:fechasSeg?.length??0,vacio:data.vacio,totalPeriodo:data.totalPeriodo},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   const nombreFiltro = equipos.find((e) => e.id === equipo)?.nombre;
 
   return (

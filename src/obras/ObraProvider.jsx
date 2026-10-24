@@ -35,15 +35,19 @@ export function ObraProvider({ children }) {
     if (obraId) writeStoredObraId(obraId);
   }, [obraId]);
 
+  // CEO de plataforma: isCeo (profiles) o mi_rol desde v_mis_obras.
+  // Ambos deben dar acceso total; si solo mi_rol llega a 'ceo', no dejar permisos vacíos.
+  const ceoAccess = Boolean(isCeo || mi_rol === "ceo");
+
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      if (isCeo) {
+      if (ceoAccess) {
         if (!cancelled) setPermissions(["*"]);
         return;
       }
-      if (!mi_rol || mi_rol === "ceo") {
+      if (!mi_rol) {
         if (!cancelled) setPermissions([]);
         return;
       }
@@ -64,14 +68,14 @@ export function ObraProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [mi_rol, isCeo]);
+  }, [mi_rol, ceoAccess]);
 
   const can = useCallback(
     (permission) => {
-      if (isCeo) return true;
+      if (ceoAccess) return true;
       return permissions.includes(permission);
     },
-    [isCeo, permissions],
+    [ceoAccess, permissions],
   );
 
   const value = useMemo(
