@@ -5,7 +5,7 @@ import { AuthProvider } from "./auth/AuthProvider";
 import { MisObrasProvider } from "./obras/MisObrasProvider";
 import { theme } from "./theme";
 import App from "./App.jsx";
-import "./app.css";
+import "./App.css";
 
 const rootElement = document.getElementById("root");
 if (rootElement) {
