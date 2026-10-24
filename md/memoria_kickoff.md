@@ -95,7 +95,7 @@ Existen porque son lo único que necesita la key secreta (`service_role`).
  
 | Archivo | Para qué |
 |---|---|
-| `supabase.js` | Cliente de Supabase (usa `VITE_SUPABASE_PUBLISHABLE_KEY`) |
+| `supabase.js` | Cliente de Supabase (usa `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`) |
 | `workerAuth.js` | Enrolamiento y login del obrero con PIN, devuelve los intentos restantes |
 | `fotos.js` | Comprime (1600 px), sube a Storage y registra la foto |
  
