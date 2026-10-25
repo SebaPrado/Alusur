@@ -174,19 +174,24 @@ export default function TopBar({
         )}
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
-          <Typography
+          <Box
             component={RouterLink}
             to="/"
+            aria-label="Inicio"
             sx={{
-              ...headerLabelSx,
-              color: "text.primary",
-              textDecoration: "none",
-              fontWeight: 700,
+              display: "inline-flex",
+              alignItems: "center",
               flexShrink: 0,
+              lineHeight: 0,
             }}
           >
-            Alusur
-          </Typography>
+            <Box
+              component="img"
+              src="/iconalusur2.png"
+              alt=""
+              sx={{ display: "block", height: 28, width: "auto" }}
+            />
+          </Box>
 
           {showObraSwitcher && obraActual && (
             <>
@@ -240,29 +245,56 @@ export default function TopBar({
           component="button"
           type="button"
           onClick={(e) => setUserMenu(e.currentTarget)}
+          aria-haspopup="menu"
+          aria-expanded={Boolean(userMenu)}
+          aria-label="Menú de usuario"
           sx={{
-            ...headerButtonSx,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            m: 0,
+            border: 0,
+            background: "transparent",
+            color: "#f2f4f7",
+            font: "inherit",
+            fontSize: "0.8125rem",
             fontWeight: 500,
-            maxWidth: { xs: 120, sm: 220 },
+            lineHeight: 1,
+            letterSpacing: "normal",
+            padding: "6px 10px",
+            cursor: "pointer",
+            opacity: 0.88,
+            maxWidth: { xs: 160, sm: 260 },
+            minWidth: 0,
+            "&:hover": { opacity: 1 },
+            "&:hover img": { opacity: 1 },
           }}
         >
+          <Box
+            component="img"
+            src="/usuario.png"
+            alt=""
+            width={22}
+            height={22}
+            sx={{
+              display: "block",
+              width: 22,
+              height: 22,
+              objectFit: "contain",
+              flexShrink: 0,
+              opacity: 0.9,
+            }}
+          />
           <Box
             component="span"
             sx={{
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              lineHeight: 1,
+              minWidth: 0,
             }}
           >
             {userName}
-          </Box>
-          <Box
-            component="span"
-            aria-hidden
-            sx={{ flexShrink: 0, fontSize: "0.7em", lineHeight: 1 }}
-          >
-            ▾
           </Box>
         </Box>
       </Toolbar>

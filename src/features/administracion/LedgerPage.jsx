@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
+  Button,
   CircularProgress,
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import { formatDateTime, formatMoney, signedMoney } from "./money";
 import { useAdminRealtime } from "./useAdminRealtime";
 import { useAdminToast } from "./toast";
 import { rpcErrorMessage } from "./rpcError";
+import VoidSaleDialog from "./VoidSaleDialog";
 
 const PAGE = 80;
 
@@ -37,6 +39,7 @@ const COLS = [
   { key: "usuario", label: "Usuario", sx: { minWidth: 100 } },
   { key: "terminal", label: "Terminal", sx: { minWidth: 90 } },
   { key: "estado", label: "Estado", sx: { minWidth: 80 } },
+  { key: "accion", label: "", sx: { minWidth: 72 } },
 ];
 
 function isVoided(status) {
@@ -44,7 +47,7 @@ function isVoided(status) {
 }
 
 export default function LedgerPage() {
-  const { organizationId } = useAdminOrg();
+  const { organizationId, isManager } = useAdminOrg();
   const { showError } = useAdminToast();
   const [filters, setFilters] = useState({
     preset: "hoy",
@@ -59,6 +62,7 @@ export default function LedgerPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [voidSale, setVoidSale] = useState(null);
   const loadedCountRef = useRef(0);
   const scrollRef = useRef(null);
   const range = useMemo(
@@ -257,6 +261,22 @@ export default function LedgerPage() {
                   <TableCell>{r.user_name ?? ""}</TableCell>
                   <TableCell>{r.terminal_name ?? ""}</TableCell>
                   <TableCell>{r.status ?? ""}</TableCell>
+                  <TableCell>
+                    {isManager &&
+                      r.event_type === "venta" &&
+                      r.status === "completada" && (
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setVoidSale(r);
+                          }}
+                        >
+                          Anular
+                        </Button>
+                      )}
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -270,6 +290,13 @@ export default function LedgerPage() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <VoidSaleDialog
+        open={Boolean(voidSale)}
+        sale={voidSale}
+        onClose={() => setVoidSale(null)}
+        onVoided={loadInitial}
+      />
     </Box>
   );
 }

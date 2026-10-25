@@ -21,6 +21,7 @@ export function rpcErrorMessage(error) {
   if (!error) return "Error desconocido";
   const code = String(error.code ?? error.errcode ?? "");
   const msg = String(error.message ?? "").trim();
+  if (code === "23505") return msg || "Registro duplicado";
   if (code === "42501" || looksEnglish(msg)) {
     return PERMISSION_FALLBACK;
   }

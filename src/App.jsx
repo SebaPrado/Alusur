@@ -36,7 +36,10 @@ import AdminProviders, {
   AdminOrgRequired,
 } from "./features/administracion/AdminLayout";
 import AdminShell from "./features/administracion/AdminShell";
+import CustomersPage from "./features/administracion/CustomersPage";
 import LedgerPage from "./features/administracion/LedgerPage";
+import ProductsPage from "./features/administracion/ProductsPage";
+import SalePage from "./features/administracion/SalePage";
 import TerminalPage from "./features/administracion/TerminalPage";
 import { ObraProvider } from "./obras/ObraProvider";
 
@@ -96,7 +99,12 @@ const router = createBrowserRouter([
               { path: "terminal", element: <TerminalPage /> },
               {
                 element: <AdminShell />,
-                children: [{ index: true, element: <LedgerPage /> }],
+                children: [
+                  { index: true, element: <LedgerPage /> },
+                  { path: "productos", element: <ProductsPage /> },
+                  { path: "venta", element: <SalePage /> },
+                  { path: "clientes", element: <CustomersPage /> },
+                ],
               },
             ],
           },

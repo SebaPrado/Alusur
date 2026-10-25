@@ -1,29 +1,25 @@
 import React, { useState } from "react";
-import { Link as RouterLink, Outlet } from "react-router-dom";
+import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
 import { Alert, Box, Button, Stack } from "@mui/material";
-import AdminTopBar, { ADMIN_TOPBAR_HEIGHT } from "./AdminTopBar";
+import AdminTopBar, { ADMIN_GUTTER, ADMIN_TOPBAR_HEIGHT } from "./AdminTopBar";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { useOperatingContext } from "./useOperatingContext";
 import { useExchangeRate } from "./useExchangeRate";
 import { useAdminRealtime } from "./useAdminRealtime";
-import OpenCashDialog from "./OpenCashDialog";
+import CashOutDialog from "./CashOutDialog";
 import CloseCashDialog from "./CloseCashDialog";
-
-const DISABLED_ACTIONS = [
-  { key: "venta", label: "Venta" },
-  { key: "productos", label: "Productos" },
-  { key: "clientes", label: "Clientes" },
-  { key: "cobranza", label: "Cobranza" },
-  { key: "retiro", label: "Retiro" },
-  { key: "imprimir", label: "Imprimir" },
-];
+import CollectionDialog from "./CollectionDialog";
+import OpenCashDialog from "./OpenCashDialog";
 
 export default function AdminShell() {
   const { isManager } = useAdminOrg();
   const ops = useOperatingContext();
+  const { pathname } = useLocation();
   const { rate, refresh: refreshRate } = useExchangeRate();
   const [openCash, setOpenCash] = useState(false);
   const [closeCash, setCloseCash] = useState(false);
+  const [collectionOpen, setCollectionOpen] = useState(false);
+  const [cashOutOpen, setCashOutOpen] = useState(false);
 
   useAdminRealtime({
     onTick: () => {
@@ -84,8 +80,10 @@ export default function AdminShell() {
     >
       <AdminTopBar
         terminalName={ops.terminalName}
+        terminalId={ops.terminalId}
         rate={rate}
         onRateSaved={refreshRate}
+        onTerminalChanged={ops.refresh}
       />
       <Box
         sx={{
@@ -96,32 +94,81 @@ export default function AdminShell() {
           minHeight: 0,
         }}
       >
-        {banner}
+        {banner && (
+          <Box sx={{ px: ADMIN_GUTTER, pt: 1.5 }}>
+            {banner}
+          </Box>
+        )}
         <Stack
           direction="row"
           spacing={1}
           sx={{
-            px: 2,
+            px: ADMIN_GUTTER,
             py: 1,
             borderBottom: 1,
             borderColor: "divider",
             flexWrap: "wrap",
             gap: 1,
             flexShrink: 0,
+            alignItems: "center",
           }}
         >
-          {DISABLED_ACTIONS.map((a) => (
-            <Button
-              key={a.key}
-              size="small"
-              variant="outlined"
-              disabled
-              title="Próxima entrega"
-            >
-              {a.label}
-            </Button>
-          ))}
+          <Button
+            size="small"
+            variant={pathname === "/administracion" ? "contained" : "outlined"}
+            component={RouterLink}
+            to="/administracion"
+          >
+            Planilla
+          </Button>
+          <Button
+            size="small"
+            variant={pathname.startsWith("/administracion/productos") ? "contained" : "outlined"}
+            component={RouterLink}
+            to="/administracion/productos"
+          >
+            Productos
+          </Button>
+          <Button
+            size="small"
+            variant={pathname.startsWith("/administracion/venta") ? "contained" : "outlined"}
+            disabled={!ops.canOperate}
+            component={ops.canOperate ? RouterLink : "button"}
+            to={ops.canOperate ? "/administracion/venta" : undefined}
+            title={ops.canOperate ? undefined : "Abrí la caja para vender"}
+          >
+            Venta
+          </Button>
+          <Button
+            size="small"
+            variant={pathname.startsWith("/administracion/clientes") ? "contained" : "outlined"}
+            component={RouterLink}
+            to="/administracion/clientes"
+          >
+            Clientes
+          </Button>
           <Box sx={{ flex: 1 }} />
+          <Button
+            size="small"
+            variant="outlined"
+            disabled={!ops.canOperate}
+            title={ops.canOperate ? undefined : "Abrí la caja para cobrar"}
+            onClick={() => setCollectionOpen(true)}
+          >
+            Cobranza
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            disabled={!ops.canOperate}
+            title={ops.canOperate ? undefined : "Abrí la caja para retirar"}
+            onClick={() => setCashOutOpen(true)}
+          >
+            Retiro
+          </Button>
+          <Button size="small" variant="outlined" disabled title="Próxima entrega">
+            Imprimir
+          </Button>
           <Button
             size="small"
             variant="contained"
@@ -132,7 +179,15 @@ export default function AdminShell() {
             Cerrar caja
           </Button>
         </Stack>
-        <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            px: ADMIN_GUTTER,
+          }}
+        >
           <Outlet />
         </Box>
       </Box>
@@ -153,6 +208,15 @@ export default function AdminShell() {
           onClosed={ops.refresh}
         />
       )}
+      <CollectionDialog
+        open={collectionOpen}
+        customer={null}
+        onClose={() => setCollectionOpen(false)}
+      />
+      <CashOutDialog
+        open={cashOutOpen}
+        onClose={() => setCashOutOpen(false)}
+      />
     </Box>
   );
 }

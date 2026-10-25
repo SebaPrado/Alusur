@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ButtonBase, Menu, MenuItem } from "@mui/material";
+import { Menu, MenuItem } from "@mui/material";
 import { entryTarget } from "../../app/authRedirect";
 import { useAuth } from "../../auth/AuthProvider";
 import {
@@ -83,8 +83,9 @@ export default function AreaSelector() {
       <div className="area-selector-user">
         {session ? (
           <>
-            <ButtonBase
-              className="area-selector-user__btn"
+            <button
+              type="button"
+              className="area-selector-user__login"
               onClick={(e) => setMenuEl(e.currentTarget)}
               aria-haspopup="menu"
               aria-expanded={Boolean(menuEl)}
@@ -98,7 +99,7 @@ export default function AreaSelector() {
                 height={22}
               />
               <span className="area-selector-user__name">{displayName}</span>
-            </ButtonBase>
+            </button>
             <Menu
               anchorEl={menuEl}
               open={Boolean(menuEl)}

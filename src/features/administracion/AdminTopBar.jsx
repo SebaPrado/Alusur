@@ -1,24 +1,197 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Button,
+  ClickAwayListener,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
+  IconButton,
+  MenuItem,
+  Paper,
+  Popper,
   TextField,
   Typography,
 } from "@mui/material";
+import { FiEdit2 } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
-import { formatDateTime, isRateStale } from "./money";
+import { formatDateTime, formatRateLabel, isRateStale } from "./money";
 import { rpcErrorMessage } from "./rpcError";
+import { rateToTenThousandths } from "./saleMath";
+import { writeTerminalId } from "./storage";
 import { useAdminToast } from "./toast";
 
 export const ADMIN_TOPBAR_HEIGHT = 48;
+/** Mismo aire a los costados en la barra y en el cuerpo. */
+export const ADMIN_GUTTER = { xs: 2, sm: 3, md: 5 };
 
-export default function AdminTopBar({ terminalName, rate, onRateSaved }) {
+const ROLE_LABEL = {
+  dueno: "Dueño",
+  admin: "Admin",
+  vendedor: "Vendedor",
+};
+
+/** Misma caja tipográfica para la terminal y la cotización. */
+const headerValueSx = {
+  flexShrink: 0,
+  color: "text.primary",
+  fontFamily: "inherit",
+  fontSize: "0.875rem",
+  fontWeight: 500,
+  lineHeight: 1.43,
+  letterSpacing: "0.01071em",
+};
+
+function CajaSwitcher({ name, terminalId, onChanged }) {
+  const { organizationId, isManager } = useAdminOrg();
+  const { showError, showSuccess } = useAdminToast();
+  const anchorRef = useRef(null);
+  const closeTimer = useRef(null);
+  const [open, setOpen] = useState(false);
+  const [terminals, setTerminals] = useState([]);
+
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
+
+  useEffect(() => {
+    if (!isManager || !organizationId) return undefined;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("admin_terminals")
+        .select("id, name")
+        .eq("organization_id", organizationId)
+        .eq("active", true)
+        .order("name");
+      if (cancelled) return;
+      if (error) {
+        showError(rpcErrorMessage(error));
+        setTerminals([]);
+        return;
+      }
+      setTerminals(data ?? []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isManager, organizationId, showError]);
+
+  function cancelClose() {
+    clearTimeout(closeTimer.current);
+  }
+
+  function armClose() {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setOpen(false), 160);
+  }
+
+  function choose(id) {
+    setOpen(false);
+    if (id === terminalId) return;
+    writeTerminalId(id);
+    showSuccess("Terminal asignada a esta PC");
+    onChanged?.();
+  }
+
+  const label = name ?? "Sin terminal";
+
+  if (!isManager) {
+    return (
+      <Typography variant="body2" noWrap sx={headerValueSx}>
+        {label}
+      </Typography>
+    );
+  }
+
+  return (
+    <>
+      <Typography
+        ref={anchorRef}
+        component="button"
+        type="button"
+        variant="body2"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onMouseEnter={() => {
+          cancelClose();
+          setOpen(true);
+        }}
+        onMouseLeave={armClose}
+        onClick={() => setOpen(true)}
+        sx={{
+          ...headerValueSx,
+          alignSelf: "stretch",
+          display: "inline-flex",
+          alignItems: "center",
+          m: 0,
+          p: 0,
+          border: 0,
+          background: "transparent",
+          cursor: "pointer",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </Typography>
+      <Popper
+        open={open}
+        anchorEl={anchorRef.current}
+        placement="bottom-start"
+        sx={{ zIndex: 1300 }}
+      >
+        <ClickAwayListener onClickAway={() => setOpen(false)}>
+          <Paper
+            onMouseEnter={cancelClose}
+            onMouseLeave={armClose}
+            sx={{
+              position: "relative",
+              minWidth: 180,
+              borderRadius: 0,
+              border: 1,
+              borderColor: "divider",
+              py: 0.5,
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: -10,
+                left: 0,
+                right: 0,
+                height: 10,
+              },
+            }}
+          >
+            {terminals.length === 0 ? (
+              <Typography variant="body2" color="text.secondary" sx={{ px: 2, py: 1 }}>
+                No hay cajas
+              </Typography>
+            ) : (
+              terminals.map((t) => (
+                <MenuItem
+                  key={t.id}
+                  selected={t.id === terminalId}
+                  onClick={() => choose(t.id)}
+                >
+                  {t.name}
+                </MenuItem>
+              ))
+            )}
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
+    </>
+  );
+}
+
+export default function AdminTopBar({
+  terminalName,
+  terminalId,
+  rate,
+  onRateSaved,
+  onTerminalChanged,
+}) {
   const { organizationId, organizationName, displayName, role, isManager } =
     useAdminOrg();
   const { showError, showSuccess } = useAdminToast();
@@ -49,6 +222,9 @@ export default function AdminTopBar({ terminalName, rate, onRateSaved }) {
   }
 
   const stale = isRateStale(rate?.valid_from);
+  const rateTt = rate?.rate == null ? null : rateToTenThousandths(rate.rate);
+  const rateLabel = rateTt != null ? `U$S 1 = ${formatRateLabel(rateTt)}` : null;
+  const roleLabel = ROLE_LABEL[role] ?? role;
 
   return (
     <>
@@ -61,79 +237,107 @@ export default function AdminTopBar({ terminalName, rate, onRateSaved }) {
           right: 0,
           zIndex: 1100,
           height: ADMIN_TOPBAR_HEIGHT,
-          px: 2,
+          px: ADMIN_GUTTER,
           display: "flex",
           alignItems: "center",
-          gap: 2,
+          gap: 1.5,
           bgcolor: "background.paper",
           borderBottom: 1,
           borderColor: "divider",
           overflowX: "auto",
         }}
       >
-        <Typography
+        <Box
           component={RouterLink}
           to="/"
+          aria-label="Inicio"
           sx={{
-            fontWeight: 700,
-            color: "primary.main",
-            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
             flexShrink: 0,
+            lineHeight: 0,
           }}
         >
-          Alusur
-        </Typography>
-        <Typography variant="body2" noWrap sx={{ flexShrink: 0 }}>
+          <Box
+            component="img"
+            src="/iconalusur2.png"
+            alt=""
+            sx={{ display: "block", height: 28, width: "auto" }}
+          />
+        </Box>
+        <Typography variant="body2" noWrap sx={{ fontWeight: 600, minWidth: 0 }}>
           {organizationName}
         </Typography>
-        <Typography variant="body2" color="text.secondary" noWrap>
-          {terminalName ?? "Sin terminal"}
-          {isManager && (
-            <>
-              {" · "}
-              <Typography
-                component={RouterLink}
-                to="/administracion/terminal"
-                variant="body2"
-                sx={{ color: "primary.main" }}
-              >
-                {terminalName ? "Cambiar" : "Asignar"}
-              </Typography>
-            </>
-          )}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" noWrap>
-          {displayName}
-          {role ? ` · ${role}` : ""}
-        </Typography>
-        <Box sx={{ flex: 1 }} />
-        <Box
+        <Box sx={{ flex: 1, minWidth: 16 }} />
+        <CajaSwitcher
+          name={terminalName}
+          terminalId={terminalId}
+          onChanged={onTerminalChanged}
+        />
+        <Typography
+          variant="body2"
+          noWrap
+          title={rate?.valid_from ? formatDateTime(rate.valid_from) : undefined}
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            flexShrink: 0,
+            ...headerValueSx,
+            ...(stale ? { color: "error.main", fontWeight: 700 } : null),
           }}
         >
-          <Typography
-            variant="body2"
+          {rateLabel ?? "Sin cotización"}
+        </Typography>
+        {isManager && (
+          <IconButton
+            size="small"
+            aria-label="Editar cotización"
+            onClick={() => setRateDialog(true)}
+            sx={{ flexShrink: 0, color: "text.secondary" }}
+          >
+            <FiEdit2 size={16} />
+          </IconButton>
+        )}
+        <Divider orientation="vertical" flexItem sx={{ my: 1.25 }} />
+        <Box
+          title={roleLabel ? `${displayName} · ${roleLabel}` : displayName}
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            color: "#f2f4f7",
+            fontSize: "0.8125rem",
+            fontWeight: 500,
+            lineHeight: 1,
+            opacity: 0.88,
+            minWidth: 0,
+            flexShrink: 1,
+          }}
+        >
+          <Box
+            component="img"
+            src="/usuario.png"
+            alt=""
+            width={22}
+            height={22}
             sx={{
-              color: stale ? "error.main" : "text.primary",
-              fontWeight: stale ? 700 : 500,
+              display: "block",
+              width: 22,
+              height: 22,
+              objectFit: "contain",
+              flexShrink: 0,
+              opacity: 0.9,
+            }}
+          />
+          <Box
+            component="span"
+            sx={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              minWidth: 0,
+              maxWidth: { xs: 96, sm: 180 },
             }}
           >
-            {rate
-              ? `U$S 1 = $ ${Number(rate.rate).toLocaleString("es-UY", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 4,
-                })} · ${formatDateTime(rate.valid_from)}`
-              : "Sin cotización"}
-          </Typography>
-          {isManager && (
-            <Button size="small" onClick={() => setRateDialog(true)}>
-              Nueva
-            </Button>
-          )}
+            {displayName}
+          </Box>
         </Box>
       </Box>
 

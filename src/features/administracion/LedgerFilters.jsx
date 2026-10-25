@@ -59,7 +59,7 @@ export default function LedgerFilters({ value, onChange, onExport, exporting }) 
         flexWrap: "wrap",
         gap: 1.5,
         alignItems: "center",
-        px: 2,
+        px: 0,
         py: 1.5,
         borderBottom: 1,
         borderColor: "divider",

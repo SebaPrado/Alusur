@@ -15,11 +15,12 @@ const TABLES = [
  * Cada instancia usa un topic único: dos hooks (shell + planilla) no
  * reutilizan un canal ya suscrito (error de supabase-js).
  */
-export function useAdminRealtime({ onTick, enabled = true }) {
+export function useAdminRealtime({ onTick, enabled = true, tables = TABLES }) {
   const { organizationId } = useAdminOrg();
   const instanceId = useId().replace(/:/g, "");
   const onTickRef = useRef(onTick);
   onTickRef.current = onTick;
+  const tablesKey = tables.join(",");
 
   useEffect(() => {
     if (!enabled || !organizationId) return;
@@ -34,7 +35,7 @@ export function useAdminRealtime({ onTick, enabled = true }) {
     };
 
     let channel = supabase.channel(`admin-${organizationId}-${instanceId}`);
-    for (const table of TABLES) {
+    for (const table of tablesKey.split(",")) {
       channel = channel.on(
         "postgres_changes",
         {
@@ -52,5 +53,5 @@ export function useAdminRealtime({ onTick, enabled = true }) {
       if (timer) clearTimeout(timer);
       supabase.removeChannel(channel);
     };
-  }, [organizationId, enabled, instanceId]);
+  }, [organizationId, enabled, instanceId, tablesKey]);
 }

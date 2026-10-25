@@ -28,14 +28,22 @@ export function AdminToastProvider({ children }) {
     });
   }, []);
 
+  const showInfo = useCallback((message) => {
+    setState({
+      open: true,
+      message: String(message || ""),
+      severity: "info",
+    });
+  }, []);
+
   const handleClose = useCallback((_, reason) => {
     if (reason === "clickaway") return;
     setState((s) => ({ ...s, open: false }));
   }, []);
 
   const value = useMemo(
-    () => ({ showError, showSuccess }),
-    [showError, showSuccess],
+    () => ({ showError, showSuccess, showInfo }),
+    [showError, showSuccess, showInfo],
   );
 
   return (

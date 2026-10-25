@@ -1,3 +1,33 @@
+function groupThousands(intStr) {
+  return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+/** Centavos enteros → "$ 1.223,05" / "U$S 30,50". Sin pasar por float. */
+export function formatCents(cents, currency) {
+  if (cents == null) return currency === "USD" ? "U$S —" : "$ —";
+  const n = typeof cents === "bigint" ? cents : BigInt(cents);
+  const neg = n < 0n;
+  const a = neg ? -n : n;
+  const body = `${neg ? "-" : ""}${groupThousands((a / 100n).toString())},${(a % 100n).toString().padStart(2, "0")}`;
+  return currency === "USD" ? `U$S ${body}` : `$ ${body}`;
+}
+
+/** Cotización (diezmilésimos) → "$ 40,10". */
+export function formatRateLabel(rateTt) {
+  const a = rateTt < 0n ? -rateTt : rateTt;
+  const intStr = groupThousands((a / 10000n).toString());
+  let frac = (a % 10000n).toString().padStart(4, "0").replace(/0+$/, "");
+  if (frac.length < 2) frac = frac.padEnd(2, "0");
+  return `$ ${intStr},${frac}`;
+}
+
+/** "Falta: U$S 30,50 (= $ 1.223,05)". Sin equivalente si no hay cotización. */
+export function faltaLabel(faltaCents, saleCurrency, otherCents, otherCurrency) {
+  const main = `Falta: ${formatCents(faltaCents, saleCurrency)}`;
+  if (otherCents == null) return main;
+  return `${main} (= ${formatCents(otherCents, otherCurrency)})`;
+}
+
 /** Formato uruguayo: $ 1.234,56 / U$S 1.234,56 */
 export function formatMoney(amount, currency) {
   const n = Number(amount);
