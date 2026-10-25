@@ -8,7 +8,25 @@ import { ORDEN_VISUAL, VISUAL, formatFechaUY } from "./model";
 import { ProgresoGate, useProgreso } from "./useProgresoData.jsx";
 import { CajaTabla, EstadoMarca, tablaSx, ubicacion } from "./ui";
 
-const RANK = { sin_modulo: 0, produccion: 1, camino: 2, obra: 3, instalado: 4, terminado: 5 };
+const RANK = {
+  sin_modulo: 0,
+  produccion: 1,
+  camino: 2,
+  puerto: 3,
+  deposito: 4,
+  obra: 5,
+  instalado: 6,
+  terminado: 7,
+};
+
+const ctrlSx = {
+  minWidth: 32,
+  height: 28,
+  px: 0.75,
+  py: 0,
+  fontSize: 12,
+  lineHeight: 1,
+};
 
 export default function PisosTab() {
   return (
@@ -78,11 +96,20 @@ function PisosVista() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, alignItems: "center" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 0.75,
+          alignItems: "center",
+        }}
+      >
         <Button
+          size="small"
           aria-label="Piso anterior"
           disabled={idxPiso < 0 || idxPiso >= pisos.length - 1}
           onClick={() => ir(pisos[idxPiso + 1])}
+          sx={ctrlSx}
         >
           ◀
         </Button>
@@ -91,7 +118,12 @@ function PisosVista() {
           value={pisoOk}
           aria-label="Elegir piso"
           onChange={(e) => ir(Number(e.target.value))}
-          sx={{ minWidth: 120, borderRadius: 0 }}
+          sx={{
+            minWidth: 92,
+            height: 28,
+            fontSize: 13,
+            "& .MuiSelect-select": { py: 0, pl: 1, pr: 3, minHeight: 0 },
+          }}
         >
           {pisos.map((p) => (
             <MenuItem key={p} value={p}>
@@ -100,32 +132,47 @@ function PisosVista() {
           ))}
         </Select>
         <Button
+          size="small"
           aria-label="Piso siguiente"
           disabled={idxPiso <= 0}
           onClick={() => ir(pisos[idxPiso - 1])}
+          sx={ctrlSx}
         >
           ▶
         </Button>
         <Button
+          size="small"
           variant="contained"
           onClick={() =>
             navigate({ pathname: `/obra/${obraId}/progreso/torre`, search: `?piso=${pisoOk}` })
           }
+          sx={{ ...ctrlSx, px: 1.25 }}
         >
           Ver en 3D
         </Button>
-      </Box>
 
-      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-        {ORDEN_VISUAL.map((k) => (
-          <Box key={k} sx={{ border: 1, borderColor: "divider", px: 1.25, py: 0.75, minWidth: 96 }}>
-            <Box sx={{ fontWeight: 700, fontSize: 18 }}>{counts[k]}</Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, color: "text.secondary", fontSize: 12 }}>
-              <Box sx={{ width: 10, height: 10, bgcolor: VISUAL[k].color }} />
-              {VISUAL[k].label}
+        <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", alignItems: "center", ml: { md: "auto" } }}>
+          {ORDEN_VISUAL.map((k) => (
+            <Box
+              key={k}
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.5,
+                border: 1,
+                borderColor: "divider",
+                height: 28,
+                px: 0.75,
+              }}
+            >
+              <Box sx={{ fontWeight: 700, fontSize: 13, lineHeight: 1 }}>{counts[k]}</Box>
+              <Box sx={{ width: 7, height: 7, bgcolor: VISUAL[k].color, flex: "0 0 auto" }} />
+              <Box sx={{ color: "text.secondary", fontSize: 11, lineHeight: 1, whiteSpace: "nowrap" }}>
+                {VISUAL[k].label}
+              </Box>
             </Box>
-          </Box>
-        ))}
+          ))}
+        </Box>
       </Box>
 
       <Box sx={{ border: 1, borderColor: "divider", p: 1.5, overflowX: "auto" }}>

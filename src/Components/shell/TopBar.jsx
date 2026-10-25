@@ -53,6 +53,49 @@ const ROL_LABEL = {
   obrero: "Obrero",
 };
 
+function NombreObra({ nombre, prefijo }) {
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 0.75,
+        minWidth: 0,
+        maxWidth: "100%",
+        lineHeight: 1,
+      }}
+    >
+      <Box
+        component="span"
+        sx={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          minWidth: 0,
+          lineHeight: 1,
+        }}
+      >
+        {nombre}
+      </Box>
+      {prefijo ? (
+        <Box
+          component="span"
+          sx={{
+            flexShrink: 0,
+            color: "text.secondary",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            lineHeight: 1,
+          }}
+        >
+          {prefijo}
+        </Box>
+      ) : null}
+    </Box>
+  );
+}
+
 function sectionAfterObra(pathname, obraId) {
   const prefix = `/obra/${obraId}`;
   if (!pathname.startsWith(prefix)) return "hoy";
@@ -163,20 +206,10 @@ export default function TopBar({
                   sx={{
                     ...headerButtonSx,
                     fontWeight: 600,
-                    maxWidth: { xs: 140, sm: 280 },
+                    maxWidth: { xs: 200, sm: 360 },
                   }}
                 >
-                  <Box
-                    component="span"
-                    sx={{
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      lineHeight: 1,
-                    }}
-                  >
-                    {obraActual.nombre}
-                  </Box>
+                  <NombreObra nombre={obraActual.nombre} prefijo={obraActual.prefijo} />
                   <Box
                     component="span"
                     aria-hidden
@@ -191,13 +224,10 @@ export default function TopBar({
                   sx={{
                     ...headerLabelSx,
                     fontWeight: 600,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    maxWidth: { xs: 140, sm: 280 },
+                    maxWidth: { xs: 180, sm: 320 },
                   }}
                 >
-                  {obraActual.nombre}
+                  <NombreObra nombre={obraActual.nombre} prefijo={obraActual.prefijo} />
                 </Typography>
               )}
             </>
@@ -249,7 +279,7 @@ export default function TopBar({
             selected={o.id === obraId}
             onClick={() => switchObra(o.id)}
           >
-            {o.nombre}
+            {o.prefijo ? `${o.nombre} · ${o.prefijo}` : o.nombre}
           </MenuItem>
         ))}
       </Menu>

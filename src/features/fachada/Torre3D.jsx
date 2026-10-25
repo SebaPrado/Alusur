@@ -536,7 +536,7 @@ export default function Torre3D({
     host.appendChild(canvas);
 
     const camera = new THREE.PerspectiveCamera(35, 1, 1, 2000);
-    const cam = { theta: 0.65, phi: 1.42, dist: 250, ty: 82.5 };
+    const cam = { theta: 0.65, phi: 1.42, dist: 340, ty: 82.5 };
     const goal = { ...cam };
     const limits = { H: 165, maxDist: 450 };
     const engine = { cam, goal, limits, camInit: false, selectedKey: null };
@@ -780,7 +780,7 @@ export default function Torre3D({
       Object.assign(engine.cam, {
         theta: 0.65,
         phi: 1.42,
-        dist: 250 * Math.max(1, world.H / MAQUETA_ALTO),
+        dist: 340 * Math.max(1, world.H / MAQUETA_ALTO),
         ty: world.H * 0.5,
       });
       Object.assign(engine.goal, engine.cam);

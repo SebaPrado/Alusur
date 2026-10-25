@@ -83,6 +83,19 @@ function ObraCard({ obra, isCeo }) {
               }}
             >
               {obra.nombre}
+              {obra.prefijo ? (
+                <Box
+                  component="span"
+                  sx={{
+                    ml: 1,
+                    color: "text.secondary",
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  {obra.prefijo}
+                </Box>
+              ) : null}
             </Typography>
             {!isCeo && (
               <Typography

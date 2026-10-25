@@ -11,6 +11,7 @@ import { FiFilter, FiHome, FiCheckCircle, FiLoader, FiMapPin } from "react-icons
 import { MdCompareArrows, MdTerrain } from "react-icons/md";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
+import { mismoCodigo, normalizarCodigo } from "../../lib/codigos";
 import { useObra } from "../../obras/ObraProvider";
 import { PageActions } from "../obra/PageActions";
 import { C, fieldSx } from "../personal/theme";
@@ -65,7 +66,7 @@ function EstadoIcon({ estado }) {
 }
 
 export default function ContenedoresPage() {
-  const { obraId, can } = useObra();
+  const { obraId, obra, can } = useObra();
   const { contenedorId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -122,12 +123,14 @@ export default function ContenedoresPage() {
 
   const lista = useMemo(() => {
     const needle = q.trim().toUpperCase();
+    const consulta = normalizarCodigo(q);
     let list = rows;
     if (filtroEstado) list = list.filter((r) => r.estado === filtroEstado);
     if (needle) {
       list = list.filter(
         (r) =>
           (r.codigo || "").toUpperCase().includes(needle) ||
+          (consulta && mismoCodigo(r.codigo, consulta)) ||
           (r.codigo_iso || "").toUpperCase().includes(needle),
       );
     }
@@ -269,7 +272,9 @@ export default function ContenedoresPage() {
             </Box>
             <TextField
               size="small"
-              placeholder="Buscar contenedor…"
+              placeholder={
+                obra?.prefijo ? `Buscar contenedor (${obra.prefijo}-C-0001)` : "Buscar contenedor (CIP-C-0001)"
+              }
               value={q}
               onChange={(e) => setQ(e.target.value)}
               sx={{ ...fieldSx, maxWidth: 280, width: "100%" }}

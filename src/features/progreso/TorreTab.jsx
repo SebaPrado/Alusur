@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { supabase } from "../../lib/supabase";
+import { ejemploCodigoModulo, mismoCodigo, normalizarCodigo } from "../../lib/codigos";
 import { useObra } from "../../obras/ObraProvider";
 import { TIPOS } from "../fachada/buildSlots";
 import Torre3D from "../fachada/Torre3D";
 import { fieldSx } from "../personal/theme";
 import { formatLlegada, ESTADOS_CON_LLEGADA } from "../logistica/estados";
-import {
-  ORDEN_VISUAL,
-  VISUAL,
-  normalizarCodigoModulo,
-} from "./model";
+import { ORDEN_VISUAL, VISUAL } from "./model";
 import { ProgresoGate, useProgreso } from "./useProgresoData.jsx";
 import { EstadoMarca, ubicacion } from "./ui";
 
@@ -23,14 +21,21 @@ export default function TorreTab() {
   );
 }
 
+function textoOtraObra(error) {
+  const raw = String(error?.message ?? "");
+  const inicio = raw.toLowerCase().indexOf("esta pieza es de otra obra");
+  if (inicio < 0) return null;
+  return raw.slice(inicio).split("\n")[0].trim();
+}
+
 function TorreVista() {
-  const { obraId } = useObra();
+  const { obraId, obra } = useObra();
   const { filas, config, abrirRecorrido } = useProgreso();
   const [params, setParams] = useSearchParams();
   const [modo, setModo] = useState("estado");
   const [estadoFiltro, setEstadoFiltro] = useState(null);
   const [q, setQ] = useState("");
-  const [msg, setMsg] = useState("");
+  const [aviso, setAviso] = useState(null);
   const [enfocar, setEnfocar] = useState(0);
   const enfocado = useRef(false);
 
@@ -41,8 +46,8 @@ function TorreVista() {
 
   const fila = useMemo(() => {
     if (moduloQ) {
-      const codigo = normalizarCodigoModulo(moduloQ);
-      return filas.find((f) => f.modulo?.codigo === codigo) ?? null;
+      const codigo = normalizarCodigo(moduloQ);
+      return filas.find((f) => f.modulo && mismoCodigo(f.modulo.codigo, codigo)) ?? null;
     }
     if (posQ) {
       const [piso, cara, eje] = posQ.split("|");
@@ -119,28 +124,44 @@ function TorreVista() {
 
   async function buscar(e) {
     e.preventDefault();
-    const codigo = normalizarCodigoModulo(q);
+    const codigo = normalizarCodigo(q);
+    setQ(codigo);
     if (!codigo) {
-      setMsg("");
+      setAviso(null);
       return;
     }
     const { data, error } = await supabase.rpc("buscar_codigo", {
       p_obra: obraId,
       p_codigo: codigo,
     });
-    if (error || !data || data.tipo !== "modulo") {
-      setMsg(`No existe el módulo ${codigo}`);
+    if (error) {
+      const otra = textoOtraObra(error);
+      if (otra) {
+        setAviso({ texto: otra, otraObra: true });
+        return;
+      }
+      const mensaje = String(error.message ?? "");
+      if (/dígito de control|formato de código|mal escrito/i.test(mensaje)) {
+        setAviso({ texto: mensaje, otraObra: false });
+        return;
+      }
+      setAviso({ texto: `No existe el módulo ${codigo}`, otraObra: false });
+      return;
+    }
+    if (!data || data.tipo !== "modulo") {
+      setAviso({ texto: `No existe el módulo ${codigo}`, otraObra: false });
       return;
     }
     const hit = filas.find((f) => f.modulo?.id === data.id);
     if (!hit) {
-      setMsg(`No existe el módulo ${codigo}`);
+      setAviso({ texto: `No existe el módulo ${codigo}`, otraObra: false });
       return;
     }
-    setMsg("");
-    setQ(hit.modulo.codigo);
+    setAviso(null);
+    const codigoPieza = data.codigo || hit.modulo.codigo;
+    setQ(codigoPieza);
     const next = new URLSearchParams(params);
-    next.set("modulo", hit.modulo.codigo);
+    next.set("modulo", codigoPieza);
     next.delete("pos");
     setParams(next, { replace: true });
     setEnfocar((n) => n + 1);
@@ -250,7 +271,7 @@ function TorreVista() {
             component="input"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar módulo (C-0142-07-K)"
+            placeholder={`Buscar módulo (${ejemploCodigoModulo(obra?.prefijo)})`}
             aria-label="Buscar módulo"
             sx={{
               ...fieldSx["& .MuiInputBase-root"],
@@ -267,14 +288,31 @@ function TorreVista() {
               "&:focus": { outline: "1px solid", outlineColor: "primary.main" },
             }}
           />
-          {msg && (
-            <Typography role="status" sx={{ color: "warning.main", fontSize: 13, mt: 0.75 }}>
-              {msg}
+          {aviso && (
+            <Typography
+              role={aviso.otraObra ? "alert" : "status"}
+              sx={(theme) => ({
+                color: aviso.otraObra ? "error.main" : "warning.main",
+                fontSize: 13,
+                fontWeight: aviso.otraObra ? 700 : 400,
+                mt: 0.75,
+                ...(aviso.otraObra
+                  ? {
+                      px: 1,
+                      py: 0.75,
+                      borderLeft: "3px solid",
+                      borderColor: "error.main",
+                      bgcolor: alpha(theme.palette.error.main, 0.16),
+                    }
+                  : null),
+              })}
+            >
+              {aviso.texto}
             </Typography>
           )}
-          {moduloQ && !fila && !msg && (
+          {moduloQ && !fila && !aviso && (
             <Typography role="status" sx={{ color: "warning.main", fontSize: 13, mt: 0.75 }}>
-              No existe el módulo {normalizarCodigoModulo(moduloQ)}
+              No existe el módulo {normalizarCodigo(moduloQ)}
             </Typography>
           )}
         </Box>

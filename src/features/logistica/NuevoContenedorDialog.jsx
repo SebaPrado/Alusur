@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import { FiInfo } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
+import { useObra } from "../../obras/ObraProvider";
 import { C, dialogPaperSx, fieldSx, selectMenuProps } from "../personal/theme";
 import {
   ISO_RE,
@@ -47,7 +48,7 @@ const backdropSx = {
 
 /**
  * Alta manual en 2 pasos: (1) datos del contenedor, (2) módulos.
- * El código interno C-NNNN lo asigna import_contenedor_auto.
+ * El código interno (prefijo de la obra + C-0001) lo asigna import_contenedor_auto.
  *
  * @param {{
  *   open: boolean,
@@ -62,6 +63,7 @@ export default function NuevoContenedorDialog({
   obraId,
   onImported,
 }) {
+  const { obra } = useObra();
   const { catalogo, loading: catLoading, error: catError } = useCatalogo(
     open ? obraId : null,
   );
@@ -334,7 +336,7 @@ export default function NuevoContenedorDialog({
           </Box>
           {paso === 1 && (
             <Tooltip
-              title="El código interno (C-0001) lo asigna el sistema. Acá cargás el número ISO y los datos de seguimiento."
+              title={`El código interno (${obra?.prefijo ? `${obra.prefijo}-C-0001` : "CIP-C-0001"}) lo asigna el sistema. Acá cargás el número ISO y los datos de seguimiento.`}
               arrow
               enterTouchDelay={0}
               componentsProps={{

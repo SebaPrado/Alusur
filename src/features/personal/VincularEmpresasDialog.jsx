@@ -34,6 +34,7 @@ export default function VincularEmpresasDialog({ open, onClose, obraId, onChange
   const [nuevaNombre, setNuevaNombre] = useState("");
   const [nuevaTipo, setNuevaTipo] = useState("socia");
   const [creando, setCreando] = useState(false);
+  const [mostrarCrear, setMostrarCrear] = useState(false);
 
   const load = useCallback(async () => {
     if (!obraId) return;
@@ -64,6 +65,7 @@ export default function VincularEmpresasDialog({ open, onClose, obraId, onChange
     if (open) {
       setNuevaNombre("");
       setNuevaTipo("socia");
+      setMostrarCrear(false);
       load();
     }
   }, [open, load]);
@@ -109,6 +111,7 @@ export default function VincularEmpresasDialog({ open, onClose, obraId, onChange
       });
       if (linkErr) throw new Error(linkErr.message);
       setNuevaNombre("");
+      setMostrarCrear(false);
       await load();
       onChanged?.();
     } catch (e) {
@@ -141,10 +144,10 @@ export default function VincularEmpresasDialog({ open, onClose, obraId, onChange
         {loading ? (
           <Typography sx={{ color: C.muted }}>Cargando…</Typography>
         ) : (
-          <Box sx={{ mb: 3 }}>
+          <Box>
             {todas.length === 0 && (
-              <Typography sx={{ color: C.muted, mb: 2 }}>
-                Todavía no hay empresas en el catálogo. Creá una abajo.
+              <Typography sx={{ color: C.muted }}>
+                Todavía no hay empresas en el catálogo.
               </Typography>
             )}
             {todas.map((e) => {
@@ -208,49 +211,95 @@ export default function VincularEmpresasDialog({ open, onClose, obraId, onChange
           </Box>
         )}
 
-        <Typography sx={{ color: C.muted, fontSize: "0.8rem", mb: 1 }}>
-          Crear empresa y vincular
-        </Typography>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-          <TextField
-            label="Nombre"
-            value={nuevaNombre}
-            onChange={(ev) => setNuevaNombre(ev.target.value)}
-            fullWidth
-            size="small"
-            sx={fieldSx}
-            placeholder="Ej. ALUSUR"
-          />
-          <FormControl fullWidth size="small" sx={fieldSx}>
-            <InputLabel>Tipo</InputLabel>
-            <Select
-              label="Tipo"
-              value={nuevaTipo}
-              onChange={(ev) => setNuevaTipo(ev.target.value)}
-              MenuProps={selectMenuProps}
-            >
-              {TIPOS.map((t) => (
-                <MenuItem key={t.value} value={t.value}>
-                  {t.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            onClick={crearYVincular}
-            disabled={creando || !nuevaNombre.trim()}
-            sx={{
-              alignSelf: "flex-start",
-              color: C.bg,
-              bgcolor: C.accent,
-              borderRadius: 0,
-              textTransform: "none",
-              "&:hover": { bgcolor: C.accent, opacity: 0.9 },
-            }}
-          >
-            {creando ? "Creando…" : "Crear y vincular"}
-          </Button>
+        {!loading && (
+        <Box
+          sx={{
+            mt: 3,
+            pt: 2,
+            borderTop: 1,
+            borderColor: C.line,
+          }}
+        >
+          {!mostrarCrear ? (
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+              <Button
+                onClick={() => {
+                  setError(null);
+                  setMostrarCrear(true);
+                }}
+                sx={{
+                  color: C.bg,
+                  bgcolor: C.accent,
+                  borderRadius: 0,
+                  textTransform: "none",
+                  px: 2,
+                  "&:hover": { bgcolor: C.accent, opacity: 0.9 },
+                }}
+              >
+                + Crear empresa
+              </Button>
+            </Box>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Typography sx={{ color: C.muted, fontSize: "0.8rem" }}>
+                Crear empresa y vincular
+              </Typography>
+              <TextField
+                label="Nombre"
+                value={nuevaNombre}
+                onChange={(ev) => setNuevaNombre(ev.target.value)}
+                fullWidth
+                size="small"
+                sx={fieldSx}
+                placeholder="Ej. ALUSUR"
+                autoFocus
+              />
+              <FormControl fullWidth size="small" sx={fieldSx}>
+                <InputLabel>Tipo</InputLabel>
+                <Select
+                  label="Tipo"
+                  value={nuevaTipo}
+                  onChange={(ev) => setNuevaTipo(ev.target.value)}
+                  MenuProps={selectMenuProps}
+                >
+                  {TIPOS.map((t) => (
+                    <MenuItem key={t.value} value={t.value}>
+                      {t.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+                <Button
+                  onClick={() => {
+                    setMostrarCrear(false);
+                    setNuevaNombre("");
+                    setNuevaTipo("socia");
+                  }}
+                  disabled={creando}
+                  sx={{ color: C.muted, textTransform: "none", borderRadius: 0 }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={crearYVincular}
+                  disabled={creando || !nuevaNombre.trim()}
+                  sx={{
+                    color: C.bg,
+                    bgcolor: C.accent,
+                    borderRadius: 0,
+                    textTransform: "none",
+                    px: 2,
+                    "&:hover": { bgcolor: C.accent, opacity: 0.9 },
+                  }}
+                >
+                  {creando ? "Creando…" : "Crear y vincular"}
+                </Button>
+              </Box>
+            </Box>
+          )}
         </Box>
+        )}
       </DialogContent>
       <DialogActions sx={{ borderTop: 1, borderColor: C.line, px: 3, py: 2 }}>
         <Button onClick={onClose} sx={{ color: C.text, textTransform: "none" }}>

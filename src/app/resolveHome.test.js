@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { resolveHome, resolveObraHome } from "./resolveHome";
 
 describe("resolveHome", () => {
-  it("CEO con 1 obra va a /obras", () => {
+  it("CEO con 1 obra va a /construccion/obras", () => {
     expect(
       resolveHome({
         isCeo: true,
         obras: [{ id: "a", mi_rol: "ceo" }],
       }),
-    ).toBe("/obras");
+    ).toBe("/construccion/obras");
   });
 
   it("Admin con 1 obra va a /hoy", () => {
@@ -17,7 +17,7 @@ describe("resolveHome", () => {
         isCeo: false,
         obras: [{ id: "a", mi_rol: "admin" }],
       }),
-    ).toBe("/obra/a/hoy");
+    ).toBe("/construccion/obra/a/hoy");
   });
 
   it("Owner con 1 obra va a /resumen", () => {
@@ -26,14 +26,16 @@ describe("resolveHome", () => {
         isCeo: false,
         obras: [{ id: "b", mi_rol: "owner" }],
       }),
-    ).toBe("/obra/b/resumen");
+    ).toBe("/construccion/obra/b/resumen");
   });
 
-  it("usuario sin obras va a /sin-obras", () => {
-    expect(resolveHome({ isCeo: false, obras: [] })).toBe("/sin-obras");
+  it("usuario sin obras va a /construccion/sin-obras", () => {
+    expect(resolveHome({ isCeo: false, obras: [] })).toBe(
+      "/construccion/sin-obras",
+    );
   });
 
-  it("usuario con 3 obras va a /obras", () => {
+  it("usuario con 3 obras va a /construccion/obras", () => {
     expect(
       resolveHome({
         isCeo: false,
@@ -43,7 +45,7 @@ describe("resolveHome", () => {
           { id: "3", mi_rol: "superadmin" },
         ],
       }),
-    ).toBe("/obras");
+    ).toBe("/construccion/obras");
   });
 });
 

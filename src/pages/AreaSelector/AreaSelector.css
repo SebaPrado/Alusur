@@ -1,0 +1,190 @@
+.area-selector-page {
+  box-sizing: border-box;
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 4vw, 56px);
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(36, 149, 150, 0.28), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 80%, rgba(36, 149, 150, 0.14), transparent 50%),
+    linear-gradient(160deg, #0a0d12 0%, #0e1117 40%, #121a24 100%);
+}
+
+.area-selector-user {
+  position: absolute;
+  top: clamp(12px, 2.5vw, 24px);
+  right: clamp(12px, 2.5vw, 24px);
+  z-index: 2;
+}
+
+.area-selector-user__btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  color: #f2f4f7 !important;
+  max-width: min(260px, 70vw);
+  opacity: 0.88;
+}
+
+.area-selector-user__btn:hover {
+  opacity: 1;
+}
+
+.area-selector-user__icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.area-selector-user__btn:hover .area-selector-user__icon,
+.area-selector-user__login:hover .area-selector-user__icon {
+  opacity: 1;
+}
+
+.area-selector-user__name {
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #f2f4f7;
+}
+
+.area-selector-user__login {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: #f2f4f7;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 6px 10px;
+  cursor: pointer;
+  opacity: 0.88;
+}
+
+.area-selector-user__login:hover {
+  opacity: 1;
+}
+
+.area-selector {
+  display: flex;
+  width: min(1100px, 100%);
+  height: min(62dvh, 560px);
+  overflow: hidden;
+  background: #111;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(242, 244, 247, 0.06);
+}
+
+/* Cada panel parte de 50/50 (flex: 1 y 1) */
+.area-panel {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: #fff;
+  text-align: left;
+  overflow: hidden;
+  background-image:
+    linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.2) 60%),
+    var(--bg);
+  background-size: cover;
+  background-position: center;
+  transition: flex-grow 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.5s ease;
+}
+
+/* Hover/foco: el activo pasa a 7 partes, el otro a 3 → 70/30 */
+@media (hover: hover) {
+  .area-selector:hover .area-panel,
+  .area-selector:focus-within .area-panel {
+    flex-grow: 3;
+    filter: brightness(0.6) saturate(0.7);
+  }
+  .area-selector .area-panel:hover,
+  .area-selector .area-panel:focus-visible {
+    flex-grow: 7;
+    filter: none;
+  }
+}
+
+.area-panel:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: -6px;
+}
+
+.area-panel__content {
+  position: absolute;
+  left: clamp(16px, 4vw, 56px);
+  bottom: clamp(24px, 6vh, 72px);
+  /* Ancho fijo: evita que el texto se reacomode mientras el panel se anima */
+  width: min(420px, 80vw);
+}
+
+.area-panel__title {
+  margin: 0 0 8px;
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.area-panel__subtitle,
+.area-panel__cta {
+  margin: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.area-panel__cta {
+  display: inline-block;
+  margin-top: 16px;
+  font-weight: 600;
+}
+
+.area-panel:hover .area-panel__subtitle,
+.area-panel:hover .area-panel__cta,
+.area-panel:focus-visible .area-panel__subtitle,
+.area-panel:focus-visible .area-panel__cta {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.15s;
+}
+
+/* Móvil / táctil: no existe hover → apilado vertical y todo visible */
+@media (hover: none), (max-width: 700px) {
+  .area-selector {
+    flex-direction: column;
+    height: min(78dvh, 640px);
+  }
+  .area-panel__subtitle,
+  .area-panel__cta {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .area-panel,
+  .area-panel__subtitle,
+  .area-panel__cta {
+    transition: none;
+  }
+}

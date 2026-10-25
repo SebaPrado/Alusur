@@ -10,7 +10,6 @@ import {
   FormControl,
   IconButton,
   InputLabel,
-  Link,
   MenuItem,
   Select,
   TextField,
@@ -19,6 +18,11 @@ import {
 import { supabase } from "../../lib/supabase";
 import { useObra } from "../../obras/ObraProvider";
 import { C, dialogPaperSx, fieldSx, selectMenuProps } from "../personal/theme";
+import {
+  confirmacionCoincide,
+  estadosAlcanzables,
+  puedeEliminar,
+} from "./edicionContenedor";
 import {
   ESTADOS_CON_LLEGADA,
   ISO_RE,
@@ -47,9 +51,11 @@ export default function ContenedorDrawer({
   onClose,
   onChanged,
 }) {
-  const { can } = useObra();
+  const { can, mi_rol } = useObra();
   const canImport = can("contenedor.import");
   const canTrans = can("contenedor.transicion");
+  const canDelete = can("contenedor.delete");
+  const esCeo = mi_rol === "ceo";
 
   const open = Boolean(contenedorId);
 
@@ -57,6 +63,8 @@ export default function ContenedorDrawer({
   const [modulos, setModulos] = useState([]);
   const [events, setEvents] = useState([]);
   const [transiciones, setTransiciones] = useState([]);
+  const [nivel, setNivel] = useState(null);
+  const [nivelError, setNivelError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -67,6 +75,7 @@ export default function ContenedorDrawer({
   const [editPrecinto, setEditPrecinto] = useState("");
   const [editPlanta, setEditPlanta] = useState("");
   const [editLlegada, setEditLlegada] = useState("");
+  const [editEstado, setEditEstado] = useState("");
   const [editBusy, setEditBusy] = useState(false);
   const [editError, setEditError] = useState(null);
 
@@ -74,14 +83,18 @@ export default function ContenedorDrawer({
   const [transNota, setTransNota] = useState("");
   const [transBusy, setTransBusy] = useState(false);
   const [transError, setTransError] = useState(null);
-  const [corregirOpen, setCorregirOpen] = useState(false);
+
+  const [eliminarOpen, setEliminarOpen] = useState(false);
+  const [eliminarCodigo, setEliminarCodigo] = useState("");
+  const [eliminarBusy, setEliminarBusy] = useState(false);
+  const [eliminarError, setEliminarError] = useState(null);
 
   const load = useCallback(async () => {
     if (!contenedorId || !obraId) return;
     setLoading(true);
     setError(null);
 
-    const [cRes, mRes, eRes, tRes] = await Promise.all([
+    const [cRes, mRes, eRes, tRes, nRes] = await Promise.all([
       supabase
         .from("contenedores")
         .select(
@@ -104,6 +117,7 @@ export default function ContenedorDrawer({
         .from("transiciones")
         .select("from_state, to_state")
         .eq("entidad", "contenedor"),
+      supabase.rpc("contenedor_nivel_edicion", { p_contenedor: contenedorId }),
     ]);
 
     if (cRes.error) setError(cRes.error.message);
@@ -118,6 +132,14 @@ export default function ContenedorDrawer({
     if (tRes.error) setError((e) => e ?? tRes.error.message);
     else setTransiciones(tRes.data ?? []);
 
+    if (nRes.error) {
+      setNivel(null);
+      setNivelError(nRes.error.message);
+    } else {
+      setNivel(typeof nRes.data === "string" ? nRes.data : null);
+      setNivelError(null);
+    }
+
     setLoading(false);
   }, [contenedorId, obraId]);
 
@@ -129,26 +151,17 @@ export default function ContenedorDrawer({
       setEvents([]);
       setEditOpen(false);
       setTransDlg(null);
-      setCorregirOpen(false);
+      setEliminarOpen(false);
+      setNivel(null);
+      setNivelError(null);
     }
   }, [open, load]);
 
-  const forward = useMemo(() => {
+  const destinos = useMemo(() => {
     if (!cont) return [];
-    const from = cont.estado;
-    const rFrom = rangoEstado(from);
-    return transiciones
-      .filter((t) => t.from_state === from && rangoEstado(t.to_state) > rFrom)
-      .sort((a, b) => rangoEstado(a.to_state) - rangoEstado(b.to_state));
-  }, [cont, transiciones]);
-
-  const backward = useMemo(() => {
-    if (!cont) return [];
-    const from = cont.estado;
-    const rFrom = rangoEstado(from);
-    return transiciones
-      .filter((t) => t.from_state === from && rangoEstado(t.to_state) < rFrom)
-      .sort((a, b) => rangoEstado(b.to_state) - rangoEstado(a.to_state));
+    return estadosAlcanzables(cont.estado, transiciones).sort(
+      (a, b) => rangoEstado(a) - rangoEstado(b),
+    );
   }, [cont, transiciones]);
 
   function openEdit() {
@@ -158,6 +171,7 @@ export default function ContenedorDrawer({
     setEditPrecinto(cont.precinto_esperado ?? "");
     setEditPlanta(cont.planta_id ?? "");
     setEditLlegada(cont.llegada_estimada ?? "");
+    setEditEstado(cont.estado ?? "");
     setEditError(null);
     setEditOpen(true);
     (async () => {
@@ -192,16 +206,52 @@ export default function ContenedorDrawer({
       setEditError(err.message);
       return;
     }
+    if (canTrans && editEstado && editEstado !== cont.estado) {
+      setEditBusy(true);
+      const { error: errEstado } = await supabase.rpc("transition_contenedor", {
+        p_contenedor: cont.id,
+        p_to: editEstado,
+        p_nota: null,
+      });
+      setEditBusy(false);
+      if (errEstado) {
+        setEditError(errEstado.message);
+        await load();
+        return;
+      }
+    }
     setEditOpen(false);
     await load();
     onChanged();
+  }
+
+  function abrirEliminar() {
+    setEliminarCodigo("");
+    setEliminarError(null);
+    setEliminarOpen(true);
+  }
+
+  async function confirmarEliminar() {
+    if (!cont || !confirmacionCoincide(eliminarCodigo, cont.codigo)) return;
+    setEliminarBusy(true);
+    setEliminarError(null);
+    const { error: err } = await supabase.rpc("contenedor_eliminar", {
+      p_contenedor: cont.id,
+    });
+    setEliminarBusy(false);
+    if (err) {
+      setEliminarError(err.message);
+      return;
+    }
+    setEliminarOpen(false);
+    onChanged();
+    onClose();
   }
 
   function openTrans(to) {
     setTransDlg({ to, label: labelEstadoContenedor(to) });
     setTransNota("");
     setTransError(null);
-    setCorregirOpen(false);
   }
 
   async function confirmTrans() {
@@ -355,43 +405,23 @@ export default function ContenedorDrawer({
               {canTrans && (
                 <Box sx={{ mb: 3 }}>
                   <Typography sx={{ fontWeight: 600, mb: 1 }}>Estado</Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 1 }}>
-                    {forward.map((t) => (
-                      <Button
-                        key={t.to_state}
-                        variant="contained"
-                        onClick={() => openTrans(t.to_state)}
-                        sx={{ borderRadius: 0, textTransform: "none" }}
-                      >
-                        {labelEstadoContenedor(t.to_state)}
-                      </Button>
-                    ))}
-                  </Box>
-                  {backward.length > 0 && (
-                    <Link
-                      component="button"
-                      type="button"
-                      onClick={() => setCorregirOpen((v) => !v)}
-                      sx={{
-                        color: C.muted,
-                        fontSize: "0.8rem",
-                        textDecoration: "underline",
-                      }}
-                    >
-                      Corregir estado
-                    </Link>
-                  )}
-                  {corregirOpen && (
-                    <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 1 }}>
-                      {backward.map((t) => (
+                  <Typography sx={{ color: C.muted, fontSize: "0.8rem", mb: 1 }}>
+                    Ahora: {labelEstadoContenedor(cont.estado)}
+                  </Typography>
+                  {destinos.length === 0 ? (
+                    <Typography sx={{ color: C.muted, fontSize: "0.8rem" }}>
+                      Desde acá no hay otro estado permitido.
+                    </Typography>
+                  ) : (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                      {destinos.map((to) => (
                         <Button
-                          key={t.to_state}
-                          size="small"
-                          variant="outlined"
-                          onClick={() => openTrans(t.to_state)}
+                          key={to}
+                          variant={rangoEstado(to) < rangoEstado(cont.estado) ? "outlined" : "contained"}
+                          onClick={() => openTrans(to)}
                           sx={{ borderRadius: 0, textTransform: "none" }}
                         >
-                          {labelEstadoContenedor(t.to_state)}
+                          {labelEstadoContenedor(to)}
                         </Button>
                       ))}
                     </Box>
@@ -475,6 +505,26 @@ export default function ContenedorDrawer({
                   );
                 })}
               </Box>
+
+              {canDelete && nivelError && (
+                <Typography sx={{ color: C.danger, mt: 2, fontSize: "0.8rem" }}>
+                  {nivelError}
+                </Typography>
+              )}
+              {canDelete && puedeEliminar(nivel, esCeo) && (
+                <Button
+                  onClick={abrirEliminar}
+                  sx={{
+                    mt: 3,
+                    color: "error.main",
+                    textTransform: "none",
+                    borderRadius: 0,
+                    px: 0,
+                  }}
+                >
+                  Eliminar
+                </Button>
+              )}
             </>
           )}
         </Box>
@@ -539,6 +589,29 @@ export default function ContenedorDrawer({
               ))}
             </Select>
           </FormControl>
+          {canTrans && (
+            <FormControl fullWidth sx={fieldSx}>
+              <InputLabel id="estado-edit-label">Estado</InputLabel>
+              <Select
+                labelId="estado-edit-label"
+                label="Estado"
+                value={editEstado}
+                onChange={(e) => setEditEstado(e.target.value)}
+                MenuProps={selectMenuProps}
+              >
+                <MenuItem value={cont?.estado ?? ""}>
+                  {labelEstadoContenedor(cont?.estado)}
+                </MenuItem>
+                {destinos
+                  .filter((to) => to !== cont?.estado)
+                  .map((to) => (
+                    <MenuItem key={to} value={to}>
+                      {labelEstadoContenedor(to)}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          )}
           <TextField
             label="Llegada estimada"
             type="date"
@@ -614,6 +687,54 @@ export default function ContenedorDrawer({
             sx={{ borderRadius: 0 }}
           >
             {transBusy ? "Guardando…" : "Confirmar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={eliminarOpen}
+        onClose={eliminarBusy ? undefined : () => setEliminarOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{ sx: dialogPaperSx }}
+      >
+        <DialogTitle sx={{ borderBottom: 1, borderColor: C.line }}>
+          Eliminar contenedor
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          {eliminarError && (
+            <Typography sx={{ color: C.danger, mb: 1, fontSize: "0.875rem" }}>
+              {eliminarError}
+            </Typography>
+          )}
+          <Typography sx={{ mb: 2 }}>
+            Se borra {cont?.codigo} y sus módulos. Escribí {cont?.codigo} para confirmar.
+          </Typography>
+          <TextField
+            label="Código"
+            value={eliminarCodigo}
+            onChange={(e) => setEliminarCodigo(e.target.value)}
+            sx={fieldSx}
+            fullWidth
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions sx={{ borderTop: 1, borderColor: C.line }}>
+          <Button
+            onClick={() => setEliminarOpen(false)}
+            disabled={eliminarBusy}
+            sx={{ color: C.muted }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={confirmarEliminar}
+            disabled={eliminarBusy || !confirmacionCoincide(eliminarCodigo, cont?.codigo)}
+            sx={{ borderRadius: 0 }}
+          >
+            {eliminarBusy ? "Eliminando…" : "Eliminar"}
           </Button>
         </DialogActions>
       </Dialog>

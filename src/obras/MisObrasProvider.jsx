@@ -21,6 +21,16 @@ const cache = {
   error: null,
 };
 
+async function conPrefijo(rows) {
+  const { data, error } = await supabase.from("obras").select("id, prefijo");
+  if (error || !data) return rows;
+  const porId = new Map(data.map((r) => [r.id, r.prefijo]));
+  return rows.map((r) => ({
+    ...r,
+    prefijo: r.prefijo || porId.get(r.id) || null,
+  }));
+}
+
 async function fetchMisObras(userId) {
   if (cache.userId === userId && cache.data !== null) {
     return { data: cache.data, error: cache.error };
@@ -41,7 +51,7 @@ async function fetchMisObras(userId) {
       cache.promise = null;
       return { data: [], error: error.message };
     }
-    const rows = data ?? [];
+    const rows = await conPrefijo(data ?? []);
     cache.data = rows;
     cache.error = null;
     cache.promise = null;

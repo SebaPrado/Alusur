@@ -129,6 +129,8 @@ function dondeEsta(fila, config) {
   const lugar = ubicacion(fila, config);
   if (fila.visual === "produccion") return `En producción · Contenedor ${cont}`;
   if (fila.visual === "camino") return `En camino · Contenedor ${cont}`;
+  if (fila.visual === "puerto") return `En puerto · Contenedor ${cont}`;
+  if (fila.visual === "deposito") return `En depósito · Contenedor ${cont}`;
   if (fila.visual === "obra") return "En obra, sin instalar";
   if (fila.visual === "instalado") return `Instalado · ${lugar}`;
   if (fila.visual === "terminado") return `Terminado · ${lugar}`;

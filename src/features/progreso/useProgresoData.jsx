@@ -155,14 +155,6 @@ async function cargar(obraId, obraNombre) {
     actor: actorDe(e),
   }));
 
-  // #region agent log
-  const toStates = {};
-  for (const e of eventosNorm) toStates[e.to_state] = (toStates[e.to_state] || 0) + 1;
-  const modConCont = modulos.filter((m) => m.contenedor_id).length;
-  const posConMod = posiciones.filter((p) => p.modulo_id).length;
-  fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b3ed7e'},body:JSON.stringify({sessionId:'b3ed7e',runId:'pre-fix',hypothesisId:'A',location:'useProgresoData.jsx:cargar',message:'progreso raw loaded',data:{obraId,fuente,nContenedores:contenedores.length,nModulos:modulos.length,modConCont,nPosiciones:posiciones.length,posConMod,nSlots:slots.length,nEventos:eventosNorm.length,toStates,ultimosContenedores:contenedores.slice(-3).map((c)=>({id:c.id,codigo:c.codigo,estado:c.estado}))},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-
   return {
     fachada: fachadaRes.data,
     caras: carasRes.data ?? [],
@@ -285,17 +277,6 @@ function armar(obraNombre, raw) {
   const porCodigo = new Map(filas.filter((f) => f.modulo).map((f) => [f.modulo.codigo, f]));
 
   const conteo = conteos(filas);
-  // #region agent log
-  const conFecha = {
-    salio: fechasSeg.filter((f) => f.salio).length,
-    llego: fechasSeg.filter((f) => f.llego).length,
-    instalado: fechasSeg.filter((f) => f.instalado).length,
-    terminado: fechasSeg.filter((f) => f.terminado).length,
-  };
-  const filasConModulo = filas.filter((f) => f.modulo).length;
-  const modsSinSlot = raw.modulos.length - filasConModulo;
-  fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b3ed7e'},body:JSON.stringify({sessionId:'b3ed7e',runId:'pre-fix',hypothesisId:'B',location:'useProgresoData.jsx:armar',message:'progreso armado',data:{fuente:raw.fuente,nFilas:filas.length,filasConModulo,modsSinSlot,nModulosRaw:raw.modulos.length,nContenedoresRaw:raw.contenedores.length,conteo,conFecha},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
 
   return {
     config,
@@ -331,9 +312,6 @@ export function ProgresoProvider({ obraId, obraNombre, children }) {
 
   useEffect(() => {
     let cancel = false;
-    // #region agent log
-    fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b3ed7e'},body:JSON.stringify({sessionId:'b3ed7e',runId:'pre-fix',hypothesisId:'D',location:'useProgresoData.jsx:ProgresoProvider',message:'progreso reload effect',data:{obraId,obraNombre,tick},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     setLoading(true);
     setError(null);
     cargar(obraId, obraNombre)

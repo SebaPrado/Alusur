@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
+import { Link as RouterLink, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -15,6 +15,7 @@ import {
   saveWorkerCode,
   workerLogin,
 } from "../../lib/workerAuth";
+import { safeInternalPath } from "../../app/authRedirect";
 import { useAuth } from "../../auth/AuthProvider";
 
 function normalizarCodigo(raw) {
@@ -27,6 +28,8 @@ function normalizarCodigo(raw) {
 export default function PinLogin() {
   const { session, status } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const next = safeInternalPath(location.state?.from, "/construccion");
   const [workerCode, setWorkerCode] = useState(() => getWorkerCode());
   const enrolled = Boolean(workerCode);
 
@@ -41,7 +44,7 @@ export default function PinLogin() {
   );
 
   if (status === "ready" && session) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={next} replace />;
   }
 
   function handleEnrolar(e) {
@@ -82,7 +85,7 @@ export default function PinLogin() {
       }
       return;
     }
-    navigate("/", { replace: true });
+    navigate(next, { replace: true });
   }
 
   return (
@@ -193,7 +196,7 @@ export default function PinLogin() {
         )}
 
         <Typography variant="body2" sx={{ mt: 3, textAlign: "center" }}>
-          <Link component={RouterLink} to="/login">
+          <Link component={RouterLink} to="/login" state={{ from: location.state?.from }}>
             Entrar con email
           </Link>
         </Typography>

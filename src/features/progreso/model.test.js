@@ -5,7 +5,6 @@ import {
   esCorreccion,
   estadoVisual,
   fechasModulo,
-  normalizarCodigoModulo,
   pisoInicial,
   seguimiento,
 } from "./model";
@@ -24,10 +23,10 @@ describe("estadoVisual", () => {
     );
   });
 
-  it("en camino, puerto o depósito", () => {
-    for (const c of ["en_camino", "en_puerto", "en_deposito"]) {
-      expect(estadoVisual(pos("m"), mod("en_contenedor"), { estado: c })).toBe("camino");
-    }
+  it("en camino, puerto y depósito se ven distintos", () => {
+    expect(estadoVisual(pos("m"), mod("en_contenedor"), { estado: "en_camino" })).toBe("camino");
+    expect(estadoVisual(pos("m"), mod("en_contenedor"), { estado: "en_puerto" })).toBe("puerto");
+    expect(estadoVisual(pos("m"), mod("en_contenedor"), { estado: "en_deposito" })).toBe("deposito");
   });
 
   it("en obra: descargado, o contenedor en obra o descargado", () => {
@@ -121,13 +120,6 @@ describe("esCorreccion", () => {
     expect(esCorreccion("modulo", "descargado", "instalado")).toBe(false);
     expect(esCorreccion("contenedor", "en_obra", "en_camino")).toBe(true);
     expect(esCorreccion("modulo", null, "instalado")).toBe(false);
-  });
-});
-
-describe("normalizarCodigoModulo", () => {
-  it("acepta minúsculas y sin guiones", () => {
-    expect(normalizarCodigoModulo("c-0142-07-k")).toBe("C-0142-07-K");
-    expect(normalizarCodigoModulo("c014207k")).toBe("C-0142-07-K");
   });
 });
 

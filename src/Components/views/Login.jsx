@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
+import { Link as RouterLink, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -10,19 +10,23 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { safeInternalPath, sectionLabel } from "../../app/authRedirect";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../auth/AuthProvider";
 
 export default function Login() {
   const { session, status } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const next = safeInternalPath(location.state?.from);
+  const section = sectionLabel(location.state?.from);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   if (status === "ready" && session) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={next} replace />;
   }
 
   async function handleSubmit(e) {
@@ -40,7 +44,7 @@ export default function Login() {
         : err.message);
       return;
     }
-    navigate("/", { replace: true });
+    navigate(next, { replace: true });
   }
 
   return (
@@ -58,9 +62,14 @@ export default function Login() {
         <Typography variant="h5" fontWeight={700} color="primary" gutterBottom>
           ALUSUR
         </Typography>
-        <Typography variant="body2" color="text.secondary" mb={3}>
+        <Typography variant="body2" color="text.secondary" mb={section ? 1 : 3}>
           Acceso con email
         </Typography>
+        {section && (
+          <Typography variant="body2" color="text.secondary" mb={3}>
+            Vas a entrar a {section}
+          </Typography>
+        )}
 
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
@@ -102,8 +111,13 @@ export default function Login() {
 
         <Typography variant="body2" sx={{ mt: 3, textAlign: "center" }}>
           ¿Eres obrero?{" "}
-          <Link component={RouterLink} to="/pin">
+          <Link component={RouterLink} to="/pin" state={{ from: location.state?.from }}>
             Entrar con PIN
+          </Link>
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 1.5, textAlign: "center" }}>
+          <Link component={RouterLink} to="/">
+            Elegir otra sección
           </Link>
         </Typography>
       </Paper>

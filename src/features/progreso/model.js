@@ -6,13 +6,24 @@ export const VISUAL = {
   sin_modulo: { label: "Sin módulo", color: "#2E3A4E" },
   produccion: { label: "En producción", color: "#6E7F96" },
   camino: { label: "En camino", color: "#9B7FE8" },
+  puerto: { label: "En puerto", color: "#3E7CB8" },
+  deposito: { label: "En depósito", color: "#C47B4A" },
   obra: { label: "En obra", color: "#E3A63B" },
   instalado: { label: "Instalado", color: "#2BB3B4" },
   terminado: { label: "Terminado", color: "#46C08A" },
 };
 
 /** Leyenda: sin módulo al final. */
-export const ORDEN_VISUAL = ["produccion", "camino", "obra", "instalado", "terminado", "sin_modulo"];
+export const ORDEN_VISUAL = [
+  "produccion",
+  "camino",
+  "puerto",
+  "deposito",
+  "obra",
+  "instalado",
+  "terminado",
+  "sin_modulo",
+];
 
 const RANGO_MODULO = { en_contenedor: 0, descargado: 1, instalado: 2, terminado: 3 };
 const RANGO_CONTENEDOR = {
@@ -24,7 +35,6 @@ const RANGO_CONTENEDOR = {
   descargado: 5,
 };
 
-const CAMINO = new Set(["en_camino", "en_puerto", "en_deposito"]);
 const OBRA_CONT = new Set(["en_obra", "descargado"]);
 
 const WD = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
@@ -146,7 +156,9 @@ export function estadoVisual(posicion, modulo, contenedor) {
   if (estado === "en_contenedor") {
     const c = contenedor?.estado ?? modulo?.contenedor_estado;
     if (c === "en_produccion") return "produccion";
-    if (CAMINO.has(c)) return "camino";
+    if (c === "en_camino") return "camino";
+    if (c === "en_puerto") return "puerto";
+    if (c === "en_deposito") return "deposito";
     if (OBRA_CONT.has(c)) return "obra";
   }
   return "sin_modulo";
@@ -227,15 +239,6 @@ export function esCorreccion(entidad, fromState, toState) {
   const tabla = entidad === "contenedor" ? RANGO_CONTENEDOR : RANGO_MODULO;
   if (!(fromState in tabla) || !(toState in tabla)) return false;
   return tabla[toState] < tabla[fromState];
-}
-
-export function normalizarCodigoModulo(raw) {
-  const compacto = String(raw ?? "")
-    .toUpperCase()
-    .replace(/[\s_-]/g, "");
-  const m = compacto.match(/^C(\d{4})(\d{2})([0-9A-Z])$/);
-  if (!m) return String(raw ?? "").trim().toUpperCase();
-  return `C-${m[1]}-${m[2]}-${m[3]}`;
 }
 
 function comaDecimal(n) {

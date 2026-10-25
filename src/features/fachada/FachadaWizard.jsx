@@ -24,6 +24,7 @@ import Torre3D from "./Torre3D";
 import Fachada2D from "./Fachada2D";
 import Lamina3D from "./Lamina3D";
 import { supabase } from "../../lib/supabase";
+import { limpiarPrefijoObra, prefijoObraValido } from "../../lib/codigos";
 import { useAuth } from "../../auth/AuthProvider";
 import { useMisObras } from "../../obras/MisObrasProvider";
 import { BAR_HEIGHT } from "../../Components/shell/TopBar";
@@ -151,6 +152,7 @@ export default function FachadaWizard() {
   const { isCeo, refresh, status: authStatus } = useAuth();
   const { refresh: refreshObras } = useMisObras();
   const [config, setConfig] = useState(() => structuredClone(DEFAULT_CONFIG));
+  const [prefijo, setPrefijo] = useState("");
   const [paso, setPaso] = useState(0);
   const [seleccion, setSeleccion] = useState(null);
   const [guardado, setGuardado] = useState(false);
@@ -175,6 +177,7 @@ export default function FachadaWizard() {
 
   const slots = useMemo(() => buildSlots(config), [config]);
   const errores = useMemo(() => validateConfig(config), [config]);
+  const prefijoInvalido = !prefijoObraValido(prefijo);
 
   const resumen = useMemo(() => {
     const porTipo = { ventana: 0, panel: 0 };
@@ -233,7 +236,7 @@ export default function FachadaWizard() {
   };
 
   const guardar = async () => {
-    if (errores.length > 0 || guardando) return;
+    if (errores.length > 0 || prefijoInvalido || guardando) return;
     if (!isCeo) {
       setErrorGuardar("Solo un CEO puede crear una obra nueva.");
       return;
@@ -248,6 +251,14 @@ export default function FachadaWizard() {
         p_ubicacion: ubicacion,
       });
       if (errObra) throw errObra;
+
+      if (prefijo) {
+        const { error: errPref } = await supabase
+          .from("obras")
+          .update({ prefijo })
+          .eq("id", obraId);
+        if (errPref) throw errPref;
+      }
 
       const { error: errFachada } = await supabase.rpc("guardar_fachada", {
         p_obra: obraId,
@@ -291,6 +302,20 @@ export default function FachadaWizard() {
         onChange={(e) => cambiar({ ubicacion: e.target.value })}
         placeholder="Ej. Punta del Este"
         fullWidth
+      />
+      <TextField
+        label="Prefijo (3 letras)"
+        value={prefijo}
+        onChange={(e) => setPrefijo(limpiarPrefijoObra(e.target.value))}
+        placeholder="CIP"
+        fullWidth
+        error={prefijoInvalido}
+        helperText={
+          prefijoInvalido
+            ? "Tiene que ser una letra y dos letras o números (ej. CIP)."
+            : "Va al principio de todos los códigos y etiquetas de la obra. Si lo dejás vacío, se genera solo."
+        }
+        inputProps={{ maxLength: 3, autoCapitalize: "characters", "aria-label": "Prefijo de la obra" }}
       />
       {!isCeo && authStatus === "ready" && (
         <Alert severity="warning">Solo un CEO puede crear una obra nueva.</Alert>
@@ -662,7 +687,10 @@ export default function FachadaWizard() {
             ) : (
               <Button
                 variant="contained"
-                disabled={paso === 0 && !String(config.nombre ?? "").trim()}
+                disabled={
+                  paso === 0 &&
+                  (!String(config.nombre ?? "").trim() || prefijoInvalido)
+                }
                 onClick={() => setPaso((p) => p + 1)}
               >
                 Siguiente
