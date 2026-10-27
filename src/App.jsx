@@ -36,6 +36,7 @@ import AdminProviders, {
   AdminOrgRequired,
 } from "./features/administracion/AdminLayout";
 import AdminShell from "./features/administracion/AdminShell";
+import CashSessionsPage from "./features/administracion/CashSessionsPage";
 import CustomersPage from "./features/administracion/CustomersPage";
 import LedgerPage from "./features/administracion/LedgerPage";
 import ProductsPage from "./features/administracion/ProductsPage";
@@ -104,6 +105,7 @@ const router = createBrowserRouter([
                   { path: "productos", element: <ProductsPage /> },
                   { path: "venta", element: <SalePage /> },
                   { path: "clientes", element: <CustomersPage /> },
+                  { path: "cajas", element: <CashSessionsPage /> },
                 ],
               },
             ],

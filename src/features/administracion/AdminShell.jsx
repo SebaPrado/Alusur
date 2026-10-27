@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
 import { Alert, Box, Button, Stack } from "@mui/material";
+import { FiLock, FiPrinter } from "react-icons/fi";
 import AdminTopBar, { ADMIN_GUTTER, ADMIN_TOPBAR_HEIGHT } from "./AdminTopBar";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { useOperatingContext } from "./useOperatingContext";
@@ -10,6 +11,40 @@ import CashOutDialog from "./CashOutDialog";
 import CloseCashDialog from "./CloseCashDialog";
 import CollectionDialog from "./CollectionDialog";
 import OpenCashDialog from "./OpenCashDialog";
+
+function NavImage({ src }) {
+  return (
+    <Box
+      component="img"
+      src={src}
+      alt=""
+      className="nav-ico"
+      sx={{ width: 16, height: 16, objectFit: "contain", display: "block" }}
+    />
+  );
+}
+
+function NavSign({ children }) {
+  return (
+    <Box
+      component="span"
+      sx={{
+        width: 16,
+        textAlign: "center",
+        fontWeight: 700,
+        fontSize: 16,
+        lineHeight: 1,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+const navBtnSx = {
+  "&.MuiButton-contained .nav-ico": { filter: "brightness(0)" },
+  "&.Mui-disabled .nav-ico": { opacity: 0.4 },
+};
 
 export default function AdminShell() {
   const { isManager } = useAdminOrg();
@@ -47,7 +82,7 @@ export default function AdminShell() {
           ) : null
         }
       >
-        Esta PC no tiene terminal asignada. Podés mirar la planilla; para vender
+        Esta PC no tiene terminal asignada. Podés mirar los movimientos; para vender
         u operar caja hace falta una terminal
         {isManager ? "" : " (pedile al dueño o admin)"}.
       </Alert>
@@ -63,7 +98,7 @@ export default function AdminShell() {
           </Button>
         }
       >
-        Caja cerrada — podés mirar la planilla. Abrí caja para operar en esta
+        Caja cerrada — podés mirar los movimientos. Abrí caja para operar en esta
         terminal.
       </Alert>
     );
@@ -118,14 +153,26 @@ export default function AdminShell() {
             variant={pathname === "/administracion" ? "contained" : "outlined"}
             component={RouterLink}
             to="/administracion"
+            startIcon={<NavImage src="/calendario.png" />}
+            sx={{
+              "&.Mui-disabled .nav-ico": { opacity: 0.4 },
+              "&.MuiButton-contained": {
+                bgcolor: "background.paper",
+                color: "text.primary",
+                border: "1px solid #249596",
+                "&:hover": { bgcolor: "background.paper" },
+              },
+            }}
           >
-            Planilla
+            Movimientos
           </Button>
           <Button
             size="small"
             variant={pathname.startsWith("/administracion/productos") ? "contained" : "outlined"}
             component={RouterLink}
             to="/administracion/productos"
+            startIcon={<NavImage src="/agregar-producto.png" />}
+            sx={navBtnSx}
           >
             Productos
           </Button>
@@ -136,6 +183,7 @@ export default function AdminShell() {
             component={ops.canOperate ? RouterLink : "button"}
             to={ops.canOperate ? "/administracion/venta" : undefined}
             title={ops.canOperate ? undefined : "Abrí la caja para vender"}
+            startIcon={<NavSign>+</NavSign>}
           >
             Venta
           </Button>
@@ -144,8 +192,20 @@ export default function AdminShell() {
             variant={pathname.startsWith("/administracion/clientes") ? "contained" : "outlined"}
             component={RouterLink}
             to="/administracion/clientes"
+            startIcon={<NavImage src="/cliente-nuevo.png" />}
+            sx={navBtnSx}
           >
             Clientes
+          </Button>
+          <Button
+            size="small"
+            variant={pathname.startsWith("/administracion/cajas") ? "contained" : "outlined"}
+            component={RouterLink}
+            to="/administracion/cajas"
+            startIcon={<NavImage src="/recibo-de-caja.png" />}
+            sx={navBtnSx}
+          >
+            Cajas
           </Button>
           <Box sx={{ flex: 1 }} />
           <Button
@@ -154,6 +214,7 @@ export default function AdminShell() {
             disabled={!ops.canOperate}
             title={ops.canOperate ? undefined : "Abrí la caja para cobrar"}
             onClick={() => setCollectionOpen(true)}
+            startIcon={<NavSign>+</NavSign>}
           >
             Cobranza
           </Button>
@@ -163,10 +224,17 @@ export default function AdminShell() {
             disabled={!ops.canOperate}
             title={ops.canOperate ? undefined : "Abrí la caja para retirar"}
             onClick={() => setCashOutOpen(true)}
+            startIcon={<NavSign>−</NavSign>}
           >
             Retiro
           </Button>
-          <Button size="small" variant="outlined" disabled title="Próxima entrega">
+          <Button
+            size="small"
+            variant="outlined"
+            disabled
+            title="Próxima entrega"
+            startIcon={<FiPrinter size={16} />}
+          >
             Imprimir
           </Button>
           <Button
@@ -175,6 +243,7 @@ export default function AdminShell() {
             color="warning"
             disabled={!ops.canOperate}
             onClick={() => setCloseCash(true)}
+            startIcon={<FiLock size={16} />}
           >
             Cerrar caja
           </Button>

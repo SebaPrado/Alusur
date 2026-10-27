@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Collapse,
   FormControl,
   InputLabel,
   MenuItem,
@@ -10,10 +11,14 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
+import { FiFilter } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
+import { LEDGER_EVENT_LABEL } from "./ledgerQuery";
+import { C } from "../personal/theme";
 import { useAdminOrg } from "./AdminOrgProvider";
 
 const PRESETS = [
+  { value: "todo", label: "Todo" },
   { value: "hoy", label: "Hoy" },
   { value: "ayer", label: "Ayer" },
   { value: "7d", label: "7 días" },
@@ -23,8 +28,14 @@ const PRESETS = [
 
 export default function LedgerFilters({ value, onChange, onExport, exporting }) {
   const { organizationId } = useAdminOrg();
+  const [open, setOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [terminals, setTerminals] = useState([]);
+  const active =
+    value.preset !== "todo" ||
+    Boolean(value.eventType) ||
+    Boolean(value.userId) ||
+    Boolean(value.terminalId);
 
   useEffect(() => {
     if (!organizationId) return;
@@ -53,18 +64,41 @@ export default function LedgerFilters({ value, onChange, onExport, exporting }) 
   }
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 1.5,
-        alignItems: "center",
-        px: 0,
-        py: 1.5,
-        borderBottom: 1,
-        borderColor: "divider",
-      }}
-    >
+    <Box sx={{ py: 0.75 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Button
+          size="small"
+          startIcon={<FiFilter size={16} />}
+          onClick={() => setOpen((o) => !o)}
+          sx={{
+            borderRadius: 0,
+            textTransform: "none",
+            color: active || open ? C.accent : C.muted,
+            borderBottom: 1,
+            borderColor: active || open ? C.accent : "transparent",
+            px: 0.5,
+            minWidth: 0,
+            "&:hover": { color: C.text, bgcolor: "transparent" },
+          }}
+        >
+          Filtrar
+          {active ? " · activo" : ""}
+        </Button>
+      </Box>
+
+      <Collapse in={open} unmountOnExit>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 1.5,
+            alignItems: "center",
+            mt: 1.25,
+            pt: 1.25,
+            borderTop: 1,
+            borderColor: "divider",
+          }}
+        >
       <ToggleButtonGroup
         exclusive
         size="small"
@@ -107,6 +141,8 @@ export default function LedgerFilters({ value, onChange, onExport, exporting }) 
           onChange={(e) => patch({ eventType: e.target.value || null })}
         >
           <MenuItem value="">Todos</MenuItem>
+          <MenuItem value="apertura_caja">{LEDGER_EVENT_LABEL.apertura_caja}</MenuItem>
+          <MenuItem value="cierre_caja">{LEDGER_EVENT_LABEL.cierre_caja}</MenuItem>
           <MenuItem value="venta">venta</MenuItem>
           <MenuItem value="devolucion">devolucion</MenuItem>
           <MenuItem value="cobranza">cobranza</MenuItem>
@@ -137,9 +173,9 @@ export default function LedgerFilters({ value, onChange, onExport, exporting }) 
       </FormControl>
 
       <FormControl size="small" sx={{ minWidth: 140 }}>
-        <InputLabel>Terminal</InputLabel>
+        <InputLabel>Caja</InputLabel>
         <Select
-          label="Terminal"
+          label="Caja"
           value={value.terminalId || ""}
           onChange={(e) => patch({ terminalId: e.target.value || null })}
         >
@@ -161,6 +197,8 @@ export default function LedgerFilters({ value, onChange, onExport, exporting }) 
       >
         Exportar CSV
       </Button>
+    </Box>
+      </Collapse>
     </Box>
   );
 }

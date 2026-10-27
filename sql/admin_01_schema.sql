@@ -443,8 +443,9 @@ select
     - coalesce((select amount from paid where customer_id = c.id and currency = 'USD'), 0) as balance_usd
 from public.admin_customers c;
 
--- Planilla maestra: UNA fila por operación (venta, cobranza, movimiento de caja)
--- con el efectivo de cada cajón (UYU / USD) calculado, no guardado.
+-- Planilla maestra: UNA fila por operación (venta, cobranza, movimiento de caja,
+-- apertura y cierre) con el efectivo de cada cajón (UYU / USD) calculado, no guardado.
+-- El saldo arranca en la fila de apertura (su delta es el fondo) y el cierre no lo mueve.
 create view public.admin_ledger
 with (security_invoker = true) as
 with cash as (
@@ -490,20 +491,55 @@ events as (
     case when m.currency = 'USD' then (case when m.direction = 'ingreso' then 1 else -1 end) * m.amount else 0 end
   from public.admin_cash_movements m
   join public.admin_cash_sessions cs on cs.id = m.cash_session_id
+  union all
+  select
+    cs.organization_id, cs.opened_at, 'apertura_caja', cs.id, null::bigint,
+    null::uuid, cs.opened_by, cs.terminal_id, cs.id,
+    null::text, 'abierta', null::text, null::numeric(14,2), null::numeric(12,4),
+    'Fondo $ ' || trim(to_char(cs.opening_uyu, 'FM999999990.00'))
+      || ' · U$S ' || trim(to_char(cs.opening_usd, 'FM999999990.00')),
+    null::text,
+    cs.opening_uyu, cs.opening_usd
+  from public.admin_cash_sessions cs
+  union all
+  select
+    cs.organization_id, cs.closed_at, 'cierre_caja', cs.id, null::bigint,
+    null::uuid, cs.closed_by, cs.terminal_id, cs.id,
+    null::text, 'cerrada', null::text, null::numeric(14,2), null::numeric(12,4),
+    'Contado $ ' || trim(to_char(cs.counted_uyu, 'FM999999990.00'))
+      || ' (esperado $ ' || trim(to_char(cs.expected_uyu, 'FM999999990.00'))
+      || ', dif. $ ' || trim(to_char(cs.difference_uyu, 'FM999999990.00'))
+      || ') · U$S ' || trim(to_char(cs.counted_usd, 'FM999999990.00'))
+      || ' (esperado ' || trim(to_char(cs.expected_usd, 'FM999999990.00'))
+      || ', dif. ' || trim(to_char(cs.difference_usd, 'FM999999990.00')) || ')'
+      || case
+           when length(trim(coalesce(cs.closing_notes, ''))) > 0
+           then ' · ' || cs.closing_notes
+           else ''
+         end,
+    null::text,
+    null::numeric, null::numeric
+  from public.admin_cash_sessions cs
+  where cs.closed_at is not null
 )
 select
   e.*,
   c.name          as customer_name,
   mb.display_name as user_name,
   t.name          as terminal_name,
-  cs.opening_uyu + sum(e.cash_delta_uyu) over w as cash_balance_uyu,
-  cs.opening_usd + sum(e.cash_delta_usd) over w as cash_balance_usd
+  sum(e.cash_delta_uyu) over w as cash_balance_uyu,
+  sum(e.cash_delta_usd) over w as cash_balance_usd
 from events e
 left join public.admin_customers     c  on c.id = e.customer_id
 left join public.admin_members       mb on mb.organization_id = e.organization_id and mb.user_id = e.user_id
 left join public.admin_terminals     t  on t.id = e.terminal_id
 left join public.admin_cash_sessions cs on cs.id = e.cash_session_id
-window w as (partition by e.cash_session_id order by e.created_at, e.ref_id);
+window w as (
+  partition by e.cash_session_id
+  order by e.created_at,
+    case e.event_type when 'apertura_caja' then 0 when 'cierre_caja' then 2 else 1 end,
+    e.ref_id
+);
 
 -- =====================================================================
 -- 7. OPERACIONES (RPC). Toda escritura transaccional pasa por aquí.

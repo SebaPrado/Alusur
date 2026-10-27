@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
+  ClickAwayListener,
+  IconButton,
+  InputAdornment,
   MenuItem,
   Paper,
   Stack,
@@ -10,6 +13,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import { FiChevronDown } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { faltaLabel, formatCents, formatRateLabel } from "./money";
@@ -84,6 +88,7 @@ export default function SalePage() {
   const [condition, setCondition] = useState("contado");
   const [customers, setCustomers] = useState([]);
   const [customerQuery, setCustomerQuery] = useState("");
+  const [customerOpen, setCustomerOpen] = useState(false);
   const [customerId, setCustomerId] = useState(null);
   const [newCustomerOpen, setNewCustomerOpen] = useState(false);
   const [payments, setPayments] = useState(() => [emptyPayment("UYU")]);
@@ -143,6 +148,7 @@ export default function SalePage() {
     });
     setCustomerId(saved.id);
     setCustomerQuery(saved.name);
+    setCustomerOpen(false);
   }
 
   useEffect(() => {
@@ -363,6 +369,17 @@ export default function SalePage() {
       (c.doc_number ?? "").toLowerCase().includes(q)
     );
   });
+
+  function openCustomerList() {
+    setCustomerQuery("");
+    setCustomerOpen(true);
+  }
+
+  function closeCustomerList() {
+    setCustomerOpen(false);
+    const selected = customers.find((c) => c.id === customerId);
+    setCustomerQuery(selected?.name ?? "");
+  }
 
   async function confirm() {
     if (!canConfirm) return;
@@ -587,56 +604,92 @@ export default function SalePage() {
       </ToggleButtonGroup>
 
       {condition === "credito" && (
-        <Box sx={{ maxWidth: 420 }}>
-          <TextField
-            size="small"
-            fullWidth
-            label="Cliente"
-            placeholder="Nombre o documento"
-            value={customerQuery}
-            onChange={(e) => {
-              setCustomerQuery(e.target.value);
-              setCustomerId(null);
-            }}
-          />
-          <Paper variant="outlined" sx={{ mt: 0.5, maxHeight: 180, overflow: "auto" }}>
-            <Button
+        <ClickAwayListener onClickAway={() => customerOpen && closeCustomerList()}>
+          <Box sx={{ maxWidth: 420 }}>
+            <TextField
+              size="small"
               fullWidth
-              onClick={() => setNewCustomerOpen(true)}
-              sx={{ justifyContent: "flex-start", textTransform: "none", fontWeight: 600 }}
-            >
-              + Nuevo cliente
-            </Button>
-            {filteredCustomers.slice(0, 30).map((c) => (
-              <Button
-                key={c.id}
-                fullWidth
-                onClick={() => {
-                  setCustomerId(c.id);
-                  setCustomerQuery(c.name);
-                }}
-                sx={{
-                  justifyContent: "flex-start",
-                  textTransform: "none",
-                  bgcolor: c.id === customerId ? "action.selected" : undefined,
-                }}
-              >
-                {c.name}
-                {c.doc_number ? ` · ${c.doc_type ?? ""} ${c.doc_number}` : ""}
-              </Button>
-            ))}
-            {filteredCustomers.length === 0 && (
-              <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
-                No hay clientes
-              </Typography>
+              label="Cliente"
+              placeholder="Nombre o documento"
+              value={customerOpen ? customerQuery : (customer?.name ?? "")}
+              onClick={() => {
+                if (!customerOpen) openCustomerList();
+              }}
+              onChange={(e) => {
+                setCustomerQuery(e.target.value);
+                setCustomerId(null);
+                setCustomerOpen(true);
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      edge="end"
+                      aria-label={customerOpen ? "Cerrar lista de clientes" : "Abrir lista de clientes"}
+                      aria-expanded={customerOpen}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (customerOpen) closeCustomerList();
+                        else openCustomerList();
+                      }}
+                      sx={{ color: "text.secondary" }}
+                    >
+                      <FiChevronDown
+                        size={18}
+                        style={{
+                          transform: customerOpen ? "rotate(180deg)" : undefined,
+                          transition: "transform 150ms ease",
+                        }}
+                      />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {customerOpen && (
+              <Paper variant="outlined" sx={{ mt: 0.5, maxHeight: 240, overflow: "auto" }}>
+                <Button
+                  fullWidth
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    closeCustomerList();
+                    setNewCustomerOpen(true);
+                  }}
+                  sx={{ justifyContent: "flex-start", textTransform: "none", fontWeight: 600 }}
+                >
+                  + Nuevo cliente
+                </Button>
+                {filteredCustomers.map((c) => (
+                  <Button
+                    key={c.id}
+                    fullWidth
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setCustomerId(c.id);
+                      setCustomerQuery(c.name);
+                      setCustomerOpen(false);
+                    }}
+                    sx={{
+                      justifyContent: "flex-start",
+                      textTransform: "none",
+                      bgcolor: c.id === customerId ? "action.selected" : undefined,
+                    }}
+                  >
+                    {c.name}
+                    {c.doc_number ? ` · ${c.doc_type ?? ""} ${c.doc_number}` : ""}
+                  </Button>
+                ))}
+                {filteredCustomers.length === 0 && (
+                  <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
+                    No hay clientes
+                  </Typography>
+                )}
+              </Paper>
             )}
-          </Paper>
-          {customer && (
-            <Typography variant="body2" sx={{ mt: 0.5 }}>
-              {customer.name}
-            </Typography>
-          )}
-        </Box>
+          </Box>
+        </ClickAwayListener>
       )}
 
       <Stack spacing={1.5}>

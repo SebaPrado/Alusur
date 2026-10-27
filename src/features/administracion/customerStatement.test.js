@@ -81,13 +81,13 @@ describe("buildCustomerStatement", () => {
       ],
     );
     expect(rows.map((r) => [r.concept, r.haberUyu, r.debeUyu, r.debeUsd])).toEqual([
-      ["Pago de venta", 500, null, null],
-      ["Vuelto", null, 50, null],
       ["Reintegro", null, null, 10],
+      ["Vuelto", null, 50, null],
+      ["Pago de venta", 500, null, null],
     ]);
   });
 
-  it("anulados quedan marcados y ordena por fecha", () => {
+  it("anulados quedan marcados y ordena del más reciente al más antiguo", () => {
     const rows = buildCustomerStatement(
       [
         {
@@ -112,9 +112,9 @@ describe("buildCustomerStatement", () => {
       ],
     );
     expect(rows[0].voided).toBe(true);
-    expect(rows[0].concept).toBe("Cobranza");
+    expect(rows[0].concept).toBe("Venta Nº 1");
     expect(rows[1].voided).toBe(true);
-    expect(rows[1].concept).toBe("Venta Nº 1");
+    expect(rows[1].concept).toBe("Cobranza");
   });
 });
 

@@ -102,7 +102,7 @@ export default function TerminalPage() {
           onClick={() => navigate("/administracion")}
           color="inherit"
         >
-          Volver a la planilla
+          Volver a movimientos
         </Button>
       </Paper>
     </Box>

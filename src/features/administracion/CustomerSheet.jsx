@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Collapse,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -14,6 +15,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import { FiChevronDown } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
 import { buildCustomerStatement } from "./customerStatement";
 import { formatDateTime, formatMoney } from "./money";
@@ -47,6 +49,7 @@ export default function CustomerSheet({
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!customerId) return;
@@ -95,6 +98,7 @@ export default function CustomerSheet({
       setCustomer(null);
       setBalance(null);
       setRows([]);
+      setDetailsOpen(false);
       return;
     }
     load();
@@ -146,19 +150,49 @@ export default function CustomerSheet({
             </Box>
           ) : customer ? (
             <>
+              <Box>
+                <Button
+                  size="small"
+                  onClick={() => setDetailsOpen((prev) => !prev)}
+                  aria-expanded={detailsOpen}
+                  endIcon={
+                    <FiChevronDown
+                      size={16}
+                      style={{
+                        transform: detailsOpen ? "rotate(180deg)" : undefined,
+                        transition: "transform 150ms ease",
+                      }}
+                    />
+                  }
+                  sx={{
+                    px: 0,
+                    minWidth: 0,
+                    color: "text.primary",
+                    fontWeight: 700,
+                    "&:hover": { bgcolor: "transparent" },
+                  }}
+                >
+                  Datos personales
+                </Button>
+                <Collapse in={detailsOpen}>
+                  <Stack spacing={0.5} sx={{ pt: 0.5 }}>
+                    <Typography variant="body2">
+                      Documento:{" "}
+                      {customer.doc_number
+                        ? `${customer.doc_type ?? ""} ${customer.doc_number}`.trim()
+                        : "—"}
+                    </Typography>
+                    <Typography variant="body2">Teléfono: {customer.phone || "—"}</Typography>
+                    <Typography variant="body2">Email: {customer.email || "—"}</Typography>
+                    <Typography variant="body2">Dirección: {customer.address || "—"}</Typography>
+                    {customer.notes ? (
+                      <Typography variant="body2">Notas: {customer.notes}</Typography>
+                    ) : null}
+                  </Stack>
+                </Collapse>
+              </Box>
               <Stack spacing={0.5}>
-                <Typography variant="body2">
-                  Documento:{" "}
-                  {customer.doc_number
-                    ? `${customer.doc_type ?? ""} ${customer.doc_number}`.trim()
-                    : "—"}
-                </Typography>
-                <Typography variant="body2">Teléfono: {customer.phone || "—"}</Typography>
-                <Typography variant="body2">Email: {customer.email || "—"}</Typography>
-                <Typography variant="body2">Dirección: {customer.address || "—"}</Typography>
-                {customer.notes ? (
-                  <Typography variant="body2">Notas: {customer.notes}</Typography>
-                ) : null}
+                <Typography variant="body2">Límite: {limit}</Typography>
                 <Typography variant="body2">
                   Saldo $:{" "}
                   <Box component="span" sx={{ color: balanceColor(balUyu), fontWeight: 600 }}>
@@ -170,7 +204,6 @@ export default function CustomerSheet({
                     {formatMoney(balUsd, "USD")}
                   </Box>
                 </Typography>
-                <Typography variant="body2">Límite: {limit}</Typography>
               </Stack>
 
               <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>

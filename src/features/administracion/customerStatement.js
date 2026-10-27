@@ -65,8 +65,8 @@ export function buildCustomerStatement(sales, payments) {
   rows.sort((a, b) => {
     const ta = a.at ? new Date(a.at).getTime() : 0;
     const tb = b.at ? new Date(b.at).getTime() : 0;
-    if (ta !== tb) return ta - tb;
-    return a.key.localeCompare(b.key);
+    if (ta !== tb) return tb - ta;
+    return b.key.localeCompare(a.key);
   });
   return rows;
 }

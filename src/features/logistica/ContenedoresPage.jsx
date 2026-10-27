@@ -183,7 +183,7 @@ export default function ContenedoresPage() {
             onClick={() => setNuevoOpen(true)}
             sx={{ borderRadius: 0, textTransform: "none" }}
           >
-            Nuevo contenedor
+            + Nuevo contenedor
           </Button>
           <Button
             variant="outlined"

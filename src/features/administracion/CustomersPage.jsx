@@ -115,7 +115,7 @@ export default function CustomersPage() {
           variant="contained"
           onClick={() => setDialogOpen(true)}
         >
-          Nuevo cliente
+          + Nuevo cliente
         </Button>
       </Box>
       <TableContainer sx={{ flex: 1, overflow: "auto" }}>

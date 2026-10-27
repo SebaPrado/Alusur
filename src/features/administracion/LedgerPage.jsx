@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { useAdminOrg } from "./AdminOrgProvider";
 import LedgerFilters from "./LedgerFilters";
-import { buildLedgerQuery, dateRangeForPreset } from "./ledgerQuery";
+import { buildLedgerQuery, dateRangeForPreset, ledgerEventLabel } from "./ledgerQuery";
 import { exportLedgerCsv } from "./ledgerCsv";
 import { formatDateTime, formatMoney, signedMoney } from "./money";
 import { useAdminRealtime } from "./useAdminRealtime";
@@ -46,11 +46,29 @@ function isVoided(status) {
   return status === "anulada" || status === "anulado";
 }
 
+function localDayKey(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function localDayLabel(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const text = new Intl.DateTimeFormat("es-UY", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(d);
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export default function LedgerPage() {
   const { organizationId, isManager } = useAdminOrg();
   const { showError } = useAdminToast();
   const [filters, setFilters] = useState({
-    preset: "hoy",
+    preset: "todo",
     rangeFrom: "",
     rangeTo: "",
     eventType: null,
@@ -188,7 +206,17 @@ export default function LedgerPage() {
         exporting={exporting}
       />
       <TableContainer ref={scrollRef} sx={{ flex: 1, overflow: "auto" }}>
-        <Table stickyHeader size="small" sx={{ "& td, & th": { fontSize: 12, py: 0.5, px: 1 } }}>
+        <Table
+          stickyHeader
+          size="small"
+          sx={{
+            "& td, & th": {
+              fontSize: 12,
+              py: filters.preset === "todo" ? 1.15 : 0.5,
+              px: 1,
+            },
+          }}
+        >
           <TableHead>
             <TableRow>
               {COLS.map((c) => (
@@ -214,9 +242,52 @@ export default function LedgerPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map((r) => (
+              rows.map((r, index) => {
+                const day = localDayKey(r.created_at);
+                const showDay =
+                  filters.preset === "todo" &&
+                  day !== localDayKey(rows[index - 1]?.created_at);
+                return (
+                <React.Fragment key={`${r.event_type}-${r.ref_id}`}>
+                {showDay && index > 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={COLS.length}
+                      sx={{
+                        "&&": {
+                          p: 0,
+                          height: 14,
+                          border: 0,
+                          bgcolor: "background.default",
+                        },
+                      }}
+                    />
+                  </TableRow>
+                )}
+                {showDay && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={COLS.length}
+                      sx={{
+                        "&&": {
+                          py: 1.1,
+                          bgcolor: "#172033",
+                          color: "text.primary",
+                          borderBottom: "1px solid",
+                          borderColor: "divider",
+                        },
+                      }}
+                    >
+                      <Typography
+                        component="span"
+                        sx={{ fontSize: 13, fontWeight: 700, color: "inherit" }}
+                      >
+                        {localDayLabel(r.created_at)}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
                 <TableRow
-                  key={`${r.event_type}-${r.ref_id}`}
                   sx={
                     isVoided(r.status)
                       ? {
@@ -227,7 +298,7 @@ export default function LedgerPage() {
                   }
                 >
                   <TableCell>{formatDateTime(r.created_at)}</TableCell>
-                  <TableCell>{r.event_type}</TableCell>
+                  <TableCell>{ledgerEventLabel(r.event_type)}</TableCell>
                   <TableCell>{r.number ?? ""}</TableCell>
                   <TableCell>{r.customer_name ?? ""}</TableCell>
                   <TableCell
@@ -241,16 +312,18 @@ export default function LedgerPage() {
                   >
                     {r.detail ?? ""}
                   </TableCell>
-                  <TableCell>{r.currency === "USD" ? "U$S" : "$"}</TableCell>
+                  <TableCell>
+                    {r.currency === "USD" ? "U$S" : r.currency === "UYU" ? "$" : ""}
+                  </TableCell>
                   <TableCell align="right">
-                    {formatMoney(r.amount, r.currency)}
+                    {r.amount == null ? "" : formatMoney(r.amount, r.currency)}
                   </TableCell>
                   <TableCell>{r.payment_methods ?? ""}</TableCell>
                   <TableCell align="right">
-                    {signedMoney(r.cash_delta_uyu, "UYU")}
+                    {r.cash_delta_uyu == null ? "" : signedMoney(r.cash_delta_uyu, "UYU")}
                   </TableCell>
                   <TableCell align="right">
-                    {signedMoney(r.cash_delta_usd, "USD")}
+                    {r.cash_delta_usd == null ? "" : signedMoney(r.cash_delta_usd, "USD")}
                   </TableCell>
                   <TableCell align="right">
                     {formatMoney(r.cash_balance_uyu, "UYU")}
@@ -278,7 +351,9 @@ export default function LedgerPage() {
                       )}
                   </TableCell>
                 </TableRow>
-              ))
+                </React.Fragment>
+                );
+              })
             )}
             {loadingMore && (
               <TableRow>

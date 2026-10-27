@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { FiMoreVertical } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
 import { PageActions } from "../obra/PageActions";
 import { C, dialogPaperSx, fieldSx, selectMenuProps } from "./theme";
@@ -41,6 +42,7 @@ function estadoLabel(row) {
 
 export default function TrabajadoresTab() {
   const { obraId, openEmpresas, empresasTick } = useOutletContext();
+  const { isCeo } = useAuth();
   const { can } = useObra();
   const canMembers = can("members.manage");
   const canEquipo = can("equipo.manage");
@@ -59,6 +61,7 @@ export default function TrabajadoresTab() {
   const [equipoPick, setEquipoPick] = useState("");
   const [habDlg, setHabDlg] = useState(null); // { row, selectedIds: Set }
   const [bajaDlg, setBajaDlg] = useState(null);
+  const [altaDlg, setAltaDlg] = useState(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [openActionsId, setOpenActionsId] = useState(null);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -205,6 +208,26 @@ export default function TrabajadoresTab() {
     }
   }
 
+  async function confirmAlta() {
+    if (!altaDlg) return;
+    setActionBusy(true);
+    setError(null);
+    try {
+      const { error: err } = await supabase.rpc("reactivar_trabajador", {
+        p_obra: obraId,
+        p_user: altaDlg.user_id,
+      });
+      if (err) throw new Error(err.message);
+      setAltaDlg(null);
+      setOpenActionsId(null);
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
   async function confirmBaja() {
     if (!bajaDlg) return;
     setActionBusy(true);
@@ -316,6 +339,7 @@ export default function TrabajadoresTab() {
               ? row.habilitaciones.join(", ")
               : "—";
           const actionsOpen = openActionsId === row.user_id;
+          const showMenu = row.activo || isCeo;
           const spanXs = { gridColumn: { xs: "1 / -1", md: "auto" } };
           return (
             <Box
@@ -380,7 +404,7 @@ export default function TrabajadoresTab() {
                 {estadoLabel(row)}
               </Typography>
 
-              {row.activo && (
+              {showMenu && (
                 <IconButton
                   size="small"
                   aria-label={`Acciones de ${row.full_name}`}
@@ -420,7 +444,7 @@ export default function TrabajadoresTab() {
                     pr: 0.5,
                   }}
                 >
-                  {canEquipo && (
+                  {row.activo && canEquipo && (
                     <ActionLink
                       onClick={() => {
                         setEquipoPick(row.equipo_id ?? "");
@@ -430,15 +454,15 @@ export default function TrabajadoresTab() {
                       Cambiar equipo
                     </ActionLink>
                   )}
-                  {canHab && (
+                  {row.activo && canHab && (
                     <ActionLink onClick={() => openHabDlg(row)}>Habilitaciones</ActionLink>
                   )}
-                  {canMembers && (
+                  {row.activo && canMembers && (
                     <ActionLink disabled={actionBusy} onClick={() => handleNuevoPin(row)}>
                       Nuevo PIN
                     </ActionLink>
                   )}
-                  {canMembers && row.worker_code && (
+                  {row.activo && canMembers && row.worker_code && (
                     <ActionLink
                       onClick={() =>
                         setEnrol({
@@ -451,10 +475,13 @@ export default function TrabajadoresTab() {
                       Reimprimir QR
                     </ActionLink>
                   )}
-                  {canMembers && (
+                  {row.activo && canMembers && (
                     <ActionLink danger onClick={() => setBajaDlg(row)}>
                       Dar de baja
                     </ActionLink>
+                  )}
+                  {!row.activo && isCeo && (
+                    <ActionLink onClick={() => setAltaDlg(row)}>Dar de alta</ActionLink>
                   )}
                 </Box>
               </Collapse>
@@ -582,6 +609,34 @@ export default function TrabajadoresTab() {
             sx={{ color: C.accent, textTransform: "none" }}
           >
             Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={!!altaDlg}
+        onClose={() => setAltaDlg(null)}
+        PaperProps={{ sx: dialogPaperSx }}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle sx={{ borderBottom: 1, borderColor: C.line }}>Dar de alta</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Typography sx={{ color: C.text }}>
+            ¿Damos de alta otra vez a <strong>{altaDlg?.full_name}</strong>? Vuelve a estar activo
+            en la obra, sin equipo. El código y el PIN siguen siendo los mismos.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ borderTop: 1, borderColor: C.line }}>
+          <Button onClick={() => setAltaDlg(null)} sx={{ color: C.muted, textTransform: "none" }}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={confirmAlta}
+            disabled={actionBusy}
+            sx={{ color: C.accent, textTransform: "none" }}
+          >
+            Dar de alta
           </Button>
         </DialogActions>
       </Dialog>

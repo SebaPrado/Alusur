@@ -2,6 +2,10 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Table,
   TableBody,
   TableCell,
@@ -31,7 +35,7 @@ function formatStock(value) {
 
 export default function ProductsPage() {
   const { organizationId, isManager } = useAdminOrg();
-  const { showError } = useAdminToast();
+  const { showError, showSuccess } = useAdminToast();
   const [rows, setRows] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
@@ -39,6 +43,8 @@ export default function ProductsPage() {
   const [editing, setEditing] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [stockProduct, setStockProduct] = useState(null);
+  const [deleteProduct, setDeleteProduct] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     if (!organizationId) return;
@@ -70,6 +76,26 @@ export default function ProductsPage() {
 
   useAdminRealtime({ onTick: load, tables: PRODUCT_TABLES });
 
+  async function confirmDelete() {
+    if (!deleteProduct) return;
+    setDeleting(true);
+    const { data, error } = await supabase.rpc("admin_delete_product", {
+      p_product_id: deleteProduct.id,
+    });
+    setDeleting(false);
+    if (error) {
+      showError(rpcErrorMessage(error));
+      return;
+    }
+    showSuccess(
+      data === "inactivo"
+        ? "Tiene ventas: quedó inactivo y ya no se puede vender"
+        : "Producto eliminado",
+    );
+    setDeleteProduct(null);
+    load();
+  }
+
   const q = search.trim().toLowerCase();
   const visible = q
     ? rows.filter(
@@ -99,7 +125,7 @@ export default function ProductsPage() {
               setDialogOpen(true);
             }}
           >
-            Nuevo producto
+            + Nuevo producto
           </Button>
         )}
       </Box>
@@ -155,6 +181,13 @@ export default function ProductsPage() {
                       <Button size="small" onClick={() => setStockProduct(p)}>
                         Cargar stock
                       </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => setDeleteProduct(p)}
+                      >
+                        Eliminar
+                      </Button>
                     </TableCell>
                   )}
                 </TableRow>
@@ -177,6 +210,33 @@ export default function ProductsPage() {
         onClose={() => setStockProduct(null)}
         onSaved={load}
       />
+      <Dialog
+        open={Boolean(deleteProduct)}
+        onClose={deleting ? undefined : () => setDeleteProduct(null)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Eliminar producto</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            ¿Eliminar {deleteProduct?.name}? Si ya se vendió, queda inactivo
+            para no perder el historial.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteProduct(null)} disabled={deleting}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={confirmDelete}
+            disabled={deleting}
+          >
+            {deleting ? "Eliminando…" : "Eliminar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

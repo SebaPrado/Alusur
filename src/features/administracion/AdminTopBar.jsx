@@ -10,6 +10,7 @@ import {
   DialogTitle,
   Divider,
   IconButton,
+  Menu,
   MenuItem,
   Paper,
   Popper,
@@ -17,6 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import { FiEdit2 } from "react-icons/fi";
+import { useAuth } from "../../auth/AuthProvider";
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { formatDateTime, formatRateLabel, isRateStale } from "./money";
@@ -194,7 +196,9 @@ export default function AdminTopBar({
 }) {
   const { organizationId, organizationName, displayName, role, isManager } =
     useAdminOrg();
+  const { signOut } = useAuth();
   const { showError, showSuccess } = useAdminToast();
+  const [userMenu, setUserMenu] = useState(null);
   const [rateDialog, setRateDialog] = useState(false);
   const [rateInput, setRateInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -262,7 +266,7 @@ export default function AdminTopBar({
             component="img"
             src="/iconalusur2.png"
             alt=""
-            sx={{ display: "block", height: 28, width: "auto" }}
+            sx={{ display: "block", height: 18, width: "auto", opacity: 0.45 }}
           />
         </Box>
         <Typography variant="body2" noWrap sx={{ fontWeight: 600, minWidth: 0 }}>
@@ -297,18 +301,32 @@ export default function AdminTopBar({
         )}
         <Divider orientation="vertical" flexItem sx={{ my: 1.25 }} />
         <Box
+          component="button"
+          type="button"
+          aria-label="Menú de usuario"
+          aria-haspopup="menu"
+          aria-expanded={Boolean(userMenu)}
           title={roleLabel ? `${displayName} · ${roleLabel}` : displayName}
+          onClick={(e) => setUserMenu(e.currentTarget)}
           sx={{
             display: "inline-flex",
             alignItems: "center",
             gap: "8px",
+            m: 0,
+            p: 0,
+            border: 0,
+            background: "transparent",
             color: "#f2f4f7",
+            font: "inherit",
             fontSize: "0.8125rem",
             fontWeight: 500,
             lineHeight: 1,
+            letterSpacing: "normal",
+            cursor: "pointer",
             opacity: 0.88,
             minWidth: 0,
             flexShrink: 1,
+            "&:hover": { opacity: 1 },
           }}
         >
           <Box
@@ -340,6 +358,36 @@ export default function AdminTopBar({
           </Box>
         </Box>
       </Box>
+
+      <Menu
+        anchorEl={userMenu}
+        open={Boolean(userMenu)}
+        onClose={() => setUserMenu(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem disabled sx={{ opacity: "1 !important", cursor: "default" }}>
+          <Box>
+            <Typography variant="body2" fontWeight={600}>
+              {displayName}
+            </Typography>
+            {roleLabel && (
+              <Typography variant="caption" color="text.secondary">
+                {roleLabel}
+              </Typography>
+            )}
+          </Box>
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          onClick={() => {
+            setUserMenu(null);
+            signOut();
+          }}
+        >
+          Cerrar sesión
+        </MenuItem>
+      </Menu>
 
       <Dialog
         open={rateDialog}

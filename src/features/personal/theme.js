@@ -40,6 +40,19 @@ export const dialogPaperSx = {
   border: 1,
   borderColor: C.line,
   boxShadow: "none",
+  "& .MuiDialogTitle-root": {
+    px: 2.5,
+    py: 1.25,
+  },
+  // MUI deja el contenido en padding-top: 0 y 20px abajo: el eje Y queda desparejo.
+  "& .MuiDialogTitle-root + .MuiDialogContent-root": {
+    paddingTop: 14,
+    paddingBottom: 12,
+  },
+  "& .MuiDialogActions-root": {
+    px: 2,
+    py: 1,
+  },
 };
 
 /** Menú del Select (portal): fondo oscuro y texto legible */

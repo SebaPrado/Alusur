@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -7,7 +8,32 @@ import {
   DialogTitle,
   Typography,
 } from "@mui/material";
+import { FiMoreVertical } from "react-icons/fi";
 import { C, dialogPaperSx } from "./theme";
+
+/** Mismo control de tres puntos de la fila del trabajador. */
+function MenuDots() {
+  return (
+    <Box
+      component="span"
+      aria-hidden
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 20,
+        height: 20,
+        mx: 0.5,
+        verticalAlign: "-4px",
+        color: C.text,
+        border: 1,
+        borderColor: C.line,
+      }}
+    >
+      <FiMoreVertical size={13} />
+    </Box>
+  );
+}
 
 /** Una ficha corta por cada botón «i». */
 const TOPICS = {
@@ -31,10 +57,20 @@ const TOPICS = {
   pin: {
     title: "PIN",
     body: [
-      "Son 4 dígitos que genera el sistema al dar de alta. Solo quien administra los ve en esta lista.",
-      "No alcanza con el PIN solo: hace falta el código guardado en el celular (o el QR).",
-      "Pedile al obrero que no lo comparta. Entregá la tarjeta en mano.",
-      "Si se olvida o queda bloqueado (10 intentos fallidos: 15 min, 30, 1 h… hasta 24 h), usá Nuevo PIN: genera uno nuevo, desbloquea al momento y el anterior deja de servir.",
+      "Son 4 dígitos que genera el sistema al dar de alta. Solo vos y otros administradores los ven.",
+      <>
+        Al dar de alta, primero necesitás el{" "}
+        <Box component="span" sx={{ color: C.text, fontWeight: 600 }}>
+          código de 6 dígitos
+        </Box>
+        .
+      </>,
+      "Luego, con el PIN, el trabajador ingresa a diario.",
+      <>
+        Si se olvida el PIN o queda bloqueado (10 intentos fallidos: 15 min, 30, 1 h… hasta 24 h),
+        usá Nuevo PIN: genera uno nuevo. La opción está en
+        <MenuDots />.
+      </>,
     ],
   },
 };
@@ -55,27 +91,37 @@ export default function AccesoObrerosInfo({ open, onClose, topic = "acceso" }) {
         sx={{
           borderBottom: 1, borderColor: C.line,
           fontWeight: 700,
-          fontSize: "1.1rem",
+          fontSize: "1.05rem",
+          lineHeight: 1.3,
+          px: 2.5,
+          py: 1.25,
         }}
       >
         {info.title}
       </DialogTitle>
-      <DialogContent sx={{ pt: 2.5, pb: 1 }}>
-        {info.body.map((p) => (
+      <DialogContent
+        sx={{
+          px: 2.5,
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.25,
+        }}
+      >
+        {info.body.map((p, i) => (
           <Typography
-            key={p}
+            key={i}
             sx={{
               color: C.muted,
               fontSize: "0.875rem",
-              lineHeight: 1.5,
-              mb: 1,
+              lineHeight: 1.45,
+              m: 0,
             }}
           >
             {p}
           </Typography>
         ))}
       </DialogContent>
-      <DialogActions sx={{ borderTop: 1, borderColor: C.line, px: 2, py: 1.5 }}>
+      <DialogActions sx={{ borderTop: 1, borderColor: C.line, px: 2, py: 1 }}>
         <Button
           onClick={onClose}
           sx={{

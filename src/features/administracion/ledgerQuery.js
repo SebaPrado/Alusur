@@ -1,5 +1,14 @@
 import { supabase } from "../../lib/supabase";
 
+export const LEDGER_EVENT_LABEL = {
+  apertura_caja: "Apertura de caja",
+  cierre_caja: "Cierre de caja",
+};
+
+export function ledgerEventLabel(type) {
+  return LEDGER_EVENT_LABEL[type] ?? type ?? "";
+}
+
 const LEDGER_SELECT = `
   created_at, event_type, ref_id, number, customer_id, customer_name,
   user_id, user_name, terminal_id, terminal_name, cash_session_id,
@@ -11,8 +20,8 @@ const LEDGER_SELECT = `
 /**
  * @param {{
  *   organizationId: string,
- *   from: Date,
- *   to: Date,
+ *   from?: Date|null,
+ *   to?: Date|null,
  *   eventType?: string|null,
  *   userId?: string|null,
  *   terminalId?: string|null,
@@ -23,11 +32,11 @@ export function buildLedgerQuery(filters) {
     .from("admin_ledger")
     .select(LEDGER_SELECT)
     .eq("organization_id", filters.organizationId)
-    .gte("created_at", filters.from.toISOString())
-    .lte("created_at", filters.to.toISOString())
     .order("created_at", { ascending: false })
     .order("ref_id", { ascending: false });
 
+  if (filters.from) q = q.gte("created_at", filters.from.toISOString());
+  if (filters.to) q = q.lte("created_at", filters.to.toISOString());
   if (filters.eventType) q = q.eq("event_type", filters.eventType);
   if (filters.userId) q = q.eq("user_id", filters.userId);
   if (filters.terminalId) q = q.eq("terminal_id", filters.terminalId);
@@ -48,6 +57,8 @@ export function dateRangeForPreset(preset, rangeFrom, rangeTo) {
   };
 
   switch (preset) {
+    case "todo":
+      return { from: null, to: null };
     case "ayer": {
       const y = new Date(now);
       y.setDate(y.getDate() - 1);

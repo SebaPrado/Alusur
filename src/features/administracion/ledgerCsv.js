@@ -1,4 +1,4 @@
-import { buildLedgerQuery } from "./ledgerQuery";
+import { buildLedgerQuery, ledgerEventLabel } from "./ledgerQuery";
 import { formatDateTime, formatMoney, signedMoney } from "./money";
 
 const BATCH = 1000;
@@ -21,37 +21,49 @@ const HEADERS = [
   "estado",
 ];
 
+/** Excel (es-UY) separa columnas con ";" y usa "," como decimal. */
+const SEP = ";";
+
 function esc(v) {
   const s = v == null ? "" : String(v);
-  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  if (/[";\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 
-function rowToCsv(r) {
+function cellsOf(r) {
   return [
     formatDateTime(r.created_at),
-    r.event_type,
+    ledgerEventLabel(r.event_type),
     r.number ?? "",
     r.customer_name ?? "",
     r.detail ?? "",
-    r.currency,
-    formatMoney(r.amount, r.currency),
+    r.currency ?? "",
+    r.amount == null ? "" : formatMoney(r.amount, r.currency),
     r.payment_methods ?? "",
-    signedMoney(r.cash_delta_uyu, "UYU"),
-    signedMoney(r.cash_delta_usd, "USD"),
+    r.cash_delta_uyu == null ? "" : signedMoney(r.cash_delta_uyu, "UYU"),
+    r.cash_delta_usd == null ? "" : signedMoney(r.cash_delta_usd, "USD"),
     formatMoney(r.cash_balance_uyu, "UYU"),
     formatMoney(r.cash_balance_usd, "USD"),
     r.user_name ?? "",
     r.terminal_name ?? "",
     r.status ?? "",
-  ]
-    .map(esc)
-    .join(",");
+  ];
+}
+
+function rowToCsv(r) {
+  return cellsOf(r).map(esc).join(SEP);
+}
+
+/** CSV que Excel abre en columnas (BOM + sep=;). */
+export function buildLedgerCsv(rows) {
+  const lines = [HEADERS.map(esc).join(SEP)];
+  for (const r of rows) lines.push(rowToCsv(r));
+  return `\uFEFFsep=${SEP}\r\n${lines.join("\r\n")}`;
 }
 
 /** Descarga CSV de TODO lo filtrado (lotes de 1000 en el servidor). */
 export async function exportLedgerCsv(filters) {
-  const lines = [HEADERS.join(",")];
+  const rows = [];
   let offset = 0;
   for (;;) {
     const { data, error } = await buildLedgerQuery(filters).range(
@@ -60,17 +72,20 @@ export async function exportLedgerCsv(filters) {
     );
     if (error) throw error;
     const chunk = data ?? [];
-    for (const r of chunk) lines.push(rowToCsv(r));
+    rows.push(...chunk);
     if (chunk.length < BATCH) break;
     offset += BATCH;
   }
-  const blob = new Blob([lines.join("\n")], {
+  const blob = new Blob([buildLedgerCsv(rows)], {
     type: "text/csv;charset=utf-8",
   });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `planilla_${filters.from.toISOString().slice(0, 10)}.csv`;
+  const stamp = filters.from
+    ? filters.from.toISOString().slice(0, 10)
+    : "historial";
+  a.download = `movimientos_${stamp}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
