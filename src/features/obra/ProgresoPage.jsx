@@ -43,7 +43,7 @@ export default function ProgresoPage() {
   return (
     <ProgresoProvider obraId={obraId} obraNombre={obra?.nombre}>
       <SectionTabs
-        base={`/obra/${obraId}/progreso`}
+        base={`/construccion/obra/${obraId}/progreso`}
         tabs={TABS}
         maxWidth={false}
         fillHeight

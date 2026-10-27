@@ -878,7 +878,7 @@ export default function Torre3D({
           sx={{
             position: "absolute",
             right: 16,
-            top: controlsTop,
+            bottom: 14,
             zIndex: 2,
             display: "flex",
             gap: "6px",

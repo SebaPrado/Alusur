@@ -5,9 +5,8 @@ import { alpha } from "@mui/material/styles";
 import { supabase } from "../../lib/supabase";
 import { ejemploCodigoModulo, mismoCodigo, normalizarCodigo } from "../../lib/codigos";
 import { useObra } from "../../obras/ObraProvider";
-import { ENTORNOS, TIPOS } from "../fachada/buildSlots";
+import { TIPOS } from "../fachada/buildSlots";
 import Torre3D from "../fachada/Torre3D";
-import { PageActions } from "../obra/PageActions";
 import { SECTION_BAR_HEIGHT, tabBtnSx } from "../obra/PageHeader";
 import { fieldSx } from "../personal/theme";
 import { formatLlegada, ESTADOS_CON_LLEGADA } from "../logistica/estados";
@@ -17,12 +16,6 @@ import { EstadoMarca, ubicacion } from "./ui";
 
 /** Bajo la fila de pestañas que flota sobre el 3D. */
 const OVERLAY_TOP = SECTION_BAR_HEIGHT + 8;
-
-const FACE_UI = {
-  line: "#2E3A4E",
-  ink: "#F2F4F7",
-  accent: "#249596",
-};
 
 export default function TorreTab() {
   return (
@@ -47,7 +40,6 @@ function TorreVista() {
   const [q, setQ] = useState("");
   const [aviso, setAviso] = useState(null);
   const [enfocar, setEnfocar] = useState(0);
-  const [viewFace, setViewFace] = useState(null);
   const enfocado = useRef(false);
 
   // #region agent log
@@ -248,46 +240,7 @@ function TorreVista() {
           seleccion={seleccion}
           enfocar={enfocar}
           controlsTop={OVERLAY_TOP}
-          hideFaceButtons
-          onViewFace={(fn) => setViewFace(() => fn)}
         />
-        {config?.caras?.length > 0 && (
-          <PageActions>
-            <Box
-              data-nexo-faces-header="1"
-              aria-label="Ver cara"
-              sx={{ display: "flex", gap: "6px" }}
-            >
-              {config.caras.map((cara, i) => (
-                <Box
-                  component="button"
-                  type="button"
-                  key={i}
-                  title={`Cara ${cara.nombre} (${(ENTORNOS[cara.entorno]?.label ?? "nada").toLowerCase()})`}
-                  disabled={!viewFace}
-                  onClick={() => viewFace?.(i)}
-                  sx={{
-                    minWidth: 34,
-                    height: 34,
-                    px: "6px",
-                    border: `1px solid ${FACE_UI.line}`,
-                    borderRadius: 0,
-                    bgcolor: "rgba(14,17,23,.7)",
-                    color: FACE_UI.ink,
-                    font: "inherit",
-                    fontSize: 13,
-                    fontWeight: 800,
-                    cursor: viewFace ? "pointer" : "default",
-                    opacity: viewFace ? 1 : 0.5,
-                    "&:hover": viewFace ? { borderColor: FACE_UI.accent } : undefined,
-                  }}
-                >
-                  {cara.codigo}
-                </Box>
-              ))}
-            </Box>
-          </PageActions>
-        )}
         <ToggleButtonGroup
           exclusive
           size="small"

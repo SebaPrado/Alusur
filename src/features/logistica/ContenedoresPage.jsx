@@ -83,7 +83,7 @@ export default function ContenedoresPage() {
     location.state?.createdCodigo ?? null,
   );
 
-  const base = `/obra/${obraId}/logistica/contenedores`;
+  const base = `/construccion/obra/${obraId}/logistica/contenedores`;
   const filtrosActivos = Boolean(filtroEstado) || Boolean(q.trim());
 
   const load = useCallback(async () => {

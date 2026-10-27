@@ -73,13 +73,39 @@ export default function PersonalPage() {
     );
   }
 
-  const base = `/obra/${obraId}/personal`;
+  // Misma base viva que el sidebar; `/obra/...` remonta ObraLayout vía LegacyToConstruccion.
+  const base = `/construccion/obra/${obraId}/personal`;
   const active = tabs.find((t) => location.pathname.includes(`/${t.path}`));
 
   // Index `/personal` o pestaña no permitida → primera pestaña permitida
   const onIndex =
-    location.pathname === base || location.pathname === `${base}/`;
+    location.pathname === base ||
+    location.pathname === `${base}/` ||
+    location.pathname.endsWith("/personal") ||
+    location.pathname.endsWith("/personal/");
   if (onIndex && tabs[0]) {
+    // #region agent log
+    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "b6f4bb",
+      },
+      body: JSON.stringify({
+        sessionId: "b6f4bb",
+        runId: "post-fix",
+        hypothesisId: "P1",
+        location: "PersonalPage.jsx:indexRedirect",
+        message: "Personal index redirect",
+        data: {
+          from: location.pathname,
+          to: `${base}/${tabs[0].path}`,
+          legacyLink: false,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     return <Navigate to={`${base}/${tabs[0].path}`} replace />;
   }
   if (!active && tabs[0]) {
@@ -92,6 +118,7 @@ export default function PersonalPage() {
         <PageHeader
           base={base}
           tabs={tabs}
+          maxWidth={1200}
           end={
             isCeo ? (
               <Button
@@ -111,6 +138,7 @@ export default function PersonalPage() {
           sx={{
             maxWidth: 1200,
             width: "100%",
+            mx: "auto",
             boxSizing: "border-box",
             px: padX,
             py: padX,

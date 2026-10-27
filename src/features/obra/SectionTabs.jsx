@@ -97,7 +97,12 @@ export default function SectionTabs({
                 py: padX,
                 ...(maxWidth === false
                   ? {}
-                  : { maxWidth, width: "100%", boxSizing: "border-box" }),
+                  : {
+                      maxWidth,
+                      width: "100%",
+                      mx: "auto",
+                      boxSizing: "border-box",
+                    }),
               }}
             >
               <Box

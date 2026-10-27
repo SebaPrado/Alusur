@@ -30,7 +30,7 @@ export default function LogisticaPage() {
 
   return (
     <SectionTabs
-      base={`/obra/${obraId}/logistica`}
+      base={`/construccion/obra/${obraId}/logistica`}
       tabs={TABS}
       maxWidth={1200}
     />
