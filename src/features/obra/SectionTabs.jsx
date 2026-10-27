@@ -2,7 +2,7 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Box } from "@mui/material";
 import { PageActionsProvider } from "./PageActions";
-import PageHeader, { pagePadX } from "./PageHeader";
+import PageHeader, { usePagePadX } from "./PageHeader";
 import { BAR_HEIGHT } from "../../Components/shell/TopBar";
 
 /**
@@ -16,7 +16,7 @@ import { BAR_HEIGHT } from "../../Components/shell/TopBar";
  * }} props
  *   maxWidth: tope del cuerpo; false = sin tope (Progreso).
  *   fillHeight: alto fijo bajo las pestañas, sin scroll de página.
- *   noPadPaths: subrutas sin padding (p. ej. "torre").
+ *   noPadPaths: subrutas sin padding; el contenido llena el alto e invade la fila de tabs.
  */
 export default function SectionTabs({
   base,
@@ -27,8 +27,8 @@ export default function SectionTabs({
   headerEnd = null,
 }) {
   const location = useLocation();
+  const padX = usePagePadX();
   const bare = noPadPaths.some((p) => location.pathname.includes(`/${p}`));
-  // Bajo la barra fija: el encabezado de 44 px vive dentro de este alto.
   const shellH = `calc(100vh - ${BAR_HEIGHT}px)`;
 
   return (
@@ -37,49 +37,83 @@ export default function SectionTabs({
         sx={{
           display: "flex",
           flexDirection: "column",
+          position: "relative",
           ...(fillHeight
             ? { height: shellH, overflow: "hidden" }
             : { minHeight: shellH }),
         }}
       >
-        <PageHeader base={base} tabs={tabs} end={headerEnd} />
-
-        <Box
-          sx={{
-            flex: fillHeight ? 1 : undefined,
-            minHeight: fillHeight ? 0 : undefined,
-            // Zona bajo pestañas: calc(100vh - 48px - 44px) vía flex.
-            overflow: fillHeight ? (bare ? "hidden" : "auto") : undefined,
-            ...(fillHeight
-              ? {
+        {bare ? (
+          <>
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 2,
+              }}
+            >
+              <PageHeader base={base} tabs={tabs} end={headerEnd} overlay />
+            </Box>
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                pb: 0.5,
+                boxSizing: "border-box",
+              }}
+            >
+              <Box
+                sx={{
+                  flex: 1,
+                  minHeight: 0,
                   display: "flex",
                   flexDirection: "column",
-                  minHeight: bare ? 0 : undefined,
-                }
-              : {}),
-            ...(bare
-              ? {}
-              : {
-                  px: pagePadX,
-                  py: pagePadX,
-                  ...(maxWidth === false
-                    ? {}
-                    : { maxWidth, width: "100%", boxSizing: "border-box" }),
-                }),
-          }}
-        >
-          <Box
-            sx={{
-              flex: fillHeight ? 1 : undefined,
-              minHeight: fillHeight ? 0 : undefined,
-              display: fillHeight ? "flex" : undefined,
-              flexDirection: fillHeight ? "column" : undefined,
-              width: "100%",
-            }}
-          >
-            <Outlet />
-          </Box>
-        </Box>
+                  width: "100%",
+                }}
+              >
+                <Outlet />
+              </Box>
+            </Box>
+          </>
+        ) : (
+          <>
+            <PageHeader base={base} tabs={tabs} end={headerEnd} />
+            <Box
+              sx={{
+                flex: fillHeight ? 1 : undefined,
+                minHeight: fillHeight ? 0 : undefined,
+                overflow: fillHeight ? "auto" : undefined,
+                ...(fillHeight
+                  ? {
+                      display: "flex",
+                      flexDirection: "column",
+                    }
+                  : {}),
+                px: padX,
+                py: padX,
+                ...(maxWidth === false
+                  ? {}
+                  : { maxWidth, width: "100%", boxSizing: "border-box" }),
+              }}
+            >
+              <Box
+                sx={{
+                  flex: fillHeight ? 1 : undefined,
+                  minHeight: fillHeight ? 0 : undefined,
+                  display: fillHeight ? "flex" : undefined,
+                  flexDirection: fillHeight ? "column" : undefined,
+                  width: "100%",
+                }}
+              >
+                <Outlet />
+              </Box>
+            </Box>
+          </>
+        )}
       </Box>
     </PageActionsProvider>
   );

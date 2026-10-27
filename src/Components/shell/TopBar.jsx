@@ -9,13 +9,11 @@ import {
   AppBar,
   Box,
   Divider,
-  IconButton,
   Menu,
   MenuItem,
   Toolbar,
   Typography,
 } from "@mui/material";
-import { FiMenu } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthProvider";
 import { useMisObras } from "../../obras/MisObrasProvider";
 
@@ -106,7 +104,6 @@ function sectionAfterObra(pathname, obraId) {
 export default function TopBar({
   showObraSwitcher = false,
   mi_rol = null,
-  onOpenNav = null,
 }) {
   const { profile, isCeo, signOut } = useAuth();
   const { obras } = useMisObras();
@@ -155,24 +152,6 @@ export default function TopBar({
           gap: 1,
         }}
       >
-        {onOpenNav && (
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menú"
-            onClick={onOpenNav}
-            sx={{
-              mr: 0.5,
-              p: 0.75,
-              borderRadius: 0,
-              color: "#F2F4F7",
-              "&:hover": { bgcolor: "rgba(242, 244, 247, 0.08)" },
-            }}
-          >
-            <FiMenu size={18} strokeWidth={1.75} aria-hidden />
-          </IconButton>
-        )}
-
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
           <Box
             component={RouterLink}
@@ -183,13 +162,16 @@ export default function TopBar({
               alignItems: "center",
               flexShrink: 0,
               lineHeight: 0,
+              // Misma caja que la hamburguesa de la fila de debajo (IconButton p: 0.75).
+              p: 0.75,
+              ml: -0.75,
             }}
           >
             <Box
               component="img"
-              src="/iconalusur2.png"
+              src="/iconv4.png"
               alt=""
-              sx={{ display: "block", height: 28, width: "auto" }}
+              sx={{ display: "block", height: 16, width: "auto", opacity: 0.4 }}
             />
           </Box>
 

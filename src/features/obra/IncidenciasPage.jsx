@@ -4,13 +4,14 @@ import { Box, Typography } from "@mui/material";
 import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
 import { PageActionsProvider } from "./PageActions";
-import PageHeader, { pagePadX } from "./PageHeader";
+import PageHeader, { usePagePadX } from "./PageHeader";
 import SinAcceso from "./SinAcceso";
 
 /** Incidencias: todos menos Owner. CEO puede entrar. Contenido en próxima tarea. */
 export default function IncidenciasPage() {
   const { isCeo } = useAuth();
   const { mi_rol, ready, known } = useObra();
+  const padX = usePagePadX();
 
   if (!ready) {
     return <Box sx={{ color: "text.secondary", p: 2 }}>Cargando…</Box>;
@@ -27,7 +28,7 @@ export default function IncidenciasPage() {
   return (
     <PageActionsProvider>
       <PageHeader title="Incidencias" titleIconSrc="/advertencia.png" />
-      <Box sx={{ px: pagePadX, py: pagePadX, maxWidth: 1200 }}>
+      <Box sx={{ px: padX, py: padX, maxWidth: 1200 }}>
         <Typography color="text.secondary">En construcción</Typography>
       </Box>
     </PageActionsProvider>

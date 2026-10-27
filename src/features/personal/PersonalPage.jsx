@@ -4,7 +4,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
 import { PageActionsProvider } from "../obra/PageActions";
-import PageHeader, { pagePadX } from "../obra/PageHeader";
+import PageHeader, { usePagePadX } from "../obra/PageHeader";
 import VincularEmpresasDialog from "./VincularEmpresasDialog";
 
 function usePersonalTabs() {
@@ -50,6 +50,7 @@ export default function PersonalPage() {
   const location = useLocation();
   const { isCeo } = useAuth();
   const { obraId, can, ready, known } = useObra();
+  const padX = usePagePadX();
   const [empresasOpen, setEmpresasOpen] = useState(false);
   const [empresasTick, setEmpresasTick] = useState(0);
   const tabs = usePersonalTabs();
@@ -66,7 +67,7 @@ export default function PersonalPage() {
     can("members.manage") || can("equipo.manage") || can("maquina.manage");
   if (!canVer) {
     return (
-      <Box sx={{ p: pagePadX }}>
+      <Box sx={{ p: padX }}>
         <Typography color="text.secondary">Sin acceso</Typography>
       </Box>
     );
@@ -111,8 +112,8 @@ export default function PersonalPage() {
             maxWidth: 1200,
             width: "100%",
             boxSizing: "border-box",
-            px: pagePadX,
-            py: pagePadX,
+            px: padX,
+            py: padX,
           }}
         >
           <Outlet

@@ -5,13 +5,24 @@ import { alpha } from "@mui/material/styles";
 import { supabase } from "../../lib/supabase";
 import { ejemploCodigoModulo, mismoCodigo, normalizarCodigo } from "../../lib/codigos";
 import { useObra } from "../../obras/ObraProvider";
-import { TIPOS } from "../fachada/buildSlots";
+import { ENTORNOS, TIPOS } from "../fachada/buildSlots";
 import Torre3D from "../fachada/Torre3D";
+import { PageActions } from "../obra/PageActions";
+import { SECTION_BAR_HEIGHT, tabBtnSx } from "../obra/PageHeader";
 import { fieldSx } from "../personal/theme";
 import { formatLlegada, ESTADOS_CON_LLEGADA } from "../logistica/estados";
 import { ORDEN_VISUAL, VISUAL } from "./model";
 import { ProgresoGate, useProgreso } from "./useProgresoData.jsx";
 import { EstadoMarca, ubicacion } from "./ui";
+
+/** Bajo la fila de pestañas que flota sobre el 3D. */
+const OVERLAY_TOP = SECTION_BAR_HEIGHT + 8;
+
+const FACE_UI = {
+  line: "#2E3A4E",
+  ink: "#F2F4F7",
+  accent: "#249596",
+};
 
 export default function TorreTab() {
   return (
@@ -30,14 +41,49 @@ function textoOtraObra(error) {
 
 function TorreVista() {
   const { obraId, obra } = useObra();
-  const { filas, config, abrirRecorrido } = useProgreso();
+  const { filas, config, abrirRecorrido, torreModo, setTorreModo } = useProgreso();
   const [params, setParams] = useSearchParams();
-  const [modo, setModo] = useState("estado");
   const [estadoFiltro, setEstadoFiltro] = useState(null);
   const [q, setQ] = useState("");
   const [aviso, setAviso] = useState(null);
   const [enfocar, setEnfocar] = useState(0);
+  const [viewFace, setViewFace] = useState(null);
   const enfocado = useRef(false);
+
+  // #region agent log
+  useEffect(() => {
+    const el = document.querySelector("[data-torre-modo='1']");
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const search = document.querySelector('input[placeholder*="Buscar módulo"]');
+    const sr = search?.getBoundingClientRect();
+    const overlapX =
+      sr != null
+        ? Math.max(0, Math.min(r.right, sr.right) - Math.max(r.left, sr.left))
+        : 0;
+    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "b6f4bb",
+      },
+      body: JSON.stringify({
+        sessionId: "b6f4bb",
+        runId: "post-fix",
+        hypothesisId: "C",
+        location: "TorreTab.jsx:modoToggle",
+        message: "Material/Estado vs search rects",
+        data: {
+          modo: { left: r.left, right: r.right, top: r.top, width: r.width },
+          search: sr ? { left: sr.left, right: sr.right, top: sr.top } : null,
+          overlapX,
+          overSearch: overlapX > 2,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }, [torreModo]);
+  // #endregion
 
   const moduloQ = params.get("modulo");
   const posQ = params.get("pos");
@@ -195,20 +241,74 @@ function TorreVista() {
         <Torre3D
           config={config}
           slots={slots}
-          mode={modo === "material" ? "material" : "estado"}
+          mode={torreModo === "material" ? "material" : "estado"}
           onSelect={escribirSeleccion}
           pisoFiltro={Number.isFinite(pisoFiltro) ? pisoFiltro : null}
           estadoFiltro={estadoFiltro}
           seleccion={seleccion}
           enfocar={enfocar}
+          controlsTop={OVERLAY_TOP}
+          hideFaceButtons
+          onViewFace={(fn) => setViewFace(() => fn)}
         />
+        {config?.caras?.length > 0 && (
+          <PageActions>
+            <Box
+              data-nexo-faces-header="1"
+              aria-label="Ver cara"
+              sx={{ display: "flex", gap: "6px" }}
+            >
+              {config.caras.map((cara, i) => (
+                <Box
+                  component="button"
+                  type="button"
+                  key={i}
+                  title={`Cara ${cara.nombre} (${(ENTORNOS[cara.entorno]?.label ?? "nada").toLowerCase()})`}
+                  disabled={!viewFace}
+                  onClick={() => viewFace?.(i)}
+                  sx={{
+                    minWidth: 34,
+                    height: 34,
+                    px: "6px",
+                    border: `1px solid ${FACE_UI.line}`,
+                    borderRadius: 0,
+                    bgcolor: "rgba(14,17,23,.7)",
+                    color: FACE_UI.ink,
+                    font: "inherit",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    cursor: viewFace ? "pointer" : "default",
+                    opacity: viewFace ? 1 : 0.5,
+                    "&:hover": viewFace ? { borderColor: FACE_UI.accent } : undefined,
+                  }}
+                >
+                  {cara.codigo}
+                </Box>
+              ))}
+            </Box>
+          </PageActions>
+        )}
         <ToggleButtonGroup
           exclusive
           size="small"
-          value={modo}
-          onChange={(_, v) => v && setModo(v)}
+          value={torreModo}
+          onChange={(_, v) => v && setTorreModo(v)}
           aria-label="Vista del modelo"
-          sx={{ position: "absolute", top: 16, left: 16, zIndex: 2, bgcolor: "rgba(14,17,23,.7)" }}
+          data-torre-modo="1"
+          sx={{
+            position: "absolute",
+            top: OVERLAY_TOP,
+            left: 16,
+            zIndex: 2,
+            bgcolor: "rgba(14,17,23,.7)",
+            "& .MuiToggleButton-root": {
+              minHeight: tabBtnSx.minHeight,
+              py: tabBtnSx.py,
+              px: 1.25,
+              fontSize: "0.8125rem",
+              fontWeight: 600,
+            },
+          }}
         >
           <ToggleButton value="material">Material</ToggleButton>
           <ToggleButton value="estado">Estado</ToggleButton>
@@ -217,7 +317,7 @@ function TorreVista() {
           <Box
             sx={{
               position: "absolute",
-              top: 56,
+              top: OVERLAY_TOP + 40,
               left: 16,
               zIndex: 2,
               display: "flex",

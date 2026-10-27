@@ -264,7 +264,7 @@ export default function AdminTopBar({
         >
           <Box
             component="img"
-            src="/iconalusur2.png"
+            src="/iconv4.png"
             alt=""
             sx={{ display: "block", height: 18, width: "auto", opacity: 0.45 }}
           />

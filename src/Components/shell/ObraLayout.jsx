@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Drawer,
+  IconButton,
   List,
   ListItemButton,
   ListItemText,
@@ -11,10 +12,13 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { FiMenu } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
-import { readNavCollapsed, writeNavCollapsed } from "../../obras/storage";
+import { writeNavCollapsed } from "../../obras/storage";
+import { ObraNavProvider } from "../../features/obra/ObraNavContext";
 import { supabase } from "../../lib/supabase";
+import { SECTION_BAR_HEIGHT } from "../../features/obra/PageHeader";
 import TopBar, { BAR_HEIGHT } from "./TopBar";
 
 const DRAWER_WIDTH = 200;
@@ -63,7 +67,9 @@ function useObraNavItems(incidenciasCount) {
   const { isCeo } = useAuth();
   const { obraId, mi_rol, can } = useObra();
   const role = mi_rol;
-  const base = `/obra/${obraId}`;
+  // Misma base que la ruta viva (`/construccion/obra/...`). Links a `/obra/...`
+  // disparan LegacyToConstruccion, remontan ObraLayout y reabren el sidebar.
+  const base = `/construccion/obra/${obraId}`;
   const items = [];
 
   // Hoy ↔ Resumen: mutuamente excluyentes. Owner ve Resumen; el resto (y CEO) ve Hoy.
@@ -123,84 +129,149 @@ function useObraNavItems(incidenciasCount) {
   return items;
 }
 
-function NavList({ onNavigate, incidenciasCount }) {
+function NavItemLabel({ item, selected }) {
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 1,
+      }}
+    >
+      {item.iconSrc ? (
+        <Box
+          component="img"
+          src={item.iconSrc}
+          alt=""
+          aria-hidden
+          sx={{
+            width: 18,
+            height: 18,
+            objectFit: "contain",
+            flexShrink: 0,
+            opacity: selected ? 1 : 0.75,
+          }}
+        />
+      ) : null}
+      <Box
+        component="span"
+        sx={{ display: "inline-flex", alignItems: "baseline", gap: 1 }}
+      >
+        {item.label}
+        {item.badge != null ? (
+          <Box
+            component="span"
+            sx={{
+              color: selected ? "text.primary" : "text.secondary",
+              fontSize: "0.8125rem",
+              fontWeight: 600,
+            }}
+          >
+            {item.badge}
+          </Box>
+        ) : null}
+      </Box>
+    </Box>
+  );
+}
+
+const navItemSx = {
+  py: 0,
+  height: SECTION_BAR_HEIGHT,
+  bgcolor: "transparent",
+  "&.Mui-selected": { bgcolor: "transparent" },
+  "&.Mui-selected:hover": { bgcolor: "rgba(36, 149, 150, 0.06)" },
+  "&:hover": { bgcolor: "rgba(36, 149, 150, 0.06)" },
+};
+
+function NavList({ onNavigate, onCollapse, incidenciasCount }) {
   const items = useObraNavItems(incidenciasCount);
   const location = useLocation();
 
   return (
     <List sx={{ py: 1 }}>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const selected = location.pathname.includes(item.match);
+        const firstWithCollapse = index === 0 && onCollapse;
+
+        if (firstWithCollapse) {
+          return (
+            <Box
+              key={item.to}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.25,
+                pr: 0.5,
+                borderLeft: 3,
+                borderColor: selected ? "primary.main" : "transparent",
+              }}
+            >
+              <ListItemButton
+                component={RouterLink}
+                to={item.to}
+                selected={selected}
+                onClick={() => {
+                  // #region agent log
+                  fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b6f4bb'},body:JSON.stringify({sessionId:'b6f4bb',runId:'pre-fix',hypothesisId:'C',location:'ObraLayout.jsx:NavListFirst',message:'first nav item click',data:{label:item.label,hasOnNavigate:typeof onNavigate==='function'},timestamp:Date.now()})}).catch(()=>{});
+                  // #endregion
+                  onNavigate?.(item);
+                }}
+                sx={{ ...navItemSx, flex: 1, minWidth: 0, pl: 2, borderLeft: 0 }}
+              >
+                <ListItemText
+                  primary={<NavItemLabel item={item} selected={selected} />}
+                  primaryTypographyProps={{
+                    fontSize: "0.875rem",
+                    fontWeight: selected ? 600 : 400,
+                    color: selected ? "text.primary" : "text.secondary",
+                    component: "div",
+                  }}
+                />
+              </ListItemButton>
+              <IconButton
+                size="small"
+                aria-label="Cerrar menú"
+                onClick={onCollapse}
+                sx={{
+                  p: 0.75,
+                  borderRadius: 0,
+                  color: "text.secondary",
+                  flexShrink: 0,
+                  "&:hover": {
+                    color: "text.primary",
+                    bgcolor: "rgba(36, 149, 150, 0.06)",
+                  },
+                }}
+              >
+                <FiMenu size={18} strokeWidth={1.75} aria-hidden />
+              </IconButton>
+            </Box>
+          );
+        }
+
         return (
           <ListItemButton
             key={item.to}
             component={RouterLink}
             to={item.to}
             selected={selected}
-            onClick={onNavigate}
+            onClick={() => {
+              // #region agent log
+              fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b6f4bb'},body:JSON.stringify({sessionId:'b6f4bb',runId:'pre-fix',hypothesisId:'C',location:'ObraLayout.jsx:NavListItem',message:'nav item click',data:{label:item.label,hasOnNavigate:typeof onNavigate==='function'},timestamp:Date.now()})}).catch(()=>{});
+              // #endregion
+              onNavigate?.(item);
+            }}
             sx={{
+              ...navItemSx,
               pl: 2,
-              py: 0,
-              height: 40,
               borderLeft: 3,
               borderColor: selected ? "primary.main" : "transparent",
-              bgcolor: "transparent",
-              "&.Mui-selected": {
-                bgcolor: "transparent",
-              },
-              "&.Mui-selected:hover": {
-                bgcolor: "rgba(36, 149, 150, 0.06)",
-              },
-              "&:hover": {
-                bgcolor: "rgba(36, 149, 150, 0.06)",
-              },
             }}
           >
             <ListItemText
-              primary={
-                <Box
-                  component="span"
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  {item.iconSrc ? (
-                    <Box
-                      component="img"
-                      src={item.iconSrc}
-                      alt=""
-                      aria-hidden
-                      sx={{
-                        width: 18,
-                        height: 18,
-                        objectFit: "contain",
-                        flexShrink: 0,
-                        opacity: selected ? 1 : 0.75,
-                      }}
-                    />
-                  ) : null}
-                  <Box
-                    component="span"
-                    sx={{ display: "inline-flex", alignItems: "baseline", gap: 1 }}
-                  >
-                    {item.label}
-                    {item.badge != null ? (
-                      <Box
-                        component="span"
-                        sx={{
-                          color: selected ? "text.primary" : "text.secondary",
-                          fontSize: "0.8125rem",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {item.badge}
-                      </Box>
-                    ) : null}
-                  </Box>
-                </Box>
-              }
+              primary={<NavItemLabel item={item} selected={selected} />}
               primaryTypographyProps={{
                 fontSize: "0.875rem",
                 fontWeight: selected ? 600 : 400,
@@ -219,8 +290,10 @@ function NavList({ onNavigate, incidenciasCount }) {
 export default function ObraLayout() {
   const theme = useTheme();
   const isNarrow = useMediaQuery(theme.breakpoints.down("md")); // < 900
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [navCollapsed, setNavCollapsed] = useState(readNavCollapsed);
+  // Al entrar a una obra (p. ej. desde /) el sidebar arranca abierto.
+  const [navCollapsed, setNavCollapsed] = useState(false);
   const { loadError, isCeo } = useAuth();
   const { mi_rol, ready, known, obraId: ctxObraId } = useObra();
   const { obraId } = useParams();
@@ -229,16 +302,122 @@ export default function ObraLayout() {
   const desktopOpen = !navCollapsed;
   const navWidth = desktopOpen ? DRAWER_WIDTH : 0;
 
+  // #region agent log
+  useEffect(() => {
+    const mountId = Math.random().toString(36).slice(2, 8);
+    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "b6f4bb",
+      },
+      body: JSON.stringify({
+        sessionId: "b6f4bb",
+        runId: "post-fix",
+        hypothesisId: "H1",
+        location: "ObraLayout.jsx:mount",
+        message: "ObraLayout mounted",
+        data: { mountId, pathname: location.pathname },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    return () => {
+      fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "b6f4bb",
+        },
+        body: JSON.stringify({
+          sessionId: "b6f4bb",
+          runId: "post-fix",
+          hypothesisId: "H1",
+          location: "ObraLayout.jsx:unmount",
+          message: "ObraLayout unmounted",
+          data: { mountId },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo montaje/desmontaje
+  }, []);
+  // #endregion
+
+  function setCollapsed(next) {
+    // #region agent log
+    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "b6f4bb",
+      },
+      body: JSON.stringify({
+        sessionId: "b6f4bb",
+        runId: "post-fix",
+        hypothesisId: "H1",
+        location: "ObraLayout.jsx:setCollapsed",
+        message: "setCollapsed called",
+        data: {
+          next,
+          prev: navCollapsed,
+          isNarrow,
+          pathname: location.pathname,
+          navWidthAfter: next ? 0 : DRAWER_WIDTH,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+    setNavCollapsed(next);
+    writeNavCollapsed(next);
+  }
+
   function handleNavButton() {
     if (isNarrow) {
       setMobileOpen(true);
       return;
     }
-    setNavCollapsed((prev) => {
-      const next = !prev;
-      writeNavCollapsed(next);
-      return next;
-    });
+    setCollapsed(!navCollapsed);
+  }
+
+  function handleSidebarNavigate(item) {
+    // #region agent log
+    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "b6f4bb",
+      },
+      body: JSON.stringify({
+        sessionId: "b6f4bb",
+        runId: "post-fix",
+        hypothesisId: "H1",
+        location: "ObraLayout.jsx:handleSidebarNavigate",
+        message: "section click navigate",
+        data: {
+          label: item?.label,
+          to: item?.to,
+          match: item?.match,
+          isNarrow,
+          navCollapsed,
+          willCollapse: !isNarrow,
+          pathname: location.pathname,
+          legacyLink: typeof item?.to === "string" && item.to.startsWith("/obra/"),
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+    setMobileOpen(false);
+    if (!isNarrow) setCollapsed(true);
+  }
+
+  function handleCollapseSidebar() {
+    // #region agent log
+    fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b6f4bb'},body:JSON.stringify({sessionId:'b6f4bb',runId:'pre-fix',hypothesisId:'B',location:'ObraLayout.jsx:handleCollapseSidebar',message:'collapse icon clicked',data:{isNarrow,navCollapsed},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    setMobileOpen(false);
+    if (!isNarrow) setCollapsed(true);
   }
 
   const drawer = (
@@ -253,97 +432,108 @@ export default function ObraLayout() {
       }}
     >
       <NavList
-        onNavigate={() => setMobileOpen(false)}
+        onNavigate={handleSidebarNavigate}
+        onCollapse={handleCollapseSidebar}
         incidenciasCount={incidenciasCount}
       />
     </Box>
   );
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
-      <TopBar
-        showObraSwitcher
-        mi_rol={mi_rol}
-        onOpenNav={handleNavButton}
-      />
+    <ObraNavProvider
+      collapsed={navCollapsed}
+      setCollapsed={setCollapsed}
+      toggleNav={handleNavButton}
+    >
+      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
+        <TopBar showObraSwitcher mi_rol={mi_rol} />
 
-      <Box
-        component="nav"
-        sx={{
-          width: { md: navWidth },
-          flexShrink: { md: 0 },
-          transition: { md: NAV_TRANSITION },
-          overflow: "hidden",
-        }}
-      >
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={() => setMobileOpen(false)}
-          ModalProps={{ keepMounted: true }}
+        <Box
+          component="nav"
           sx={{
-            display: { xs: "block", md: "none" },
-            "& .MuiDrawer-paper": {
-              width: DRAWER_WIDTH,
-              boxSizing: "border-box",
-              bgcolor: "background.default",
-              borderRight: 1,
-              borderColor: "divider",
-              backgroundImage: "none",
-            },
+            width: { md: navWidth },
+            flexShrink: { md: 0 },
+            transition: { md: NAV_TRANSITION },
+            overflow: "hidden",
           }}
         >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          open
-          sx={{
-            display: { xs: "none", md: "block" },
-            width: navWidth,
-            flexShrink: 0,
-            transition: NAV_TRANSITION,
-            "& .MuiDrawer-paper": {
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={() => setMobileOpen(false)}
+            ModalProps={{ keepMounted: true }}
+            sx={{
+              display: { xs: "block", md: "none" },
+              "& .MuiDrawer-paper": {
+                width: DRAWER_WIDTH,
+                boxSizing: "border-box",
+                bgcolor: "background.default",
+                borderRight: 1,
+                borderColor: "divider",
+                backgroundImage: "none",
+              },
+            }}
+          >
+            {drawer}
+          </Drawer>
+          <Drawer
+            variant="permanent"
+            open
+            sx={{
+              display: { xs: "none", md: "block" },
               width: navWidth,
-              boxSizing: "border-box",
-              bgcolor: "background.default",
-              borderRight: navWidth ? 1 : 0,
-              borderColor: "divider",
-              backgroundImage: "none",
-              overflowX: "hidden",
+              flexShrink: 0,
               transition: NAV_TRANSITION,
-            },
+              "& .MuiDrawer-paper": {
+                width: navWidth,
+                minWidth: 0,
+                boxSizing: "border-box",
+                bgcolor: "background.default",
+                borderRight: navWidth ? 1 : 0,
+                borderColor: "divider",
+                backgroundImage: "none",
+                overflow: "hidden",
+                transition: NAV_TRANSITION,
+              },
+            }}
+          >
+            <Box
+              sx={{
+                width: DRAWER_WIDTH,
+                minWidth: desktopOpen ? DRAWER_WIDTH : 0,
+              }}
+            >
+              {drawer}
+            </Box>
+          </Drawer>
+        </Box>
+
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            width: { md: `calc(100% - ${navWidth}px)` },
+            pt: `${BAR_HEIGHT}px`,
+            minHeight: "100vh",
+            minWidth: 0,
+            transition: { md: NAV_TRANSITION },
           }}
         >
-          <Box sx={{ width: DRAWER_WIDTH, minWidth: DRAWER_WIDTH }}>{drawer}</Box>
-        </Drawer>
+          {loadError && (
+            <Alert severity="error" sx={{ m: 2 }}>
+              No se pudo cargar el perfil: {loadError}
+            </Alert>
+          )}
+          {ready && !known && (
+            <Box sx={{ p: 3 }}>
+              <Typography color="text.secondary">
+                No tenés acceso a esta obra ({obraId}).
+              </Typography>
+            </Box>
+          )}
+          {(!ready || known) && <Outlet />}
+        </Box>
       </Box>
-
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          width: { md: `calc(100% - ${navWidth}px)` },
-          pt: `${BAR_HEIGHT}px`,
-          minHeight: "100vh",
-          minWidth: 0,
-          transition: { md: NAV_TRANSITION },
-        }}
-      >
-        {loadError && (
-          <Alert severity="error" sx={{ m: 2 }}>
-            No se pudo cargar el perfil: {loadError}
-          </Alert>
-        )}
-        {ready && !known && (
-          <Box sx={{ p: 3 }}>
-            <Typography color="text.secondary">
-              No tenés acceso a esta obra ({obraId}).
-            </Typography>
-          </Box>
-        )}
-        {(!ready || known) && <Outlet />}
-      </Box>
-    </Box>
+    </ObraNavProvider>
   );
 }

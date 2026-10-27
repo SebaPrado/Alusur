@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
-  Chip,
   Collapse,
   TextField,
   Typography,
@@ -41,7 +40,7 @@ function EstadoIcon({ estado }) {
   const common = { size: ICON_SIZE, style: { flexShrink: 0 } };
   switch (estado) {
     case "en_obra":
-      return <FiMapPin {...common} color="currentColor" style={{ ...common.style, color: "#249596" }} />;
+      return <FiMapPin {...common} color="currentColor" />;
     case "en_deposito":
       return <FiHome {...common} />;
     case "en_puerto":
@@ -244,29 +243,15 @@ export default function ContenedoresPage() {
                 const active = filtroEstado === estado;
                 const n = conteos[estado] ?? 0;
                 return (
-                  <Chip
+                  <Button
                     key={estado}
                     size="small"
-                    icon={<EstadoIcon estado={estado} />}
-                    label={`${CONTENEDOR_CONTEO_LABEL[estado]} ${n}`}
+                    variant={active ? "contained" : "outlined"}
+                    startIcon={<EstadoIcon estado={estado} />}
                     onClick={() => toggleFiltro(estado)}
-                    variant={active ? "filled" : "outlined"}
-                    sx={{
-                      borderRadius: 0,
-                      height: 26,
-                      fontSize: "0.75rem",
-                      color: active ? C.text : C.muted,
-                      borderColor: active ? C.accent : C.line,
-                      bgcolor: active
-                        ? "rgba(36, 149, 150, 0.2)"
-                        : "transparent",
-                      "& .MuiChip-icon": { ml: 0.5, color: "inherit" },
-                      "&:hover": {
-                        bgcolor: "rgba(46, 58, 78, 0.45)",
-                        borderColor: C.muted,
-                      },
-                    }}
-                  />
+                  >
+                    {CONTENEDOR_CONTEO_LABEL[estado]} {n}
+                  </Button>
                 );
               })}
             </Box>

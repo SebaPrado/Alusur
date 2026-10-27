@@ -305,6 +305,7 @@ export function ProgresoProvider({ obraId, obraNombre, children }) {
   const [error, setError] = useState(null);
   const [tick, setTick] = useState(0);
   const [recorridoId, setRecorridoId] = useState(null);
+  const [torreModo, setTorreModo] = useState("estado");
 
   const reload = useCallback(() => setTick((n) => n + 1), []);
   const abrirRecorrido = useCallback((moduloId) => setRecorridoId(moduloId), []);
@@ -354,9 +355,20 @@ export function ProgresoProvider({ obraId, obraNombre, children }) {
       recorridoId,
       abrirRecorrido,
       cerrarRecorrido,
+      torreModo,
+      setTorreModo,
       ...modelo,
     }),
-    [loading, errorVista, reload, recorridoId, abrirRecorrido, cerrarRecorrido, modelo],
+    [
+      loading,
+      errorVista,
+      reload,
+      recorridoId,
+      abrirRecorrido,
+      cerrarRecorrido,
+      torreModo,
+      modelo,
+    ],
   );
 
   return <ProgresoContext.Provider value={value}>{children}</ProgresoContext.Provider>;

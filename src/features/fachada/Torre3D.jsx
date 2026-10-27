@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 import * as THREE from "three";
 import { ENTORNOS, TIPOS, validateConfig } from "./buildSlots";
 import { medidasDesdeSlots } from "./slotsDesdeTorre";
+import { SECTION_BAR_HEIGHT } from "../obra/PageHeader";
 
 // La maqueta usa r128, sin gestión de color: los hex se toman como lineales y la salida no se convierte.
 THREE.ColorManagement.enabled = false;
@@ -500,6 +501,12 @@ export default function Torre3D({
   estadoFiltro = null,
   seleccion,
   enfocar = 0,
+  /** Distancia desde el top del stage hasta overlays (bajo fila de pestañas). */
+  controlsTop = SECTION_BAR_HEIGHT + 8,
+  /** Si true, no pinta N/E/S/O en el canvas (van al header vía onViewFace). */
+  hideFaceButtons = false,
+  /** Recibe `(fi) => void` cuando el motor está listo; null al desmontar. */
+  onViewFace = null,
 }) {
   const stageRef = useRef(null);
   const hostRef = useRef(null);
@@ -508,6 +515,7 @@ export default function Torre3D({
   const worldRef = useRef(null);
   const viewRef = useRef({ mode, pisoFiltro, estadoFiltro });
   const onSelectRef = useRef(onSelect);
+  const onViewFaceRef = useRef(onViewFace);
   const [ayudaAbierta, setAyudaAbierta] = useState(false);
   viewRef.current = { mode, pisoFiltro, estadoFiltro };
 
@@ -515,6 +523,10 @@ export default function Torre3D({
 
   useEffect(() => {
     onSelectRef.current = onSelect;
+  });
+
+  useEffect(() => {
+    onViewFaceRef.current = onViewFace;
   });
 
   useEffect(() => {
@@ -629,6 +641,7 @@ export default function Torre3D({
       goal.theta = faceTheta(fi);
       goal.phi = 1.3;
     };
+    onViewFaceRef.current?.(engine.viewFace);
     engine.focus = focus;
     engine.focusPiso = (piso) => {
       const world = worldRef.current;
@@ -757,6 +770,7 @@ export default function Torre3D({
       canvas.remove();
       tip.style.display = "none";
       engineRef.current = null;
+      onViewFaceRef.current?.(null);
     };
   }, []);
 
@@ -857,10 +871,19 @@ export default function Torre3D({
     >
       <Box ref={hostRef} sx={{ position: "absolute", inset: 0 }} />
 
-      {!aviso && (
+      {!aviso && !hideFaceButtons && (
         <Box
+          data-nexo-faces="1"
           aria-label="Ver cara"
-          sx={{ position: "absolute", right: 16, top: 16, display: "flex", gap: "6px" }}
+          sx={{
+            position: "absolute",
+            right: 16,
+            top: controlsTop,
+            zIndex: 2,
+            display: "flex",
+            gap: "6px",
+            pointerEvents: "auto",
+          }}
         >
           {config.caras.map((cara, i) => (
             <Box
