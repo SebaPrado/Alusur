@@ -12,6 +12,18 @@
     linear-gradient(160deg, #0a0d12 0%, #0e1117 40%, #121a24 100%);
 }
 
+.area-selector-logo {
+  position: absolute;
+  top: clamp(14px, 2.5vw, 26px);
+  left: clamp(16px, 2.5vw, 28px);
+  z-index: 2;
+  height: 36px;
+  width: auto;
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+}
+
 .area-selector-user {
   position: absolute;
   top: clamp(12px, 2.5vw, 24px);

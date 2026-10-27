@@ -80,6 +80,7 @@ export default function AreaSelector() {
 
   return (
     <div className="area-selector-page">
+      <img className="area-selector-logo" src="/logo.png" alt="Alusur" />
       <div className="area-selector-user">
         {session ? (
           <>
