@@ -46,7 +46,7 @@ export default function ProductDialog({ open, product, categories, onClose, onSa
       setForm(EMPTY);
       return;
     }
-    const cents = parseMoneyToCents(product.price);
+    const cents = parseMoneyToCents(product.price, product.currency);
     setForm({
       name: product.name ?? "",
       sku: product.sku ?? "",
@@ -54,7 +54,7 @@ export default function ProductDialog({ open, product, categories, onClose, onSa
       categoryId: product.category_id ?? "",
       unit: product.unit ?? "unidad",
       currency: product.currency === "USD" ? "USD" : "UYU",
-      price: cents == null ? "" : centsToInput(cents),
+      price: cents == null ? "" : centsToInput(cents, product.currency),
       iva: ivaValue(product.iva_rate),
     });
   }, [open, product]);
@@ -65,7 +65,7 @@ export default function ProductDialog({ open, product, categories, onClose, onSa
 
   async function save() {
     const name = form.name.trim();
-    const priceCents = parseMoneyToCents(form.price);
+    const priceCents = parseMoneyToCents(form.price, form.currency);
     if (!name) {
       showError("El nombre es obligatorio");
       return;
@@ -81,7 +81,7 @@ export default function ProductDialog({ open, product, categories, onClose, onSa
       name,
       unit: form.unit.trim() || "unidad",
       currency: form.currency,
-      price: centsToInput(priceCents),
+      price: centsToInput(priceCents, form.currency),
       iva_rate: Number(form.iva),
     };
     setBusy(true);

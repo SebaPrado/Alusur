@@ -1,8 +1,11 @@
+import { moneyFractionDigits, roundMoneyCents } from "./money";
+
 /**
  * Plata sin floats.
  * Importes en centavos, cantidades en milésimos, cotización en diezmilésimos
  * (40,1 → 401000). Cada conversión multiplica/divide enteros y redondea
- * half-away-from-zero una sola vez.
+ * half-away-from-zero una sola vez. El resultado de una moneda queda en
+ * pesos enteros o dólares con un decimal.
  */
 
 function abs(n) {
@@ -43,10 +46,10 @@ export function parseScaled(input, scale) {
   return neg ? -scaled : scaled;
 }
 
-export function parseMoneyToCents(input) {
+export function parseMoneyToCents(input, currency) {
   const v = parseScaled(input, 2);
   if (v == null || v < 0n) return null;
-  return v;
+  return currency ? roundMoneyCents(v, currency) : v;
 }
 
 export function parseQtyThousandths(input, { allowNegative = false } = {}) {
@@ -70,8 +73,16 @@ export function scaledToDecimal(scaled, scale) {
   return `${neg ? "-" : ""}${a / base}.${frac}`;
 }
 
-export function centsToInput(cents) {
-  return scaledToDecimal(cents, 2);
+/** Texto de input / payload: "1223" en pesos, "30.5" en dólares. */
+export function centsToInput(cents, currency = "UYU") {
+  const rounded = roundMoneyCents(cents, currency);
+  const neg = rounded < 0n;
+  const a = neg ? -rounded : rounded;
+  const intPart = (a / 100n).toString();
+  const digits = moneyFractionDigits(currency);
+  if (digits === 0) return `${neg ? "-" : ""}${intPart}`;
+  const frac = ((a % 100n) / 10n).toString();
+  return `${neg ? "-" : ""}${intPart}.${frac}`;
 }
 
 export function qtyToInput(thousandths) {
@@ -80,15 +91,19 @@ export function qtyToInput(thousandths) {
     .replace(/\.$/, "");
 }
 
-/** Misma regla que admin_convert. Devuelve centavos, o null si no hay cotización. */
+/** Misma regla que admin_convert. Devuelve centavos ya en la escala de `to`. */
 export function convertCents(amountCents, from, to, rateTt) {
   if (amountCents == null || (from !== "UYU" && from !== "USD")) return null;
   if (to !== "UYU" && to !== "USD") return null;
-  if (from === to) return amountCents;
+  if (from === to) return roundMoneyCents(amountCents, to);
   if (rateTt == null || rateTt <= 0n) return null;
-  if (from === "USD" && to === "UYU") return mulDivRound(amountCents, rateTt, 10000n);
-  if (from === "UYU" && to === "USD") return mulDivRound(amountCents, 10000n, rateTt);
-  return null;
+  const raw =
+    from === "USD" && to === "UYU"
+      ? mulDivRound(amountCents, rateTt, 10000n)
+      : from === "UYU" && to === "USD"
+        ? mulDivRound(amountCents, 10000n, rateTt)
+        : null;
+  return raw == null ? null : roundMoneyCents(raw, to);
 }
 
 export function lineTotalCents(unitPriceCents, qtyThousandths) {
@@ -106,7 +121,10 @@ export function otherCurrency(currency) {
 export function quoteSale({ lines, payments, saleCurrency, rateTt, changeCurrency }) {
   let totalCents = 0n;
   for (const line of lines) {
-    totalCents += lineTotalCents(line.unitPriceCents, line.qtyThousandths);
+    totalCents += roundMoneyCents(
+      lineTotalCents(line.unitPriceCents, line.qtyThousandths),
+      saleCurrency,
+    );
   }
 
   let paidCents = 0n;
@@ -141,6 +159,9 @@ export function quoteSale({ lines, payments, saleCurrency, rateTt, changeCurrenc
       changeAmountCents = mulDivRound(excessCents, 10000n, rateTt);
     } else if (changeCurrency === "UYU" && saleCurrency === "USD") {
       changeAmountCents = mulDivRound(excessCents, rateTt, 10000n);
+    }
+    if (changeAmountCents > 0n) {
+      changeAmountCents = roundMoneyCents(changeAmountCents, changeCurrency);
     }
     if (changeAmountCents > 0n) {
       const applied = convertCents(changeAmountCents, changeCurrency, saleCurrency, rateTt);

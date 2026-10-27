@@ -153,7 +153,7 @@ export default function ProductsPage() {
               </TableRow>
             )}
             {visible.map((p) => {
-              const cents = parseMoneyToCents(p.price);
+              const cents = parseMoneyToCents(p.price, p.currency);
               return (
                 <TableRow key={p.id} hover sx={{ opacity: p.active ? 1 : 0.55 }}>
                   <TableCell>

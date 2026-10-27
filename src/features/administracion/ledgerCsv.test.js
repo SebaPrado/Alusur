@@ -37,7 +37,7 @@ describe("buildLedgerCsv", () => {
     expect(cells).toHaveLength(15);
     expect(cells[1]).toBe("venta");
     expect(cells[3]).toBe("Solita");
-    expect(cells[6]).toMatch(/3\.000,00/);
+    expect(cells[6]).toBe("$ 3.000");
     expect(cells[14]).toBe("completada");
   });
 

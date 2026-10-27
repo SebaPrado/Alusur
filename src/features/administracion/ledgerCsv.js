@@ -1,4 +1,4 @@
-import { buildLedgerQuery, ledgerEventLabel } from "./ledgerQuery";
+import { buildLedgerQuery, ledgerEventLabel, ledgerMediosLabel } from "./ledgerQuery";
 import { formatDateTime, formatMoney, signedMoney } from "./money";
 
 const BATCH = 1000;
@@ -39,7 +39,7 @@ function cellsOf(r) {
     r.detail ?? "",
     r.currency ?? "",
     r.amount == null ? "" : formatMoney(r.amount, r.currency),
-    r.payment_methods ?? "",
+    ledgerMediosLabel(r.payment_methods),
     r.cash_delta_uyu == null ? "" : signedMoney(r.cash_delta_uyu, "UYU"),
     r.cash_delta_usd == null ? "" : signedMoney(r.cash_delta_usd, "USD"),
     formatMoney(r.cash_balance_uyu, "UYU"),

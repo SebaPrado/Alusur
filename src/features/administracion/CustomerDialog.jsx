@@ -47,7 +47,9 @@ export default function CustomerDialog({ open, customer, onClose, onSaved }) {
     const limitCents =
       customer.credit_limit == null
         ? null
-        : parseMoneyToCents(customer.credit_limit);
+        : parseMoneyToCents(customer.credit_limit, customer.credit_limit_currency);
+    const limitCurrency =
+      customer.credit_limit_currency === "UYU" ? "UYU" : "USD";
     setForm({
       name: customer.name ?? "",
       docType: customer.doc_type ?? "",
@@ -56,9 +58,8 @@ export default function CustomerDialog({ open, customer, onClose, onSaved }) {
       email: customer.email ?? "",
       address: customer.address ?? "",
       notes: customer.notes ?? "",
-      creditLimit: limitCents == null ? "" : centsToInput(limitCents),
-      creditLimitCurrency:
-        customer.credit_limit_currency === "UYU" ? "UYU" : "USD",
+      creditLimit: limitCents == null ? "" : centsToInput(limitCents, limitCurrency),
+      creditLimitCurrency: limitCurrency,
     });
   }, [open, customer]);
 
@@ -95,12 +96,12 @@ export default function CustomerDialog({ open, customer, onClose, onSaved }) {
       if (!limitText) {
         payload.credit_limit = null;
       } else {
-        const cents = parseMoneyToCents(limitText);
+        const cents = parseMoneyToCents(limitText, form.creditLimitCurrency);
         if (cents == null) {
           showError("Límite de crédito inválido");
           return;
         }
-        payload.credit_limit = centsToInput(cents);
+        payload.credit_limit = centsToInput(cents, form.creditLimitCurrency);
       }
       payload.credit_limit_currency = form.creditLimitCurrency;
     }

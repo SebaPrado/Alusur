@@ -11,6 +11,7 @@ import {
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { rpcErrorMessage } from "./rpcError";
+import { centsToInput, parseMoneyToCents } from "./saleMath";
 import { useAdminToast } from "./toast";
 
 export default function OpenCashDialog({ open, onClose, terminalId, onOpened }) {
@@ -21,14 +22,9 @@ export default function OpenCashDialog({ open, onClose, terminalId, onOpened }) 
   const [busy, setBusy] = useState(false);
 
   async function handleOpen() {
-    const opening_uyu = Number(String(uyu).replace(",", "."));
-    const opening_usd = Number(String(usd).replace(",", "."));
-    if (
-      !Number.isFinite(opening_uyu) ||
-      opening_uyu < 0 ||
-      !Number.isFinite(opening_usd) ||
-      opening_usd < 0
-    ) {
+    const yuyCents = parseMoneyToCents(uyu, "UYU");
+    const usdCents = parseMoneyToCents(usd, "USD");
+    if (yuyCents == null || usdCents == null) {
       showError("Importe de apertura inválido");
       return;
     }
@@ -36,8 +32,8 @@ export default function OpenCashDialog({ open, onClose, terminalId, onOpened }) 
     const { error } = await supabase.rpc("admin_open_cash_session", {
       p_organization_id: organizationId,
       p_terminal_id: terminalId,
-      p_opening_uyu: opening_uyu,
-      p_opening_usd: opening_usd,
+      p_opening_uyu: Number(centsToInput(yuyCents, "UYU")),
+      p_opening_usd: Number(centsToInput(usdCents, "USD")),
     });
     setBusy(false);
     if (error) {

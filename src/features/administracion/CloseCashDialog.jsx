@@ -17,11 +17,8 @@ import {
 import { supabase } from "../../lib/supabase";
 import { formatMoney } from "./money";
 import { rpcErrorMessage } from "./rpcError";
+import { centsToInput, parseMoneyToCents } from "./saleMath";
 import { useAdminToast } from "./toast";
-
-function parseMoney(raw) {
-  return Number(String(raw).replace(",", "."));
-}
 
 function currencyOfMethodKey(key) {
   if (key?.endsWith("_USD")) return "USD";
@@ -54,22 +51,17 @@ export default function CloseCashDialog({
   const [result, setResult] = useState(null);
 
   async function handleClose() {
-    const counted_uyu = parseMoney(uyu);
-    const counted_usd = parseMoney(usd);
-    if (
-      !Number.isFinite(counted_uyu) ||
-      counted_uyu < 0 ||
-      !Number.isFinite(counted_usd) ||
-      counted_usd < 0
-    ) {
+    const countedUyu = parseMoneyToCents(uyu, "UYU");
+    const countedUsd = parseMoneyToCents(usd, "USD");
+    if (countedUyu == null || countedUsd == null) {
       showError("Importe contado inválido");
       return;
     }
     setBusy(true);
     const { data, error } = await supabase.rpc("admin_close_cash_session", {
       p_cash_session_id: cashSessionId,
-      p_counted_uyu: counted_uyu,
-      p_counted_usd: counted_usd,
+      p_counted_uyu: Number(centsToInput(countedUyu, "UYU")),
+      p_counted_usd: Number(centsToInput(countedUsd, "USD")),
       p_notes: notes.trim() || null,
     });
     setBusy(false);

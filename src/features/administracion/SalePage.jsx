@@ -115,7 +115,7 @@ export default function SalePage() {
         if (line.priceEdited) return line;
         const unit = convertCents(line.listPriceCents, line.listCurrency, currency, tt);
         if (unit == null) return line;
-        return { ...line, unitPriceText: centsToInput(unit) };
+        return { ...line, unitPriceText: centsToInput(unit, currency) };
       }),
     );
     showInfo(`Cambió la cotización: U$S 1 = ${formatRateLabel(tt)}`);
@@ -218,7 +218,7 @@ export default function SalePage() {
       showError("Producto inactivo");
       return;
     }
-    const listPriceCents = parseMoneyToCents(row.price);
+    const listPriceCents = parseMoneyToCents(row.price, row.currency);
     if (listPriceCents == null) {
       showError("Precio inválido");
       return;
@@ -243,7 +243,7 @@ export default function SalePage() {
           name: row.name,
           listPriceCents,
           listCurrency: row.currency,
-          unitPriceText: centsToInput(unit),
+          unitPriceText: centsToInput(unit, saleCurrency),
           priceEdited: false,
           qtyText: "1",
         },
@@ -297,7 +297,7 @@ export default function SalePage() {
   function setSaleCurrencyTo(next) {
     if (next === saleCurrency) return;
     const blocked = cart.some((line) => {
-      if (parseMoneyToCents(line.unitPriceText) == null) return false;
+      if (parseMoneyToCents(line.unitPriceText, saleCurrency) == null) return false;
       return convertCents(line.listPriceCents, line.listCurrency, next, rateTt) == null;
     });
     if (blocked) {
@@ -310,7 +310,7 @@ export default function SalePage() {
       lines.map((line) => {
         const unit = convertCents(line.listPriceCents, line.listCurrency, next, rateTt);
         if (unit == null) return line;
-        return { ...line, unitPriceText: centsToInput(unit), priceEdited: false };
+        return { ...line, unitPriceText: centsToInput(unit, next), priceEdited: false };
       }),
     );
   }
@@ -318,7 +318,7 @@ export default function SalePage() {
   const parsed = useMemo(() => {
     const lines = cart.map((line) => ({
       ...line,
-      unitPriceCents: parseMoneyToCents(line.unitPriceText),
+      unitPriceCents: parseMoneyToCents(line.unitPriceText, saleCurrency),
       qtyThousandths: parseQtyThousandths(line.qtyText),
     }));
     const linesOk = lines.every(
@@ -331,7 +331,7 @@ export default function SalePage() {
       const text = pay.amountText.trim();
       return {
         ...pay,
-        amountCents: text === "" ? 0n : parseMoneyToCents(text),
+        amountCents: text === "" ? 0n : parseMoneyToCents(text, pay.currency),
       };
     });
     const paymentsOk = payRows.every((pay) => pay.amountCents != null);
@@ -414,7 +414,7 @@ export default function SalePage() {
       showError(rpcErrorMessage(error));
       return;
     }
-    const totalCents = parseMoneyToCents(data?.total);
+    const totalCents = parseMoneyToCents(data?.total, data?.currency ?? saleCurrency);
     const shown =
       totalCents == null
         ? String(data?.total ?? "")
@@ -478,7 +478,7 @@ export default function SalePage() {
             sx={{ position: "absolute", zIndex: 2, left: 0, right: 0, mt: 0.5 }}
           >
             {results.map((row) => {
-              const cents = parseMoneyToCents(row.price);
+              const cents = parseMoneyToCents(row.price, row.currency);
               return (
                 <Button
                   key={row.id}

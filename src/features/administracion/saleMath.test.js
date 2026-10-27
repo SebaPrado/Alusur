@@ -10,18 +10,20 @@ import {
 } from "./saleMath";
 
 describe("convertCents", () => {
-  it("cotización 40,1 y precio 30,50 USD → 1223,05 UYU", () => {
+  it("cotización 40,1 y precio 30,5 USD → 1.223 UYU", () => {
     const rate = rateToTenThousandths("40,1");
     expect(rate).toBe(401000n);
     const cents = convertCents(parseMoneyToCents("30.50"), "USD", "UYU", rate);
-    expect(cents).toBe(122305n);
+    expect(cents).toBe(122300n);
     expect(faltaLabel(3050n, "USD", cents, "UYU")).toBe(
-      "Falta: U$S 30,50 (= $ 1.223,05)",
+      "Falta: U$S 30,5 (= $ 1.223)",
     );
   });
 
-  it("misma moneda no vuelve a redondear", () => {
-    expect(convertCents(1050n, "UYU", "UYU", 401000n)).toBe(1050n);
+  it("misma moneda ajusta a la escala (pesos enteros) y no convierte", () => {
+    expect(convertCents(100000n, "UYU", "UYU", 401000n)).toBe(100000n);
+    expect(convertCents(1050n, "UYU", "UYU", 401000n)).toBe(1100n);
+    expect(convertCents(3055n, "USD", "USD", 401000n)).toBe(3060n);
   });
 
   it("sin cotización no convierte", () => {
@@ -91,14 +93,14 @@ describe("p_payments", () => {
       rateTt: rate401,
     };
     const usd = quoteSale({ ...base, changeCurrency: "USD" });
-    expect(usd.paidCents).toBe(100250n);
-    expect(usd.changeAmountCents).toBe(6n);
-    expect(usd.changeAppliedCents).toBe(241n);
-    expect(usd.netCents).toBe(100009n);
+    expect(usd.paidCents).toBe(100300n);
+    expect(usd.changeAmountCents).toBe(10n);
+    expect(usd.changeAppliedCents).toBe(400n);
+    expect(usd.netCents).toBe(99900n);
     expect(usd.netCents === usd.totalCents).toBe(false);
 
     const uyu = quoteSale({ ...base, changeCurrency: "UYU" });
-    expect(uyu.changeAmountCents).toBe(250n);
+    expect(uyu.changeAmountCents).toBe(300n);
     expect(uyu.netCents).toBe(100000n);
   });
 

@@ -1,12 +1,17 @@
 import { supabase } from "../../lib/supabase";
 
 export const LEDGER_EVENT_LABEL = {
-  apertura_caja: "Apertura de caja",
-  cierre_caja: "Cierre de caja",
+  apertura_caja: "Apertura caja",
+  cierre_caja: "Cierre caja",
 };
 
 export function ledgerEventLabel(type) {
   return LEDGER_EVENT_LABEL[type] ?? type ?? "";
+}
+
+export function ledgerMediosLabel(value) {
+  if (!value) return "";
+  return String(value).replaceAll("transferencia", "transf");
 }
 
 const LEDGER_SELECT = `
@@ -22,11 +27,18 @@ const LEDGER_SELECT = `
  *   organizationId: string,
  *   from?: Date|null,
  *   to?: Date|null,
- *   eventType?: string|null,
- *   userId?: string|null,
- *   terminalId?: string|null,
+ *   eventTypes?: string[]|null,
+ *   userIds?: string[]|null,
+ *   terminalIds?: string[]|null,
  * }} filters
  */
+function applyAny(query, column, values) {
+  const list = (values ?? []).filter(Boolean);
+  if (list.length === 1) return query.eq(column, list[0]);
+  if (list.length > 1) return query.in(column, list);
+  return query;
+}
+
 export function buildLedgerQuery(filters) {
   let q = supabase
     .from("admin_ledger")
@@ -37,9 +49,9 @@ export function buildLedgerQuery(filters) {
 
   if (filters.from) q = q.gte("created_at", filters.from.toISOString());
   if (filters.to) q = q.lte("created_at", filters.to.toISOString());
-  if (filters.eventType) q = q.eq("event_type", filters.eventType);
-  if (filters.userId) q = q.eq("user_id", filters.userId);
-  if (filters.terminalId) q = q.eq("terminal_id", filters.terminalId);
+  q = applyAny(q, "event_type", filters.eventTypes);
+  q = applyAny(q, "user_id", filters.userIds);
+  q = applyAny(q, "terminal_id", filters.terminalIds);
   return q;
 }
 

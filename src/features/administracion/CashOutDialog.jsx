@@ -44,7 +44,7 @@ export default function CashOutDialog({ open, onClose, onSaved }) {
     setBusy(false);
   }, [open]);
 
-  const amountCents = parseMoneyToCents(amountText);
+  const amountCents = parseMoneyToCents(amountText, currency);
   const notesOk = reason !== "otro" || notes.trim().length > 0;
   const canConfirm =
     ops.canOperate &&
@@ -65,7 +65,7 @@ export default function CashOutDialog({ open, onClose, onSaved }) {
       p_direction: "egreso",
       p_reason: reason,
       p_currency: currency,
-      p_amount: Number(centsToInput(amountCents)),
+      p_amount: Number(centsToInput(amountCents, currency)),
       p_notes: notes.trim() || null,
     });
     setBusy(false);
@@ -74,7 +74,7 @@ export default function CashOutDialog({ open, onClose, onSaved }) {
       return;
     }
     showSuccess(
-      `Retiro registrado: ${formatMoney(centsToInput(amountCents), currency)}`,
+      `Retiro registrado: ${formatMoney(centsToInput(amountCents, currency), currency)}`,
     );
     onSaved?.();
     onClose?.();

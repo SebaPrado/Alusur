@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Checkbox,
   Collapse,
   FormControl,
   InputLabel,
@@ -26,6 +27,57 @@ const PRESETS = [
   { value: "rango", label: "Rango" },
 ];
 
+const EVENT_OPTIONS = [
+  ["apertura_caja", LEDGER_EVENT_LABEL.apertura_caja],
+  ["cierre_caja", LEDGER_EVENT_LABEL.cierre_caja],
+  ["venta", "venta"],
+  ["devolucion", "devolucion"],
+  ["cobranza", "cobranza"],
+  ["retiro_socio", "retiro_socio"],
+  ["pago_proveedor", "pago_proveedor"],
+  ["flete", "flete"],
+  ["sueldo_adelanto", "sueldo_adelanto"],
+  ["gastos", "gastos"],
+  ["ingreso_manual", "ingreso_manual"],
+  ["otro", "otro"],
+].map(([value, label]) => ({ value, label }));
+
+function MultiFilter({ label, emptyLabel, value, options, onChange, minWidth }) {
+  const selected = value ?? [];
+  return (
+    <FormControl size="small" sx={{ minWidth, maxWidth: 280 }}>
+      <InputLabel shrink>{label}</InputLabel>
+      <Select
+        multiple
+        displayEmpty
+        label={label}
+        value={selected}
+        onChange={(e) => {
+          const next = e.target.value;
+          onChange(typeof next === "string" ? next.split(",") : next);
+        }}
+        renderValue={(picked) => {
+          if (!picked.length) return emptyLabel;
+          return picked
+            .map((id) => options.find((o) => o.value === id)?.label ?? id)
+            .join(", ");
+        }}
+      >
+        {options.map((o) => (
+          <MenuItem key={o.value} value={o.value}>
+            <Checkbox
+              size="small"
+              checked={selected.includes(o.value)}
+              sx={{ p: 0.25, mr: 1 }}
+            />
+            {o.label}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
+
 export default function LedgerFilters({ value, onChange, onExport, exporting }) {
   const { organizationId } = useAdminOrg();
   const [open, setOpen] = useState(false);
@@ -33,9 +85,9 @@ export default function LedgerFilters({ value, onChange, onExport, exporting }) 
   const [terminals, setTerminals] = useState([]);
   const active =
     value.preset !== "todo" ||
-    Boolean(value.eventType) ||
-    Boolean(value.userId) ||
-    Boolean(value.terminalId);
+    (value.eventTypes?.length ?? 0) > 0 ||
+    (value.userIds?.length ?? 0) > 0 ||
+    (value.terminalIds?.length ?? 0) > 0;
 
   useEffect(() => {
     if (!organizationId) return;
@@ -133,60 +185,30 @@ export default function LedgerFilters({ value, onChange, onExport, exporting }) 
         </>
       )}
 
-      <FormControl size="small" sx={{ minWidth: 140 }}>
-        <InputLabel>Tipo</InputLabel>
-        <Select
-          label="Tipo"
-          value={value.eventType || ""}
-          onChange={(e) => patch({ eventType: e.target.value || null })}
-        >
-          <MenuItem value="">Todos</MenuItem>
-          <MenuItem value="apertura_caja">{LEDGER_EVENT_LABEL.apertura_caja}</MenuItem>
-          <MenuItem value="cierre_caja">{LEDGER_EVENT_LABEL.cierre_caja}</MenuItem>
-          <MenuItem value="venta">venta</MenuItem>
-          <MenuItem value="devolucion">devolucion</MenuItem>
-          <MenuItem value="cobranza">cobranza</MenuItem>
-          <MenuItem value="retiro_socio">retiro_socio</MenuItem>
-          <MenuItem value="pago_proveedor">pago_proveedor</MenuItem>
-          <MenuItem value="flete">flete</MenuItem>
-          <MenuItem value="sueldo_adelanto">sueldo_adelanto</MenuItem>
-          <MenuItem value="gastos">gastos</MenuItem>
-          <MenuItem value="ingreso_manual">ingreso_manual</MenuItem>
-          <MenuItem value="otro">otro</MenuItem>
-        </Select>
-      </FormControl>
-
-      <FormControl size="small" sx={{ minWidth: 160 }}>
-        <InputLabel>Usuario</InputLabel>
-        <Select
-          label="Usuario"
-          value={value.userId || ""}
-          onChange={(e) => patch({ userId: e.target.value || null })}
-        >
-          <MenuItem value="">Todos</MenuItem>
-          {users.map((u) => (
-            <MenuItem key={u.user_id} value={u.user_id}>
-              {u.display_name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      <FormControl size="small" sx={{ minWidth: 140 }}>
-        <InputLabel>Caja</InputLabel>
-        <Select
-          label="Caja"
-          value={value.terminalId || ""}
-          onChange={(e) => patch({ terminalId: e.target.value || null })}
-        >
-          <MenuItem value="">Todas</MenuItem>
-          {terminals.map((t) => (
-            <MenuItem key={t.id} value={t.id}>
-              {t.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <MultiFilter
+        label="Tipo"
+        emptyLabel="Todos"
+        minWidth={160}
+        value={value.eventTypes}
+        options={EVENT_OPTIONS}
+        onChange={(eventTypes) => patch({ eventTypes })}
+      />
+      <MultiFilter
+        label="Usuario"
+        emptyLabel="Todos"
+        minWidth={180}
+        value={value.userIds}
+        options={users.map((u) => ({ value: u.user_id, label: u.display_name }))}
+        onChange={(userIds) => patch({ userIds })}
+      />
+      <MultiFilter
+        label="Caja"
+        emptyLabel="Todas"
+        minWidth={150}
+        value={value.terminalIds}
+        options={terminals.map((t) => ({ value: t.id, label: t.name }))}
+        onChange={(terminalIds) => patch({ terminalIds })}
+      />
 
       <Box sx={{ flex: 1 }} />
       <Button

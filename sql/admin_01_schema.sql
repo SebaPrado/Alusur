@@ -14,6 +14,7 @@
 --     debe dólares. Nunca se mezclan en un único saldo.
 --   * La caja física tiene dos cajones: se abre, se espera y se cuenta
 --     por separado en UYU y en USD.
+--   * Pesos (UYU) sin decimales. Dólares (USD) con un decimal.
 --   * Cotización = pesos por 1 dólar, cargada por dueño/admin.
 --
 -- Otros supuestos (corregibles):
@@ -37,6 +38,7 @@ set search_path = ''
 as $$ select extensions.unaccent('extensions.unaccent'::regdictionary, $1) $$;
 
 -- Conversión entre monedas. p_rate = pesos por 1 dólar.
+-- El resultado queda en la escala de la moneda destino: UYU entero, USD un decimal.
 create or replace function public.admin_convert(
   p_amount numeric, p_from text, p_to text, p_rate numeric
 )
@@ -44,13 +46,19 @@ returns numeric
 language plpgsql immutable
 set search_path = ''
 as $$
+declare
+  v_scale int;
 begin
-  if p_from = p_to then return p_amount; end if;
+  if p_from is null or p_to is null then
+    raise exception 'Conversión no soportada: % → %', p_from, p_to;
+  end if;
+  v_scale := case when p_to = 'USD' then 1 else 0 end;
+  if p_from = p_to then return round(p_amount, v_scale); end if;
   if p_rate is null or p_rate <= 0 then
     raise exception 'No hay cotización del dólar cargada';
   end if;
-  if p_from = 'USD' and p_to = 'UYU' then return round(p_amount * p_rate, 2); end if;
-  if p_from = 'UYU' and p_to = 'USD' then return round(p_amount / p_rate, 2); end if;
+  if p_from = 'USD' and p_to = 'UYU' then return round(p_amount * p_rate, v_scale); end if;
+  if p_from = 'UYU' and p_to = 'USD' then return round(p_amount / p_rate, v_scale); end if;
   raise exception 'Conversión no soportada: % → %', p_from, p_to;
 end;
 $$;
@@ -589,7 +597,8 @@ begin
 
   begin
     insert into admin_cash_sessions (organization_id, terminal_id, opened_by, opening_uyu, opening_usd)
-    values (p_organization_id, p_terminal_id, auth.uid(), coalesce(p_opening_uyu, 0), coalesce(p_opening_usd, 0))
+    values (p_organization_id, p_terminal_id, auth.uid(),
+            round(coalesce(p_opening_uyu, 0), 0), round(coalesce(p_opening_usd, 0), 1))
     returning id into v_id;
   exception when unique_violation then
     raise exception 'Ya hay una caja abierta en esta terminal';
@@ -629,6 +638,7 @@ declare
   v_product    admin_products%rowtype;
   v_price      numeric(14,2);
   v_line       numeric(14,2);
+  v_amount     numeric(14,2);
   v_applied    numeric(14,2);
   v_total      numeric(14,2) := 0;
   v_tax        numeric(14,2) := 0;
@@ -711,7 +721,8 @@ begin
 
     v_price := coalesce(v_item.unit_price,
                         admin_convert(v_product.price, v_product.currency, p_currency, v_rate));
-    v_line  := round(v_price * v_item.quantity, 2);
+    v_price := round(v_price, case when p_currency = 'USD' then 1 else 0 end);
+    v_line  := round(v_price * v_item.quantity, case when p_currency = 'USD' then 1 else 0 end);
     v_total := v_total + v_line;
     v_tax   := v_tax + round(v_line - v_line / (1 + v_product.iva_rate / 100), 2);
 
@@ -741,17 +752,21 @@ begin
     if v_pay.amount is null or v_pay.amount <= 0 then
       raise exception 'Importe de pago inválido';
     end if;
+    v_amount := round(v_pay.amount, case when v_pay.currency = 'USD' then 1 else 0 end);
+    if v_amount <= 0 then
+      raise exception 'Importe de pago inválido';
+    end if;
     if v_pay.is_change and v_pay.method <> 'efectivo' then
       raise exception 'El vuelto solo puede ser en efectivo';
     end if;
     if v_pay.currency <> p_currency then v_converted := true; end if;
 
-    v_applied := admin_convert(v_pay.amount, v_pay.currency, p_currency, v_rate);
+    v_applied := admin_convert(v_amount, v_pay.currency, p_currency, v_rate);
     v_paid := v_paid + case when v_pay.is_change then -v_applied else v_applied end;
 
     v_pays := v_pays || jsonb_build_object(
       'kind', case when v_pay.is_change then 'vuelto' else 'venta' end,
-      'method', v_pay.method, 'currency', v_pay.currency, 'amount', v_pay.amount,
+      'method', v_pay.method, 'currency', v_pay.currency, 'amount', v_amount,
       'applied_amount', v_applied, 'reference', v_pay.reference);
   end loop;
 
@@ -862,6 +877,8 @@ begin
     raise exception 'Moneda inválida';
   end if;
   if p_amount is null or p_amount <= 0 then raise exception 'Importe inválido'; end if;
+  p_amount := round(p_amount, case when p_currency = 'USD' then 1 else 0 end);
+  if p_amount <= 0 then raise exception 'Importe inválido'; end if;
 
   select id into v_session_id from admin_cash_sessions
    where terminal_id = p_terminal_id and organization_id = p_organization_id and status = 'abierta';
@@ -906,6 +923,8 @@ begin
   if p_reason = 'otro' and length(trim(coalesce(p_notes, ''))) = 0 then
     raise exception 'El motivo "otro" requiere una nota';
   end if;
+  p_amount := round(p_amount, case when p_currency = 'USD' then 1 else 0 end);
+  if p_amount is null or p_amount <= 0 then raise exception 'Importe inválido'; end if;
 
   insert into admin_cash_movements
     (organization_id, cash_session_id, direction, reason, currency, amount, notes, created_by)
@@ -942,6 +961,8 @@ begin
   if p_counted_uyu is null or p_counted_uyu < 0 or p_counted_usd is null or p_counted_usd < 0 then
     raise exception 'Importe contado inválido';
   end if;
+  p_counted_uyu := round(p_counted_uyu, 0);
+  p_counted_usd := round(p_counted_usd, 1);
 
   with flows as (
     select currency,
@@ -956,6 +977,8 @@ begin
          v_s.opening_usd + coalesce(sum(amount) filter (where currency = 'USD'), 0)
     into v_e_uyu, v_e_usd
     from flows;
+  v_e_uyu := round(v_e_uyu, 0);
+  v_e_usd := round(v_e_usd, 1);
 
   update admin_cash_sessions
      set status = 'cerrada', closed_by = auth.uid(), closed_at = now(),

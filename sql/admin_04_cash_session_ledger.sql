@@ -56,7 +56,7 @@ events as (
     null::uuid, cs.opened_by, cs.terminal_id, cs.id,
     null::text, 'abierta', null::text, null::numeric(14,2), null::numeric(12,4),
     'Fondo $ ' || trim(to_char(cs.opening_uyu, 'FM999999990.00'))
-      || ' Â· U$S ' || trim(to_char(cs.opening_usd, 'FM999999990.00')),
+      || ' · U$S ' || trim(to_char(cs.opening_usd, 'FM999999990.00')),
     null::text,
     cs.opening_uyu, cs.opening_usd
   from public.admin_cash_sessions cs
@@ -68,12 +68,12 @@ events as (
     'Contado $ ' || trim(to_char(cs.counted_uyu, 'FM999999990.00'))
       || ' (esperado $ ' || trim(to_char(cs.expected_uyu, 'FM999999990.00'))
       || ', dif. $ ' || trim(to_char(cs.difference_uyu, 'FM999999990.00'))
-      || ') Â· U$S ' || trim(to_char(cs.counted_usd, 'FM999999990.00'))
+      || ') · U$S ' || trim(to_char(cs.counted_usd, 'FM999999990.00'))
       || ' (esperado ' || trim(to_char(cs.expected_usd, 'FM999999990.00'))
       || ', dif. ' || trim(to_char(cs.difference_usd, 'FM999999990.00')) || ')'
       || case
            when length(trim(coalesce(cs.closing_notes, ''))) > 0
-           then ' Â· ' || cs.closing_notes
+           then ' · ' || cs.closing_notes
            else ''
          end,
     null::text,

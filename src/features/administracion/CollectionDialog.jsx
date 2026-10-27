@@ -136,10 +136,10 @@ export default function CollectionDialog({
   const balUsd = Number(balance?.balance_usd) || 0;
   const debtAmount = debtCurrency === "USD" ? balUsd : balUyu;
   const debtCents =
-    debtAmount > 0 ? parseMoneyToCents(String(debtAmount)) : 0n;
+    debtAmount > 0 ? parseMoneyToCents(String(debtAmount), debtCurrency) : 0n;
 
   const rateTt = rateToTenThousandths(rate?.rate);
-  const amountCents = parseMoneyToCents(amountText);
+  const amountCents = parseMoneyToCents(amountText, payCurrency);
   const appliedCents =
     amountCents != null && amountCents > 0n
       ? convertCents(amountCents, payCurrency, debtCurrency, rateTt)
@@ -179,7 +179,7 @@ export default function CollectionDialog({
       p_debt_currency: debtCurrency,
       p_method: method,
       p_currency: payCurrency,
-      p_amount: Number(centsToInput(amountCents)),
+      p_amount: Number(centsToInput(amountCents, payCurrency)),
       p_reference: needsReference(method) ? reference.trim() || null : null,
       p_notes: null,
     });

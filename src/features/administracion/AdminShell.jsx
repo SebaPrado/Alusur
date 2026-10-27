@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
 import { Alert, Box, Button, Stack } from "@mui/material";
-import { FiLock, FiPrinter } from "react-icons/fi";
+import { FiArrowDown, FiArrowUp, FiLock, FiPrinter } from "react-icons/fi";
 import AdminTopBar, { ADMIN_GUTTER, ADMIN_TOPBAR_HEIGHT } from "./AdminTopBar";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { useOperatingContext } from "./useOperatingContext";
@@ -139,7 +139,7 @@ export default function AdminShell() {
           spacing={1}
           sx={{
             px: ADMIN_GUTTER,
-            py: 1,
+            py: 2.25,
             borderBottom: 1,
             borderColor: "divider",
             flexWrap: "wrap",
@@ -202,7 +202,7 @@ export default function AdminShell() {
             variant={pathname.startsWith("/administracion/cajas") ? "contained" : "outlined"}
             component={RouterLink}
             to="/administracion/cajas"
-            startIcon={<NavImage src="/recibo-de-caja.png" />}
+            startIcon={<NavImage src="/abrir-documento.png" />}
             sx={navBtnSx}
           >
             Cajas
@@ -214,7 +214,7 @@ export default function AdminShell() {
             disabled={!ops.canOperate}
             title={ops.canOperate ? undefined : "Abrí la caja para cobrar"}
             onClick={() => setCollectionOpen(true)}
-            startIcon={<NavSign>+</NavSign>}
+            startIcon={<FiArrowDown size={16} />}
           >
             Cobranza
           </Button>
@@ -224,7 +224,7 @@ export default function AdminShell() {
             disabled={!ops.canOperate}
             title={ops.canOperate ? undefined : "Abrí la caja para retirar"}
             onClick={() => setCashOutOpen(true)}
-            startIcon={<NavSign>−</NavSign>}
+            startIcon={<FiArrowUp size={16} />}
           >
             Retiro
           </Button>

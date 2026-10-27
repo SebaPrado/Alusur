@@ -79,6 +79,19 @@ export const theme = createTheme({
         },
       },
     },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          color: "#A9B3C1",
+          fontWeight: 600,
+          letterSpacing: "0.03em",
+          borderBottom: "1px solid #249596",
+        },
+        stickyHeader: {
+          backgroundColor: "#0E1117",
+        },
+      },
+    },
     MuiToggleButton: {
       styleOverrides: {
         root: {

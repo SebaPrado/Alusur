@@ -13,7 +13,12 @@ import {
 } from "@mui/material";
 import { useAdminOrg } from "./AdminOrgProvider";
 import LedgerFilters from "./LedgerFilters";
-import { buildLedgerQuery, dateRangeForPreset, ledgerEventLabel } from "./ledgerQuery";
+import {
+  buildLedgerQuery,
+  dateRangeForPreset,
+  ledgerEventLabel,
+  ledgerMediosLabel,
+} from "./ledgerQuery";
 import { exportLedgerCsv } from "./ledgerCsv";
 import { formatDateTime, formatMoney, signedMoney } from "./money";
 import { useAdminRealtime } from "./useAdminRealtime";
@@ -71,9 +76,9 @@ export default function LedgerPage() {
     preset: "todo",
     rangeFrom: "",
     rangeTo: "",
-    eventType: null,
-    userId: null,
-    terminalId: null,
+    eventTypes: [],
+    userIds: [],
+    terminalIds: [],
   });
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -94,16 +99,16 @@ export default function LedgerPage() {
       organizationId,
       from: range.from,
       to: range.to,
-      eventType: filters.eventType,
-      userId: filters.userId,
-      terminalId: filters.terminalId,
+      eventTypes: filters.eventTypes,
+      userIds: filters.userIds,
+      terminalIds: filters.terminalIds,
     }),
     [
       organizationId,
       range,
-      filters.eventType,
-      filters.userId,
-      filters.terminalId,
+      filters.eventTypes,
+      filters.userIds,
+      filters.terminalIds,
     ],
   );
 
@@ -318,7 +323,7 @@ export default function LedgerPage() {
                   <TableCell align="right">
                     {r.amount == null ? "" : formatMoney(r.amount, r.currency)}
                   </TableCell>
-                  <TableCell>{r.payment_methods ?? ""}</TableCell>
+                  <TableCell>{ledgerMediosLabel(r.payment_methods)}</TableCell>
                   <TableCell align="right">
                     {r.cash_delta_uyu == null ? "" : signedMoney(r.cash_delta_uyu, "UYU")}
                   </TableCell>
