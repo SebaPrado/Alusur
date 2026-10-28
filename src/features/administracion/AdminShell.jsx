@@ -77,13 +77,13 @@ export default function AdminShell() {
               component={RouterLink}
               to="/administracion/terminal"
             >
-              Asignar terminal
+              Asignar caja
             </Button>
           ) : null
         }
       >
-        Esta PC no tiene terminal asignada. Podés mirar los movimientos; para vender
-        u operar caja hace falta una terminal
+        Esta PC no tiene caja asignada. Podés mirar los movimientos; para vender
+        u operar hace falta una caja
         {isManager ? "" : " (pedile al dueño o admin)"}.
       </Alert>
     );
@@ -98,8 +98,7 @@ export default function AdminShell() {
           </Button>
         }
       >
-        Caja cerrada — podés mirar los movimientos. Abrí caja para operar en esta
-        terminal.
+        Caja cerrada — podés mirar los movimientos. Abrí la caja para operar.
       </Alert>
     );
   }

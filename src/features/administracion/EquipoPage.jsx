@@ -42,7 +42,7 @@ const ROLE_HELP = [
   },
   {
     role: "Admin",
-    text: "Productos, terminales, cotización, cajas de todos, stock y anulaciones. No cambia el equipo.",
+    text: "Productos, cajas, cotización, turnos de todos, stock y anulaciones. No cambia el equipo.",
   },
   {
     role: "Vendedor",

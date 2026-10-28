@@ -17,7 +17,7 @@ const HEADERS = [
   "saldo_cajon_uyu",
   "saldo_cajon_usd",
   "usuario",
-  "terminal",
+  "caja",
   "estado",
 ];
 

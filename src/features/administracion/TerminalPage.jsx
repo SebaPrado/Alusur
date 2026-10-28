@@ -51,7 +51,7 @@ export default function TerminalPage() {
 
   function choose(id) {
     writeTerminalId(id);
-    showSuccess("Terminal asignada a esta PC");
+    showSuccess("Caja asignada a esta PC");
     navigate("/administracion", { replace: true });
   }
 
@@ -68,10 +68,10 @@ export default function TerminalPage() {
     >
       <Paper sx={{ p: 4, width: "100%", maxWidth: 420 }}>
         <Typography variant="h5" fontWeight={700} color="primary" gutterBottom>
-          Terminal de esta PC
+          Caja de esta PC
         </Typography>
         <Typography variant="body2" color="text.secondary" mb={3}>
-          Solo dueño o admin pueden asignar o cambiar la terminal. El vendedor
+          Solo dueño o admin pueden asignar o cambiar la caja. El vendedor
           la ve fija en la barra.
         </Typography>
         {loading ? (
@@ -80,7 +80,7 @@ export default function TerminalPage() {
           </Box>
         ) : terminals.length === 0 ? (
           <Typography color="text.secondary">
-            No hay terminales activas. Creálas en la base antes de operar.
+            No hay cajas activas. Creálas en la base antes de operar.
           </Typography>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>

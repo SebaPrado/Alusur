@@ -42,7 +42,7 @@ const COLS = [
   { key: "sal_uyu", label: "Saldo $", sx: { minWidth: 100 }, align: "right" },
   { key: "sal_usd", label: "Saldo U$S", sx: { minWidth: 100 }, align: "right" },
   { key: "usuario", label: "Usuario", sx: { minWidth: 100 } },
-  { key: "terminal", label: "Terminal", sx: { minWidth: 90 } },
+  { key: "terminal", label: "Caja", sx: { minWidth: 90 } },
   { key: "estado", label: "Estado", sx: { minWidth: 80 } },
   { key: "accion", label: "", sx: { minWidth: 72 } },
 ];

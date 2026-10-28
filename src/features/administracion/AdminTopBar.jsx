@@ -94,11 +94,11 @@ function CajaSwitcher({ name, terminalId, onChanged }) {
     setOpen(false);
     if (id === terminalId) return;
     writeTerminalId(id);
-    showSuccess("Terminal asignada a esta PC");
+    showSuccess("Caja asignada a esta PC");
     onChanged?.();
   }
 
-  const label = name ?? "Sin terminal";
+  const label = name ?? "Sin caja";
 
   if (!isManager) {
     return (
