@@ -55,6 +55,20 @@ export const theme = createTheme({
         elevation: 0,
       },
     },
+    MuiInputBase: {
+      styleOverrides: {
+        input: {
+          "&:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus, &:-webkit-autofill:active": {
+            WebkitBoxShadow: "0 0 0 1000px #1E2736 inset",
+            boxShadow: "0 0 0 1000px #1E2736 inset",
+            WebkitTextFillColor: "#F2F4F7",
+            caretColor: "#F2F4F7",
+            borderRadius: 0,
+            transition: "background-color 9999s ease-out",
+          },
+        },
+      },
+    },
     MuiButton: {
       defaultProps: {
         disableElevation: true,

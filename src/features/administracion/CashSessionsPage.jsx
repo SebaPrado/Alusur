@@ -10,6 +10,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { formatDateTime, formatMoney } from "./money";
@@ -26,6 +27,10 @@ function diffSx(amount) {
   const n = Number(amount);
   if (!Number.isFinite(n) || n === 0) return undefined;
   return { color: "error.main", fontWeight: 600 };
+}
+
+function isOpenSession(row) {
+  return row.status === "abierta";
 }
 
 export default function CashSessionsPage() {
@@ -81,14 +86,19 @@ export default function CashSessionsPage() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, py: 1 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ pb: 1.25, flexShrink: 0 }}>
+        Cada fila es un turno de una caja: se abre con un fondo y, al cerrarlo, se
+        compara lo contado con lo que debía haber. Si sigue abierto, todavía no hay cierre.
+      </Typography>
       <TableContainer sx={{ flex: 1, overflow: "auto" }}>
         <Table stickyHeader size="small" sx={{ "& td, & th": { fontSize: 12 } }}>
           <TableHead>
             <TableRow>
-              <TableCell>Apertura</TableCell>
-              <TableCell>Cierre</TableCell>
+              <TableCell>Estado</TableCell>
               <TableCell>Caja</TableCell>
+              <TableCell>Apertura</TableCell>
               <TableCell>Abrió</TableCell>
+              <TableCell>Cierre</TableCell>
               <TableCell>Cerró</TableCell>
               <TableCell align="right">Fondo $</TableCell>
               <TableCell align="right">Fondo U$S</TableCell>
@@ -104,43 +114,70 @@ export default function CashSessionsPage() {
           <TableBody>
             {loading && rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={14} align="center">
+                <TableCell colSpan={15} align="center">
                   <CircularProgress size={24} sx={{ my: 3 }} />
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={14}>
+                <TableCell colSpan={15}>
                   <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-                    No hay aperturas ni cierres de caja.
+                    No hay turnos de caja.
                   </Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>{formatDateTime(r.opened_at)}</TableCell>
-                  <TableCell>
-                    {r.closed_at ? formatDateTime(r.closed_at) : "Abierta"}
+              rows.map((r) => {
+                const open = isOpenSession(r);
+                return (
+                <TableRow
+                  key={r.id}
+                  sx={
+                    open
+                      ? (theme) => ({ bgcolor: alpha(theme.palette.warning.main, 0.1) })
+                      : undefined
+                  }
+                >
+                  <TableCell
+                    sx={{
+                      color: open ? "warning.main" : "text.secondary",
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {open ? "Abierta" : "Cerrada"}
                   </TableCell>
                   <TableCell>{r.terminalName}</TableCell>
+                  <TableCell>{formatDateTime(r.opened_at)}</TableCell>
                   <TableCell>{r.openedByName}</TableCell>
-                  <TableCell>{r.closedByName}</TableCell>
+                  <TableCell sx={{ color: open ? "text.secondary" : undefined }}>
+                    {r.closed_at ? formatDateTime(r.closed_at) : "—"}
+                  </TableCell>
+                  <TableCell>{r.closedByName || (open ? "—" : "")}</TableCell>
                   <TableCell align="right">{formatMoney(r.opening_uyu, "UYU")}</TableCell>
                   <TableCell align="right">{formatMoney(r.opening_usd, "USD")}</TableCell>
-                  <TableCell align="right">{moneyOrBlank(r.expected_uyu, "UYU")}</TableCell>
-                  <TableCell align="right">{moneyOrBlank(r.expected_usd, "USD")}</TableCell>
-                  <TableCell align="right">{moneyOrBlank(r.counted_uyu, "UYU")}</TableCell>
-                  <TableCell align="right">{moneyOrBlank(r.counted_usd, "USD")}</TableCell>
-                  <TableCell align="right" sx={diffSx(r.difference_uyu)}>
-                    {moneyOrBlank(r.difference_uyu, "UYU")}
+                  <TableCell align="right" sx={{ color: open ? "text.secondary" : undefined }}>
+                    {open ? "—" : moneyOrBlank(r.expected_uyu, "UYU")}
                   </TableCell>
-                  <TableCell align="right" sx={diffSx(r.difference_usd)}>
-                    {moneyOrBlank(r.difference_usd, "USD")}
+                  <TableCell align="right" sx={{ color: open ? "text.secondary" : undefined }}>
+                    {open ? "—" : moneyOrBlank(r.expected_usd, "USD")}
                   </TableCell>
-                  <TableCell>{r.closing_notes ?? ""}</TableCell>
+                  <TableCell align="right" sx={{ color: open ? "text.secondary" : undefined }}>
+                    {open ? "—" : moneyOrBlank(r.counted_uyu, "UYU")}
+                  </TableCell>
+                  <TableCell align="right" sx={{ color: open ? "text.secondary" : undefined }}>
+                    {open ? "—" : moneyOrBlank(r.counted_usd, "USD")}
+                  </TableCell>
+                  <TableCell align="right" sx={open ? { color: "text.secondary" } : diffSx(r.difference_uyu)}>
+                    {open ? "—" : moneyOrBlank(r.difference_uyu, "UYU")}
+                  </TableCell>
+                  <TableCell align="right" sx={open ? { color: "text.secondary" } : diffSx(r.difference_usd)}>
+                    {open ? "—" : moneyOrBlank(r.difference_usd, "USD")}
+                  </TableCell>
+                  <TableCell>{open ? "—" : r.closing_notes ?? ""}</TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>

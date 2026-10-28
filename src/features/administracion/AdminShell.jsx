@@ -207,6 +207,16 @@ export default function AdminShell() {
           >
             Cajas
           </Button>
+          <Button
+            size="small"
+            variant={pathname.startsWith("/administracion/cuentas") ? "contained" : "outlined"}
+            component={RouterLink}
+            to="/administracion/cuentas"
+            startIcon={<NavImage src="/abrir-documento.png" />}
+            sx={navBtnSx}
+          >
+            Cuentas corrientes
+          </Button>
           {canManageMembers && (
             <Button
               size="small"

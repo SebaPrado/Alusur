@@ -38,6 +38,8 @@ import AdminProviders, {
 import AdminShell from "./features/administracion/AdminShell";
 import CashSessionsPage from "./features/administracion/CashSessionsPage";
 import CustomersPage from "./features/administracion/CustomersPage";
+import CuentaPage from "./features/administracion/cuentas/CuentaPage";
+import CuentasPage from "./features/administracion/cuentas/CuentasPage";
 import EquipoPage from "./features/administracion/EquipoPage";
 import LedgerPage from "./features/administracion/LedgerPage";
 import ProductsPage from "./features/administracion/ProductsPage";
@@ -107,6 +109,8 @@ const router = createBrowserRouter([
                   { path: "venta", element: <SalePage /> },
                   { path: "clientes", element: <CustomersPage /> },
                   { path: "cajas", element: <CashSessionsPage /> },
+                  { path: "cuentas", element: <CuentasPage /> },
+                  { path: "cuentas/:id", element: <CuentaPage /> },
                   { path: "equipo", element: <EquipoPage /> },
                 ],
               },

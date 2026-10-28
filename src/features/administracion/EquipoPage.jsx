@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,6 +20,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import { FiChevronDown } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthProvider";
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
@@ -71,6 +73,8 @@ export default function EquipoPage() {
   const [rolPick, setRolPick] = useState("");
   const [bajaDlg, setBajaDlg] = useState(null);
   const [reactivarDlg, setReactivarDlg] = useState(null);
+  const [eliminarDlg, setEliminarDlg] = useState(null);
+  const [rolesOpen, setRolesOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -155,6 +159,28 @@ export default function EquipoPage() {
     }
   }
 
+  async function confirmEliminar() {
+    if (!eliminarDlg) return;
+    setActionBusy(true);
+    setActionError(null);
+    try {
+      const { error } = await supabase.rpc("admin_delete_member", {
+        p_organization_id: organizationId,
+        p_user_id: eliminarDlg.user_id,
+      });
+      if (error) throw error;
+      setEliminarDlg(null);
+      showSuccess("Miembro eliminado");
+      await load();
+    } catch (e) {
+      const msg = supabaseErrorMessage(e);
+      setActionError(msg);
+      showError(msg);
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
   async function confirmReactivar() {
     if (!reactivarDlg) return;
     setActionBusy(true);
@@ -196,27 +222,54 @@ export default function EquipoPage() {
         </Button>
       </Box>
 
-      <Box
-        sx={{
-          mb: 1.5,
-          px: 1.5,
-          py: 1,
-          border: 1,
-          borderColor: "divider",
-          bgcolor: "background.paper",
-        }}
-      >
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+      <Box sx={{ mb: 1 }}>
+        <Button
+          size="small"
+          onClick={() => setRolesOpen((open) => !open)}
+          aria-expanded={rolesOpen}
+          endIcon={
+            <FiChevronDown
+              size={14}
+              style={{
+                transform: rolesOpen ? "rotate(180deg)" : undefined,
+                transition: "transform 150ms ease",
+              }}
+            />
+          }
+          sx={{
+            px: 0,
+            minWidth: 0,
+            color: "text.secondary",
+            fontWeight: 500,
+            fontSize: 12,
+            textTransform: "none",
+            "&:hover": { bgcolor: "transparent", color: "text.primary" },
+          }}
+        >
           Permisos por rol (fijos)
-        </Typography>
-        {ROLE_HELP.map((h) => (
-          <Typography key={h.role} variant="body2" sx={{ fontSize: 12.5, lineHeight: 1.45 }}>
-            <Box component="span" sx={{ fontWeight: 600 }}>
-              {h.role}:
-            </Box>{" "}
-            {h.text}
-          </Typography>
-        ))}
+        </Button>
+        <Collapse in={rolesOpen}>
+          <Box
+            sx={{
+              mt: 0.5,
+              mb: 0.5,
+              px: 1.5,
+              py: 1,
+              border: 1,
+              borderColor: "divider",
+              bgcolor: "background.paper",
+            }}
+          >
+            {ROLE_HELP.map((h) => (
+              <Typography key={h.role} variant="body2" sx={{ fontSize: 12.5, lineHeight: 1.45 }}>
+                <Box component="span" sx={{ fontWeight: 600 }}>
+                  {h.role}:
+                </Box>{" "}
+                {h.text}
+              </Typography>
+            ))}
+          </Box>
+        </Collapse>
       </Box>
 
       {loadError && (
@@ -303,12 +356,21 @@ export default function EquipoPage() {
                               Dar de baja
                             </Button>
                           ) : (
-                            <Button
-                              size="small"
-                              onClick={() => setReactivarDlg(row)}
-                            >
-                              Reactivar
-                            </Button>
+                            <>
+                              <Button
+                                size="small"
+                                onClick={() => setReactivarDlg(row)}
+                              >
+                                Reactivar
+                              </Button>
+                              <Button
+                                size="small"
+                                color="error"
+                                onClick={() => setEliminarDlg(row)}
+                              >
+                                Eliminar
+                              </Button>
+                            </>
                           )}
                         </>
                       )}
@@ -443,6 +505,36 @@ export default function EquipoPage() {
             disabled={actionBusy}
           >
             Dar de baja
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(eliminarDlg)}
+        onClose={() => setEliminarDlg(null)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Eliminar para siempre</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            ¿Eliminamos a <strong>{eliminarDlg?.display_name}</strong> del
+            equipo? No se puede reactivar: para volver hay que darlo de alta
+            de nuevo. Las ventas y cajas quedan, pero su nombre deja de
+            mostrarse en el libro.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEliminarDlg(null)} disabled={actionBusy}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={confirmEliminar}
+            disabled={actionBusy}
+          >
+            Eliminar
           </Button>
         </DialogActions>
       </Dialog>

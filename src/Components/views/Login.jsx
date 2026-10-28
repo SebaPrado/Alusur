@@ -5,14 +5,27 @@ import {
   Box,
   Button,
   CircularProgress,
+  IconButton,
+  InputAdornment,
   Link,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { safeInternalPath, sectionLabel } from "../../app/authRedirect";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../auth/AuthProvider";
+
+const floatingLabelProps = {
+  sx: {
+    "&.MuiInputLabel-shrink": {
+      bgcolor: "background.paper",
+      px: 0.75,
+      zIndex: 1,
+    },
+  },
+};
 
 export default function Login() {
   const { session, status } = useAuth();
@@ -22,6 +35,7 @@ export default function Login() {
   const section = sectionLabel(location.state?.from);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -81,16 +95,35 @@ export default function Login() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            InputLabelProps={floatingLabelProps}
           />
           <TextField
             label="Contraseña"
-            type="password"
+            type={showPassword ? "text" : "password"}
             fullWidth
             required
             margin="normal"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            InputLabelProps={floatingLabelProps}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    type="button"
+                    aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    edge="end"
+                    size="small"
+                    sx={{ color: "text.secondary" }}
+                  >
+                    {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
@@ -110,12 +143,6 @@ export default function Login() {
         </Box>
 
         <Typography variant="body2" sx={{ mt: 3, textAlign: "center" }}>
-          ¿Eres obrero?{" "}
-          <Link component={RouterLink} to="/pin" state={{ from: location.state?.from }}>
-            Entrar con PIN
-          </Link>
-        </Typography>
-        <Typography variant="body2" sx={{ mt: 1.5, textAlign: "center" }}>
           <Link component={RouterLink} to="/">
             Elegir otra sección
           </Link>
