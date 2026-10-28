@@ -97,6 +97,8 @@
   cursor: pointer;
   color: #fff;
   text-align: left;
+  /* Mismo stack tipográfico que "Iniciar sesión" (los <button> no heredan font por defecto). */
+  font: inherit;
   overflow: hidden;
   background-image:
     linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.2) 60%),

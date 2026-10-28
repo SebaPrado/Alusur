@@ -47,7 +47,7 @@ const navBtnSx = {
 };
 
 export default function AdminShell() {
-  const { isManager } = useAdminOrg();
+  const { isManager, canManageMembers } = useAdminOrg();
   const ops = useOperatingContext();
   const { pathname } = useLocation();
   const { rate, refresh: refreshRate } = useExchangeRate();
@@ -207,6 +207,18 @@ export default function AdminShell() {
           >
             Cajas
           </Button>
+          {canManageMembers && (
+            <Button
+              size="small"
+              variant={pathname.startsWith("/administracion/equipo") ? "contained" : "outlined"}
+              component={RouterLink}
+              to="/administracion/equipo"
+              startIcon={<NavImage src="/personal.png" />}
+              sx={navBtnSx}
+            >
+              Equipo
+            </Button>
+          )}
           <Box sx={{ flex: 1 }} />
           <Button
             size="small"

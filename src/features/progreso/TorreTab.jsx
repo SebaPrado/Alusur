@@ -42,41 +42,6 @@ function TorreVista() {
   const [enfocar, setEnfocar] = useState(0);
   const enfocado = useRef(false);
 
-  // #region agent log
-  useEffect(() => {
-    const el = document.querySelector("[data-torre-modo='1']");
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const search = document.querySelector('input[placeholder*="Buscar módulo"]');
-    const sr = search?.getBoundingClientRect();
-    const overlapX =
-      sr != null
-        ? Math.max(0, Math.min(r.right, sr.right) - Math.max(r.left, sr.left))
-        : 0;
-    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "b6f4bb",
-      },
-      body: JSON.stringify({
-        sessionId: "b6f4bb",
-        runId: "post-fix",
-        hypothesisId: "C",
-        location: "TorreTab.jsx:modoToggle",
-        message: "Material/Estado vs search rects",
-        data: {
-          modo: { left: r.left, right: r.right, top: r.top, width: r.width },
-          search: sr ? { left: sr.left, right: sr.right, top: sr.top } : null,
-          overlapX,
-          overSearch: overlapX > 2,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }, [torreModo]);
-  // #endregion
-
   const moduloQ = params.get("modulo");
   const posQ = params.get("pos");
   const pisoQ = params.get("piso");
@@ -247,7 +212,6 @@ function TorreVista() {
           value={torreModo}
           onChange={(_, v) => v && setTorreModo(v)}
           aria-label="Vista del modelo"
-          data-torre-modo="1"
           sx={{
             position: "absolute",
             top: OVERLAY_TOP,

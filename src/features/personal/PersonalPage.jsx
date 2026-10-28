@@ -84,28 +84,6 @@ export default function PersonalPage() {
     location.pathname.endsWith("/personal") ||
     location.pathname.endsWith("/personal/");
   if (onIndex && tabs[0]) {
-    // #region agent log
-    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "b6f4bb",
-      },
-      body: JSON.stringify({
-        sessionId: "b6f4bb",
-        runId: "post-fix",
-        hypothesisId: "P1",
-        location: "PersonalPage.jsx:indexRedirect",
-        message: "Personal index redirect",
-        data: {
-          from: location.pathname,
-          to: `${base}/${tabs[0].path}`,
-          legacyLink: false,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     return <Navigate to={`${base}/${tabs[0].path}`} replace />;
   }
   if (!active && tabs[0]) {

@@ -19,9 +19,14 @@
 //   { action: "clear_must_change_password" }
 //       → baja la marca must_change_password del propio usuario (sin obra_id)
 //
-// La JERARQUÍA de roles NO se valida aquí: se llama a assign_role() con el JWT
-// del que llama, y es la base de datos quien decide. Esta función solo hace lo
-// que requiere service_role (crear usuarios en auth, hashear PIN).
+//   { action: "create_admin_member", organization_id, full_name, email, role }
+//       → usuario de Administración (dueno | admin | vendedor). Si el email ya
+//         existe, solo lo vincula a la org. Sin password → temporal de un uso.
+//
+// La JERARQUÍA de roles NO se valida aquí: se llama a assign_role() /
+// admin_upsert_member() con el JWT del que llama, y es la base de datos quien
+// decide. Esta función solo hace lo que requiere service_role (crear usuarios
+// en auth, hashear PIN).
 
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
@@ -34,11 +39,19 @@ const admin = createClient(URL, SERVICE, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
+type AdminMemberRole = "dueno" | "admin" | "vendedor";
+
 type Body = {
-  action: "create_worker" | "create_user" | "reset_pin" | "clear_must_change_password";
+  action:
+    | "create_worker"
+    | "create_user"
+    | "reset_pin"
+    | "clear_must_change_password"
+    | "create_admin_member";
   obra_id?: string;
+  organization_id?: string;
   empresa_id?: string;
-  role?: "superadmin" | "admin" | "obrero" | "owner";
+  role?: "superadmin" | "admin" | "obrero" | "owner" | AdminMemberRole;
   full_name?: string;
   email?: string;
   password?: string;
@@ -109,6 +122,10 @@ Deno.serve(async (req) => {
     // Antes de obra_id / members.manage: el Admin recién creado no tiene ese permiso
     if (body.action === "clear_must_change_password") {
       return await clearMustChangePassword(me.user.id);
+    }
+
+    if (body.action === "create_admin_member") {
+      return await createAdminMember(caller, body);
     }
 
     if (!body.obra_id) return json({ error: "obra_id requerido" }, 400);
@@ -272,7 +289,7 @@ async function resetPin(caller: SupabaseClient, b: Body) {
     .eq("user_id", b.user_id)
     .maybeSingle();
   if (!member || !member.active || member.role !== "obrero") {
-    throw new Error("Solo se puede resetear el PIN de obreros activos de esta obra");
+    throw new Error("Solo se puede resetear el PIN de obreros activos de esa obra");
   }
 
   const { data: workerCode, error } = await admin.rpc("set_worker_pin", {
@@ -281,4 +298,80 @@ async function resetPin(caller: SupabaseClient, b: Body) {
   });
   if (error) throw new Error(error.message);
   return json({ worker_code: workerCode, pin });
+}
+
+async function createAdminMember(caller: SupabaseClient, b: Body) {
+  if (!b.organization_id) throw new Error("organization_id requerido");
+  if (!b.full_name?.trim()) throw new Error("full_name requerido");
+  if (!b.email?.trim()) throw new Error("email requerido");
+  if (!b.role || !["dueno", "admin", "vendedor"].includes(b.role)) {
+    throw new Error("role debe ser dueno, admin o vendedor");
+  }
+
+  const { data: canManage, error: canErr } = await caller.rpc(
+    "admin_can_manage_members",
+    { p_organization_id: b.organization_id },
+  );
+  if (canErr) throw new Error(canErr.message);
+  if (!canManage) return json({ error: "forbidden" }, 403);
+
+  const email = b.email.trim().toLowerCase();
+  const displayName = b.full_name.trim();
+  let createdNow = false;
+  let issuedPassword: string | undefined;
+
+  const { data: existingId } = await admin.rpc("user_id_by_email", { p_email: email });
+  let userId: string | null = existingId;
+
+  if (!userId) {
+    const temporaryPassword = generateTemporaryPassword();
+    const password = b.password || temporaryPassword;
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: displayName },
+      app_metadata: { must_change_password: true },
+    });
+    if (error || !data.user) throw new Error(error?.message ?? "No se pudo crear el usuario");
+    userId = data.user.id;
+    createdNow = true;
+    if (!b.password) issuedPassword = temporaryPassword;
+
+    if (issuedPassword) {
+      const { error: dispErr } = await admin
+        .from("profiles")
+        .update({
+          full_name: displayName,
+          temp_password_display: issuedPassword,
+        })
+        .eq("id", userId);
+      if (dispErr) {
+        await admin.auth.admin.deleteUser(userId);
+        throw new Error(dispErr.message);
+      }
+    } else {
+      await admin.from("profiles").update({ full_name: displayName }).eq("id", userId);
+    }
+  }
+
+  // admin_07: solo alta. Si ya es miembro → error (cambiar rol / reactivar en UI).
+  const { error: upsertErr } = await caller.rpc("admin_upsert_member", {
+    p_organization_id: b.organization_id,
+    p_user_id: userId,
+    p_role: b.role,
+    p_display_name: displayName,
+  });
+  if (upsertErr) {
+    // Solo rollback de Auth si creamos el usuario en ESTA llamada.
+    // Si el email ya existía, no lo borramos.
+    if (createdNow) await admin.auth.admin.deleteUser(userId!);
+    return json({ error: upsertErr.message }, 400);
+  }
+
+  return json({
+    user_id: userId,
+    existed: !createdNow,
+    ...(issuedPassword ? { temporary_password: issuedPassword } : {}),
+  });
 }

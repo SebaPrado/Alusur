@@ -81,7 +81,6 @@ export default function PageHeader({
 
   return (
     <Box
-      data-overlay-header={overlay ? "1" : undefined}
       sx={{
         height: SECTION_BAR_HEIGHT,
         minHeight: SECTION_BAR_HEIGHT,

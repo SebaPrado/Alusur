@@ -13,7 +13,7 @@ import { readOrgId, writeOrgId } from "./storage";
 const AdminOrgContext = createContext(null);
 
 export function AdminOrgProvider({ children }) {
-  const { user, status: authStatus } = useAuth();
+  const { user, status: authStatus, isCeo } = useAuth();
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(null);
   const [memberships, setMemberships] = useState([]);
@@ -88,8 +88,12 @@ export function AdminOrgProvider({ children }) {
       displayName: current?.displayName ?? null,
       setOrganization,
       isManager: current?.role === "dueno" || current?.role === "admin",
+      // Dueño, o CEO de plataforma que ya es miembro de la org actual.
+      canManageMembers: Boolean(
+        current && (current.role === "dueno" || isCeo),
+      ),
     }),
-    [ready, error, memberships, organizationId, current, setOrganization],
+    [ready, error, memberships, organizationId, current, setOrganization, isCeo],
   );
 
   return (

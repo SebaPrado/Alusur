@@ -212,12 +212,7 @@ function NavList({ onNavigate, onCollapse, incidenciasCount }) {
                 component={RouterLink}
                 to={item.to}
                 selected={selected}
-                onClick={() => {
-                  // #region agent log
-                  fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b6f4bb'},body:JSON.stringify({sessionId:'b6f4bb',runId:'pre-fix',hypothesisId:'C',location:'ObraLayout.jsx:NavListFirst',message:'first nav item click',data:{label:item.label,hasOnNavigate:typeof onNavigate==='function'},timestamp:Date.now()})}).catch(()=>{});
-                  // #endregion
-                  onNavigate?.(item);
-                }}
+                onClick={() => onNavigate?.(item)}
                 sx={{ ...navItemSx, flex: 1, minWidth: 0, pl: 2, borderLeft: 0 }}
               >
                 <ListItemText
@@ -257,12 +252,7 @@ function NavList({ onNavigate, onCollapse, incidenciasCount }) {
             component={RouterLink}
             to={item.to}
             selected={selected}
-            onClick={() => {
-              // #region agent log
-              fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b6f4bb'},body:JSON.stringify({sessionId:'b6f4bb',runId:'pre-fix',hypothesisId:'C',location:'ObraLayout.jsx:NavListItem',message:'nav item click',data:{label:item.label,hasOnNavigate:typeof onNavigate==='function'},timestamp:Date.now()})}).catch(()=>{});
-              // #endregion
-              onNavigate?.(item);
-            }}
+            onClick={() => onNavigate?.(item)}
             sx={{
               ...navItemSx,
               pl: 2,
@@ -290,7 +280,6 @@ function NavList({ onNavigate, onCollapse, incidenciasCount }) {
 export default function ObraLayout() {
   const theme = useTheme();
   const isNarrow = useMediaQuery(theme.breakpoints.down("md")); // < 900
-  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   // Al entrar a una obra (p. ej. desde /) el sidebar arranca abierto.
   const [navCollapsed, setNavCollapsed] = useState(false);
@@ -302,72 +291,7 @@ export default function ObraLayout() {
   const desktopOpen = !navCollapsed;
   const navWidth = desktopOpen ? DRAWER_WIDTH : 0;
 
-  // #region agent log
-  useEffect(() => {
-    const mountId = Math.random().toString(36).slice(2, 8);
-    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "b6f4bb",
-      },
-      body: JSON.stringify({
-        sessionId: "b6f4bb",
-        runId: "post-fix",
-        hypothesisId: "H1",
-        location: "ObraLayout.jsx:mount",
-        message: "ObraLayout mounted",
-        data: { mountId, pathname: location.pathname },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    return () => {
-      fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "b6f4bb",
-        },
-        body: JSON.stringify({
-          sessionId: "b6f4bb",
-          runId: "post-fix",
-          hypothesisId: "H1",
-          location: "ObraLayout.jsx:unmount",
-          message: "ObraLayout unmounted",
-          data: { mountId },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo montaje/desmontaje
-  }, []);
-  // #endregion
-
   function setCollapsed(next) {
-    // #region agent log
-    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "b6f4bb",
-      },
-      body: JSON.stringify({
-        sessionId: "b6f4bb",
-        runId: "post-fix",
-        hypothesisId: "H1",
-        location: "ObraLayout.jsx:setCollapsed",
-        message: "setCollapsed called",
-        data: {
-          next,
-          prev: navCollapsed,
-          isNarrow,
-          pathname: location.pathname,
-          navWidthAfter: next ? 0 : DRAWER_WIDTH,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     setNavCollapsed(next);
     writeNavCollapsed(next);
   }
@@ -380,42 +304,12 @@ export default function ObraLayout() {
     setCollapsed(!navCollapsed);
   }
 
-  function handleSidebarNavigate(item) {
-    // #region agent log
-    fetch("http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "b6f4bb",
-      },
-      body: JSON.stringify({
-        sessionId: "b6f4bb",
-        runId: "post-fix",
-        hypothesisId: "H1",
-        location: "ObraLayout.jsx:handleSidebarNavigate",
-        message: "section click navigate",
-        data: {
-          label: item?.label,
-          to: item?.to,
-          match: item?.match,
-          isNarrow,
-          navCollapsed,
-          willCollapse: !isNarrow,
-          pathname: location.pathname,
-          legacyLink: typeof item?.to === "string" && item.to.startsWith("/obra/"),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
+  function handleSidebarNavigate() {
     setMobileOpen(false);
     if (!isNarrow) setCollapsed(true);
   }
 
   function handleCollapseSidebar() {
-    // #region agent log
-    fetch('http://127.0.0.1:7878/ingest/a845232f-d03a-4e29-9229-114d1ae28031',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b6f4bb'},body:JSON.stringify({sessionId:'b6f4bb',runId:'pre-fix',hypothesisId:'B',location:'ObraLayout.jsx:handleCollapseSidebar',message:'collapse icon clicked',data:{isNarrow,navCollapsed},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     setMobileOpen(false);
     if (!isNarrow) setCollapsed(true);
   }
