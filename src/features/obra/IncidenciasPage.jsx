@@ -1,15 +1,14 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { Box, Typography } from "@mui/material";
-import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { PageActionsProvider } from "./PageActions";
 import PageHeader, { usePagePadX } from "./PageHeader";
 import SinAcceso from "./SinAcceso";
 
-/** Incidencias: todos menos Owner. CEO puede entrar. Contenido en próxima tarea. */
+/** Incidencias: todos menos Owner. Quien tiene control total en la obra puede entrar. */
 export default function IncidenciasPage() {
-  const { isCeo } = useAuth();
   const { mi_rol, ready, known } = useObra();
   const padX = usePagePadX();
 
@@ -21,7 +20,7 @@ export default function IncidenciasPage() {
     return <Navigate to="/obras" replace />;
   }
 
-  if (!isCeo && mi_rol === "owner") {
+  if (!controlTotalEnObra(mi_rol) && mi_rol === "owner") {
     return <SinAcceso />;
   }
 

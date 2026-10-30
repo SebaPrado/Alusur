@@ -2,17 +2,23 @@ import React from "react";
 import { Link as RouterLink, Navigate } from "react-router-dom";
 import { Box, Button, LinearProgress, Typography } from "@mui/material";
 import { useAuth } from "../../auth/AuthProvider";
-import { useMisObras } from "../../obras/MisObrasProvider";
+import { useObrasDeLaOrg, useOrganizacion } from "../../org/OrganizacionProvider";
+import { puedeCrearObras } from "../../org/organizacion";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { PageActionsProvider } from "../obra/PageActions";
 import PageHeader, { pagePadX } from "../obra/PageHeader";
 
 const ROL_LABEL = {
-  ceo: "CEO",
   superadmin: "SuperAdmin",
   admin: "Admin",
   owner: "Owner",
   obrero: "Obrero",
 };
+
+function etiquetaRol(mi_rol) {
+  if (controlTotalEnObra(mi_rol)) return "Dueño";
+  return ROL_LABEL[mi_rol] ?? mi_rol;
+}
 
 /** Ancho de la columna de obras (header + cards). */
 const OBRAS_COL_MAX = 640;
@@ -22,7 +28,8 @@ function pct(instalados, total) {
   return Math.round((instalados / total) * 100);
 }
 
-function ObraCard({ obra, isCeo }) {
+function ObraCard({ obra }) {
+  const controlTotal = controlTotalEnObra(obra.mi_rol);
   const p = pct(obra.modulos_instalados, obra.modulos_total);
   const sinModulos = !obra.modulos_total;
   const abiertas = obra.incidencias_abiertas ?? 0;
@@ -55,7 +62,7 @@ function ObraCard({ obra, isCeo }) {
           flex: 1,
           gap: 1.5,
           p: 2,
-          pr: isCeo ? 13 : 2,
+          pr: controlTotal ? 13 : 2,
           textDecoration: "none",
           color: "inherit",
           "&:focus-visible": {
@@ -97,7 +104,7 @@ function ObraCard({ obra, isCeo }) {
                 </Box>
               ) : null}
             </Typography>
-            {!isCeo && (
+            {!controlTotal && (
               <Typography
                 sx={{
                   flexShrink: 0,
@@ -109,7 +116,7 @@ function ObraCard({ obra, isCeo }) {
                   color: "text.secondary",
                 }}
               >
-                {ROL_LABEL[obra.mi_rol] ?? obra.mi_rol}
+                {etiquetaRol(obra.mi_rol)}
               </Typography>
             )}
           </Box>
@@ -188,7 +195,7 @@ function ObraCard({ obra, isCeo }) {
         </Box>
       </Box>
 
-      {isCeo && (
+      {controlTotal && (
         <Button
           className="editar-obra"
           type="button"
@@ -225,20 +232,20 @@ function ObraCard({ obra, isCeo }) {
 }
 
 export default function MisObrasPage() {
-  const { isCeo, profile, status: authStatus } = useAuth();
-  const { obras, ready, loading, error, refresh } = useMisObras();
+  const { status: authStatus } = useAuth();
+  const { plataforma, orgActiva, ready: orgReady } = useOrganizacion();
+  const { obras, ready, loading, error, refresh } = useObrasDeLaOrg();
+  const puedeCrear = puedeCrearObras({ plataforma, org: orgActiva });
 
-  if (authStatus === "ready" && profile?.is_worker) {
-    return <Navigate to="/" replace />;
+  if (authStatus === "loading" || !orgReady) {
+    return null;
   }
 
-  // No CEO + exactamente 1 obra → entrar directo (HomeRedirect ya lo hace;
-  // esto cubre acceso directo a /obras)
-  if (ready && !error && !isCeo && obras.length === 1 && obras[0]?.id) {
-    return <Navigate to={`/obra/${obras[0].id}`} replace />;
+  if (ready && !error && !puedeCrear && obras.length === 1 && obras[0]?.id) {
+    return <Navigate to={`/construccion/obra/${obras[0].id}`} replace />;
   }
 
-  const showNueva = isCeo || obras?.some((o) => o.mi_rol === "ceo");
+  const showNueva = puedeCrear;
 
   return (
     <PageActionsProvider>
@@ -249,7 +256,7 @@ export default function MisObrasPage() {
           showNueva ? (
             <Button
               component={RouterLink}
-              to="/obras/nueva"
+              to="/construccion/obras/nueva"
               variant="text"
               disableRipple
               size="small"
@@ -303,12 +310,12 @@ export default function MisObrasPage() {
 
       {!error && ready && obras.length === 0 && (
         <Typography color="text.secondary">
-          {isCeo ? (
+          {puedeCrear ? (
             <>
               Todavía no hay obras ·{" "}
               <Box
                 component={RouterLink}
-                to="/obras/nueva"
+                to="/construccion/obras/nueva"
                 sx={{
                   color: "primary.main",
                   textDecoration: "none",
@@ -333,7 +340,7 @@ export default function MisObrasPage() {
           }}
         >
           {obras.map((o) => (
-            <ObraCard key={o.id} obra={o} isCeo={isCeo} />
+            <ObraCard key={o.id} obra={o} />
           ))}
         </Box>
       )}

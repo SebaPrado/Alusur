@@ -1,0 +1,1054 @@
+{
+  "numero_envio": 6,
+  "fecha_carga": "2026-10-13",
+  "bultos_declarados": 13,
+  "peso_declarado_kg": 5153,
+  "matricula": null,
+  "contenedor_iso": null,
+  "archivo_origen": "006_OCT26.xlsx",
+  "bultos": [
+    {
+      "numero": 5,
+      "peso_bruto_kg": 662,
+      "dimensiones": "4050 X 570 X 360",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "MONTANTES L=3794 CON MECHA",
+          "cantidad": 20,
+          "descripcion": "montante",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-001-02",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-001-03",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-001-04",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-001-05",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-001-06",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-001-07",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-001-08",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-001-09",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-001-10",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 6,
+      "peso_bruto_kg": 300,
+      "dimensiones": "1210 X 805 X 603",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-01",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-02",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-03",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-04",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-05",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-06",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-07",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-08",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-09",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-002-10",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 7,
+      "peso_bruto_kg": 450,
+      "dimensiones": "1220 X 810 X 606",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-003-01",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-003-02",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-003-03",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-003-04",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-003-05",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-003-06",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-003-07",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-003-08",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-003-09",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 8,
+      "peso_bruto_kg": 280,
+      "dimensiones": "1230 X 815 X 609",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-004-01",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-004-02",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-004-03",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-004-04",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-004-05",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-004-06",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-004-07",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-004-08",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-004-09",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 9,
+      "peso_bruto_kg": 510,
+      "dimensiones": "1240 X 820 X 612",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-005-01",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-005-02",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-005-03",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-005-04",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-005-05",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-005-06",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-005-07",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-005-08",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-005-09",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 10,
+      "peso_bruto_kg": 390,
+      "dimensiones": "1250 X 825 X 615",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-006-01",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-006-02",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-006-03",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-006-04",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-006-05",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-006-06",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-006-07",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-006-08",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-006-09",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 11,
+      "peso_bruto_kg": 420,
+      "dimensiones": "1260 X 830 X 618",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-007-01",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-007-02",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-007-03",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-007-04",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-007-05",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-007-06",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-007-07",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-007-08",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-007-09",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 12,
+      "peso_bruto_kg": 350,
+      "dimensiones": "1270 X 835 X 621",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-008-01",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-008-02",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-008-03",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-008-04",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-008-05",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-008-06",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-008-07",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-008-08",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-008-09",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 13,
+      "peso_bruto_kg": 280,
+      "dimensiones": "1280 X 840 X 624",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-009-01",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-009-02",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-009-03",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-009-04",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-009-05",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-009-06",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-009-07",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-009-08",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-009-09",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 14,
+      "peso_bruto_kg": 411,
+      "dimensiones": "1290 X 845 X 627",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-010-01",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-010-02",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-010-03",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-010-04",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-010-05",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-010-06",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-010-07",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-010-08",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-010-09",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 15,
+      "peso_bruto_kg": 380,
+      "dimensiones": "1300 X 850 X 630",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-011-01",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-011-02",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-011-03",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-011-04",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-011-05",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-011-06",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-011-07",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-011-08",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-011-09",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "3",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 16,
+      "peso_bruto_kg": 370,
+      "dimensiones": "1310 X 855 X 633",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-012-01",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-012-02",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-012-03",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-012-04",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-012-05",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-012-06",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-012-07",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-012-08",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-012-09",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "4",
+          "hs_code": "76109090"
+        }
+      ]
+    },
+    {
+      "numero": 17,
+      "peso_bruto_kg": 350,
+      "dimensiones": "1320 X 860 X 636",
+      "lineas": [
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-013-01",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-013-02",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-013-03",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-013-04",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-013-05",
+          "cantidad": 2,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-013-06",
+          "cantidad": 3,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-013-07",
+          "cantidad": 4,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-013-08",
+          "cantidad": 5,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        },
+        {
+          "lote": "13",
+          "referencia": "Aux. Obra-013-09",
+          "cantidad": 1,
+          "descripcion": "aux",
+          "hoja": "2",
+          "hs_code": "76109090"
+        }
+      ]
+    }
+  ]
+}

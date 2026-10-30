@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Drawer, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useObra } from "../../obras/ObraProvider";
 import { TIPOS } from "../fachada/buildSlots";
 import { ESTADOS_CON_LLEGADA, formatLlegada } from "../logistica/estados";
@@ -18,7 +18,11 @@ const TITULO = {
   terminado: "Terminado",
 };
 
-export default function RecorridoDrawer() {
+export function hayRecorrido(filas, recorridoId) {
+  return Boolean(recorridoId && filas.some((f) => f.modulo?.id === recorridoId));
+}
+
+export default function RecorridoPanel() {
   const { obraId } = useObra();
   const { filas, config, recorridoId, cerrarRecorrido } = useProgreso();
   const navigate = useNavigate();
@@ -49,27 +53,10 @@ export default function RecorridoDrawer() {
       )
     : [];
 
+  if (!abierto || !fila) return null;
+
   return (
-    <Drawer
-      anchor="right"
-      open={abierto}
-      onClose={cerrarRecorrido}
-      PaperProps={{
-        sx: {
-          width: 480,
-          maxWidth: "100%",
-          bgcolor: "background.default",
-          color: "text.primary",
-          borderRadius: 0,
-          boxShadow: "none",
-          borderLeft: 1,
-          borderColor: "divider",
-          backgroundImage: "none",
-        },
-      }}
-    >
-      {fila && (
-        <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 2, height: "100%", overflow: "auto" }}>
+        <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 2, minHeight: "100%" }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
             <Box>
               <Typography sx={{ color: "text.secondary", fontSize: 12 }}>Recorrido del módulo</Typography>
@@ -119,8 +106,6 @@ export default function RecorridoDrawer() {
             <Button onClick={irPiso}>Ver piso {fila.piso}</Button>
           </Box>
         </Box>
-      )}
-    </Drawer>
   );
 }
 

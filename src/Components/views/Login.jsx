@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { safeInternalPath, sectionLabel } from "../../app/authRedirect";
+import { RESET_EMAIL_NOTICE } from "../../auth/passwordRecovery";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../auth/AuthProvider";
 
@@ -28,24 +29,50 @@ const floatingLabelProps = {
 };
 
 export default function Login() {
-  const { session, status } = useAuth();
+  const { session, status, recoveryPending } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const next = safeInternalPath(location.state?.from);
   const section = sectionLabel(location.state?.from);
+  const linkNotice =
+    typeof location.state?.authLinkError === "string"
+      ? location.state.authLinkError
+      : "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (status === "ready" && session) {
+  if (status === "ready" && session && !recoveryPending && !linkNotice) {
     return <Navigate to={next} replace />;
+  }
+
+  async function handleForgot(e) {
+    e.preventDefault();
+    setError("");
+    setInfo("");
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setError("Ingresá tu email");
+      return;
+    }
+    setBusy(true);
+    try {
+      await supabase.auth.resetPasswordForEmail(trimmed, {
+        redirectTo: `${window.location.origin}/nueva-contrasena`,
+      });
+    } finally {
+      setBusy(false);
+      setInfo(RESET_EMAIL_NOTICE);
+    }
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setInfo("");
     setBusy(true);
     const { error: err } = await supabase.auth.signInWithPassword({
       email: email.trim(),
@@ -125,6 +152,27 @@ export default function Login() {
               ),
             }}
           />
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 0.5 }}>
+            <Link
+              component="button"
+              type="button"
+              variant="body2"
+              onClick={handleForgot}
+              disabled={busy}
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </Box>
+          {linkNotice && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {linkNotice}
+            </Alert>
+          )}
+          {info && (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              {info}
+            </Alert>
+          )}
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {error}

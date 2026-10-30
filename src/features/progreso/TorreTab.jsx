@@ -1,18 +1,35 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { Box, Button, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import { supabase } from "../../lib/supabase";
 import { ejemploCodigoModulo, mismoCodigo, normalizarCodigo } from "../../lib/codigos";
 import { useObra } from "../../obras/ObraProvider";
 import { TIPOS } from "../fachada/buildSlots";
 import Torre3D from "../fachada/Torre3D";
 import { SECTION_BAR_HEIGHT, tabBtnSx } from "../obra/PageHeader";
+import { useSideInset } from "../obra/SectionTabs";
 import { fieldSx } from "../personal/theme";
 import { formatLlegada, ESTADOS_CON_LLEGADA } from "../logistica/estados";
 import { ORDEN_VISUAL, VISUAL } from "./model";
 import { ProgresoGate, useProgreso } from "./useProgresoData.jsx";
 import { EstadoMarca, ubicacion } from "./ui";
+import RecorridoPanel, { hayRecorrido } from "./RecorridoDrawer";
+
+const PANEL_KEY = "alusur.panel_progreso";
+const PANEL_MIN = 280;
+const PANEL_DEFAULT = 400;
+const SPLIT_HANDLE = 6;
+
+function leerAnchoPanel() {
+  try {
+    const n = Number(localStorage.getItem(PANEL_KEY));
+    if (Number.isFinite(n) && n >= PANEL_MIN) return n;
+  } catch {
+    /* modo privado */
+  }
+  return PANEL_DEFAULT;
+}
 
 /** Bajo la fila de pestañas que flota sobre el 3D. */
 const OVERLAY_TOP = SECTION_BAR_HEIGHT + 8;
@@ -34,7 +51,13 @@ function textoOtraObra(error) {
 
 function TorreVista() {
   const { obraId, obra } = useObra();
-  const { filas, config, abrirRecorrido, torreModo, setTorreModo } = useProgreso();
+  const { filas, config, abrirRecorrido, recorridoId, torreModo, setTorreModo } = useProgreso();
+  const theme = useTheme();
+  const wide = useMediaQuery(theme.breakpoints.up("md"));
+  const setSideInset = useSideInset();
+  const rowRef = useRef(null);
+  const dragRef = useRef(false);
+  const [panelWidth, setPanelWidth] = useState(leerAnchoPanel);
   const [params, setParams] = useSearchParams();
   const [estadoFiltro, setEstadoFiltro] = useState(null);
   const [q, setQ] = useState("");
@@ -170,6 +193,62 @@ function TorreVista() {
     setEnfocar((n) => n + 1);
   }
 
+  const muestraRecorrido = hayRecorrido(filas, recorridoId);
+
+  useEffect(() => {
+    if (!wide) {
+      setSideInset(0);
+      return;
+    }
+    setSideInset(panelWidth + SPLIT_HANDLE);
+  }, [wide, panelWidth, setSideInset]);
+
+  useEffect(() => () => setSideInset(0), [setSideInset]);
+
+  function guardarAncho(ancho) {
+    try {
+      localStorage.setItem(PANEL_KEY, String(ancho));
+    } catch {
+      /* modo privado */
+    }
+  }
+
+  function onSplitPointerDown(e) {
+    if (e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = true;
+  }
+
+  function onSplitPointerMove(e) {
+    if (!dragRef.current || !rowRef.current) return;
+    const rect = rowRef.current.getBoundingClientRect();
+    const max = Math.max(PANEL_MIN, Math.round(rect.width * 0.72));
+    const next = Math.round(rect.right - e.clientX);
+    setPanelWidth(Math.min(max, Math.max(PANEL_MIN, next)));
+  }
+
+  function onSplitPointerUp() {
+    if (!dragRef.current) return;
+    dragRef.current = false;
+    setPanelWidth((w) => {
+      guardarAncho(w);
+      return w;
+    });
+  }
+
+  function onSplitKeyDown(e) {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const rect = rowRef.current?.getBoundingClientRect();
+    const max = rect ? Math.max(PANEL_MIN, Math.round(rect.width * 0.72)) : 720;
+    const delta = e.key === "ArrowLeft" ? 16 : -16;
+    setPanelWidth((w) => {
+      const next = Math.min(max, Math.max(PANEL_MIN, w + delta));
+      guardarAncho(next);
+      return next;
+    });
+  }
+
   const conModulo = filas.filter((f) => f.visual !== "sin_modulo");
   const hechos = conModulo.filter((f) => f.visual === "instalado" || f.visual === "terminado").length;
   const pct = conModulo.length ? Math.round((hechos / conModulo.length) * 100) : 0;
@@ -178,6 +257,7 @@ function TorreVista() {
 
   return (
     <Box
+      ref={rowRef}
       sx={{
         flex: 1,
         height: "100%",
@@ -271,18 +351,58 @@ function TorreVista() {
       </Box>
 
       <Box
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Ajustar ancho del panel"
+        aria-valuemin={PANEL_MIN}
+        aria-valuenow={panelWidth}
+        tabIndex={0}
+        onPointerDown={onSplitPointerDown}
+        onPointerMove={onSplitPointerMove}
+        onPointerUp={onSplitPointerUp}
+        onPointerCancel={onSplitPointerUp}
+        onKeyDown={onSplitKeyDown}
         sx={{
-          width: { xs: "100%", md: 340 },
+          display: { xs: "none", md: "flex" },
+          width: SPLIT_HANDLE,
+          flexShrink: 0,
+          cursor: "col-resize",
+          touchAction: "none",
+          alignItems: "stretch",
+          justifyContent: "center",
+          "&::before": {
+            content: '""',
+            width: "1px",
+            height: "100%",
+            bgcolor: "divider",
+          },
+          "&:hover::before, &:focus-visible::before": {
+            bgcolor: "primary.main",
+            width: "2px",
+          },
+        }}
+      />
+
+      <Box
+        sx={{
+          width: { xs: "100%", md: panelWidth },
           flexShrink: 0,
           overflow: "auto",
-          borderLeft: { md: 1 },
-          borderColor: "divider",
-          p: 2,
+          bgcolor: "background.default",
+          position: "relative",
+          zIndex: { md: 3 },
+          minHeight: { md: 0 },
+          height: { md: "100%" },
+          p: muestraRecorrido ? 0 : 2,
           display: "flex",
           flexDirection: "column",
-          gap: 2,
+          gap: muestraRecorrido ? 0 : 2,
         }}
       >
+        {muestraRecorrido ? (
+          <RecorridoPanel />
+        ) : (
+          <>
         <Box component="form" onSubmit={buscar}>
           <Box
             component="input"
@@ -394,6 +514,8 @@ function TorreVista() {
         </Box>
 
         <Detalle fila={fila} config={config} onRecorrido={abrirRecorrido} />
+          </>
+        )}
       </Box>
     </Box>
   );

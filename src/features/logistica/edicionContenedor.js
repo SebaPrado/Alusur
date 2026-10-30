@@ -2,12 +2,12 @@ import { normalizarCodigo } from "../../lib/codigos";
 
 /**
  * La base decide. En `libre` lo puede borrar quien tenga permiso.
- * El CEO, en pruebas, también borra un contenedor en tránsito o en obra
- * (`con_motivo` / `bloqueado`). Si ya hay rastro, la base lo rechaza.
+ * Quien tiene control total en la obra también borra un contenedor en tránsito
+ * o en obra (`con_motivo` / `bloqueado`). Si ya hay rastro, la base lo rechaza.
  */
-export function puedeEliminar(nivel, ceo = false) {
+export function puedeEliminar(nivel, controlTotal = false) {
   if (nivel === "libre") return true;
-  if (ceo && (nivel === "con_motivo" || nivel === "bloqueado")) return true;
+  if (controlTotal && (nivel === "con_motivo" || nivel === "bloqueado")) return true;
   return false;
 }
 

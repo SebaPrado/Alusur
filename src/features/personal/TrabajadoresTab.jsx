@@ -17,8 +17,8 @@ import {
 } from "@mui/material";
 import { FiMoreVertical } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { PageActions } from "../obra/PageActions";
 import { C, dialogPaperSx, fieldSx, selectMenuProps } from "./theme";
 import NuevoTrabajadorDialog from "./NuevoTrabajadorDialog";
@@ -42,8 +42,8 @@ function estadoLabel(row) {
 
 export default function TrabajadoresTab() {
   const { obraId, openEmpresas, empresasTick } = useOutletContext();
-  const { isCeo } = useAuth();
-  const { can } = useObra();
+  const { can, mi_rol } = useObra();
+  const controlTotal = controlTotalEnObra(mi_rol);
   const canMembers = can("members.manage");
   const canEquipo = can("equipo.manage");
   const canHab = can("habilitacion.manage");
@@ -339,7 +339,7 @@ export default function TrabajadoresTab() {
               ? row.habilitaciones.join(", ")
               : "—";
           const actionsOpen = openActionsId === row.user_id;
-          const showMenu = row.activo || isCeo;
+          const showMenu = row.activo || controlTotal;
           const spanXs = { gridColumn: { xs: "1 / -1", md: "auto" } };
           return (
             <Box
@@ -480,7 +480,7 @@ export default function TrabajadoresTab() {
                       Dar de baja
                     </ActionLink>
                   )}
-                  {!row.activo && isCeo && (
+                  {!row.activo && controlTotal && (
                     <ActionLink onClick={() => setAltaDlg(row)}>Dar de alta</ActionLink>
                   )}
                 </Box>

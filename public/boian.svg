@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="302" height="210" viewBox="2 4 151 105" fill="none">
+  <title>Icono de trazo uniforme</title>
+  <desc>Versión de contornos con un grosor constante, uniones redondeadas y fondo transparente.</desc>
+  <g stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path stroke="#FFFFFF" d="M62 23H35L8 65L32 103H62"/>
+    <path stroke="#239596" d="M92 10H111L77 61L119 24L147 65L121 103H80L54 65Z"/>
+  </g>
+</svg>

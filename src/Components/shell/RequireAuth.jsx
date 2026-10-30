@@ -4,7 +4,7 @@ import { Box, CircularProgress } from "@mui/material";
 import { useAuth } from "../../auth/AuthProvider";
 
 export default function RequireAuth({ children }) {
-  const { status, session } = useAuth();
+  const { status, session, recoveryPending } = useAuth();
   const location = useLocation();
 
   if (status === "loading") {
@@ -28,7 +28,13 @@ export default function RequireAuth({ children }) {
 
   const mustChange =
     session.user?.app_metadata?.must_change_password === true;
-  const onChangePassword = location.pathname === "/elegir-contrasena";
+  const onNewPassword = location.pathname === "/nueva-contrasena";
+  const onChangePassword =
+    location.pathname === "/elegir-contrasena" || onNewPassword;
+
+  if (recoveryPending && !onNewPassword) {
+    return <Navigate to="/nueva-contrasena" replace />;
+  }
 
   if (mustChange && !onChangePassword) {
     return <Navigate to="/elegir-contrasena" replace />;

@@ -16,6 +16,7 @@ import {
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { PageActions } from "../obra/PageActions";
 import { C, dialogPaperSx, fieldSx, selectMenuProps } from "./theme";
 import NuevoUsuarioDialog from "./NuevoUsuarioDialog";
@@ -26,7 +27,7 @@ const ROLE_LABEL = {
   owner: "Owner",
 };
 
-/** Rango para UI (coincide con role_rank, owner intocable salvo CEO). */
+/** Rango para la UI (coincide con role_rank; owner solo lo toca quien tiene control total). */
 const ROLE_RANK = {
   superadmin: 50,
   admin: 40,
@@ -34,16 +35,16 @@ const ROLE_RANK = {
   owner: 0,
 };
 
-function rolesAsignables({ isCeo, miRol }) {
-  if (isCeo) return ["superadmin", "admin", "owner"];
+function rolesAsignables({ controlTotal, miRol }) {
+  if (controlTotal) return ["superadmin", "admin", "owner"];
   if (miRol === "superadmin") return ["admin"];
   return [];
 }
 
-function puedeModificar({ isCeo, miRol, myUserId, target }) {
+function puedeModificar({ controlTotal, miRol, myUserId, target }) {
   if (!target?.activo) return false;
   if (target.user_id === myUserId) return false;
-  if (isCeo) return true;
+  if (controlTotal) return true;
   if (target.role === "owner") return false;
   const callerRank = ROLE_RANK[miRol] ?? 0;
   const targetRank = ROLE_RANK[target.role] ?? 0;
@@ -52,8 +53,9 @@ function puedeModificar({ isCeo, miRol, myUserId, target }) {
 
 export default function UsuariosTab() {
   const { obraId, openEmpresas, empresasTick } = useOutletContext();
-  const { user, isCeo } = useAuth();
+  const { user } = useAuth();
   const { can, mi_rol } = useObra();
+  const controlTotal = controlTotalEnObra(mi_rol);
   const canMembers = can("members.manage");
 
   const [rows, setRows] = useState([]);
@@ -69,8 +71,8 @@ export default function UsuariosTab() {
   const [actionBusy, setActionBusy] = useState(false);
 
   const assignable = useMemo(
-    () => rolesAsignables({ isCeo, miRol: mi_rol }),
-    [isCeo, mi_rol],
+    () => rolesAsignables({ controlTotal, miRol: mi_rol }),
+    [controlTotal, mi_rol],
   );
 
   const load = useCallback(async () => {
@@ -219,7 +221,7 @@ export default function UsuariosTab() {
         )}
         {rows.map((row) => {
           const editable = puedeModificar({
-            isCeo,
+            controlTotal,
             miRol: mi_rol,
             myUserId: user?.id,
             target: row,

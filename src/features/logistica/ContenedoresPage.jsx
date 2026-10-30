@@ -15,6 +15,8 @@ import { useObra } from "../../obras/ObraProvider";
 import { PageActions } from "../obra/PageActions";
 import { C, fieldSx } from "../personal/theme";
 import ContenedorDrawer from "./ContenedorDrawer";
+import EnviosPanel from "./EnviosPanel";
+import ImportarEnvioDialog from "./ImportarEnvioDialog";
 import ImportarPackingDialog from "./ImportarPackingDialog";
 import NuevoContenedorDialog from "./NuevoContenedorDialog";
 import {
@@ -78,7 +80,9 @@ export default function ContenedoresPage() {
   const [q, setQ] = useState("");
   const [filtrosOpen, setFiltrosOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [envioOpen, setEnvioOpen] = useState(false);
   const [nuevoOpen, setNuevoOpen] = useState(false);
+  const [enviosRefresh, setEnviosRefresh] = useState(0);
   const [createdBanner, setCreatedBanner] = useState(
     location.state?.createdCodigo ?? null,
   );
@@ -191,6 +195,14 @@ export default function ContenedoresPage() {
             sx={{ borderRadius: 0, textTransform: "none" }}
           >
             Importar packing list
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setEnvioOpen(true)}
+            sx={{ borderRadius: 0, textTransform: "none" }}
+          >
+            Importar packing de ALUMAN
           </Button>
         </PageActions>
       )}
@@ -395,6 +407,8 @@ export default function ContenedoresPage() {
         onChanged={load}
       />
 
+      <EnviosPanel obraId={obraId} refreshKey={enviosRefresh} />
+
       {canImport && (
         <>
           <NuevoContenedorDialog
@@ -408,6 +422,15 @@ export default function ContenedoresPage() {
             onClose={() => setImportOpen(false)}
             obraId={obraId}
             onImported={onImported}
+          />
+          <ImportarEnvioDialog
+            open={envioOpen}
+            onClose={() => setEnvioOpen(false)}
+            obraId={obraId}
+            onImported={() => {
+              load();
+              setEnviosRefresh((n) => n + 1);
+            }}
           />
         </>
       )}

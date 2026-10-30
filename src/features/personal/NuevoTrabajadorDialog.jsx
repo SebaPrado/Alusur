@@ -17,8 +17,8 @@ import {
   Typography,
 } from "@mui/material";
 import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { C, dialogPaperSx, fieldSx, selectMenuProps } from "./theme";
 
 export default function NuevoTrabajadorDialog({
@@ -30,8 +30,8 @@ export default function NuevoTrabajadorDialog({
   onOpenEmpresas = null,
   empresasTick = 0,
 }) {
-  const { isCeo } = useAuth();
-  const { can } = useObra();
+  const { can, mi_rol } = useObra();
+  const controlTotal = controlTotalEnObra(mi_rol);
   const canHab = can("habilitacion.manage");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -250,7 +250,7 @@ export default function NuevoTrabajadorDialog({
             )}
           </Select>
         </FormControl>
-        {empresas.length === 0 && isCeo && onOpenEmpresas && (
+        {empresas.length === 0 && controlTotal && onOpenEmpresas && (
           <Button
             onClick={onOpenEmpresas}
             sx={{

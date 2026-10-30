@@ -1,7 +1,6 @@
 import React from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { Box, Button, Divider, IconButton, Typography } from "@mui/material";
-import { FiMenu } from "react-icons/fi";
 import { useObraNav } from "./ObraNavContext";
 import { PageActionsSlot } from "./PageActions";
 
@@ -23,14 +22,16 @@ export function usePagePadX() {
   return collapsed ? pagePadXCollapsed : pagePadX;
 }
 
-function sectionLabelFromPath(pathname) {
-  if (pathname.includes("/progreso")) return "Progreso";
-  if (pathname.includes("/logistica")) return "Logística";
-  if (pathname.includes("/personal")) return "Personal";
-  if (pathname.includes("/incidencias")) return "Incidencias";
-  if (pathname.includes("/resumen")) return "Resumen";
-  if (pathname.includes("/hoy")) return "Hoy";
-  return null;
+export function NavToggleIcon() {
+  return (
+    <Box
+      component="img"
+      src="/barra-lateral.png"
+      alt=""
+      aria-hidden
+      sx={{ width: 18, height: 18, display: "block", objectFit: "contain" }}
+    />
+  );
 }
 
 function TabIcon({ src, active }) {
@@ -75,8 +76,6 @@ export default function PageHeader({
   const location = useLocation();
   const { collapsed, toggleNav } = useObraNav();
   const padX = usePagePadX();
-  const section = sectionLabelFromPath(location.pathname);
-  const showSectionCrumb = collapsed && Boolean(tabs?.length) && Boolean(section);
   const showHamburger = Boolean(toggleNav) && collapsed;
 
   return (
@@ -136,7 +135,7 @@ export default function PageHeader({
                   "&:hover": { bgcolor: "rgba(242, 244, 247, 0.08)" },
                 }}
               >
-                <FiMenu size={18} strokeWidth={1.75} aria-hidden />
+                <NavToggleIcon />
               </IconButton>
               <Divider
                 orientation="vertical"
@@ -150,26 +149,6 @@ export default function PageHeader({
                 }}
               />
             </>
-          )}
-          {showSectionCrumb && (
-            <Typography
-              component="span"
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 0.75,
-                color: "text.secondary",
-                fontSize: "0.875rem",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                mr: 0.5,
-              }}
-            >
-              {section}
-              <Box component="span" aria-hidden sx={{ color: "text.disabled" }}>
-                {">"}
-              </Box>
-            </Typography>
           )}
           {tabs?.length
             ? tabs.map((tab) => {

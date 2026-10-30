@@ -15,7 +15,6 @@ import SinObra from "./Components/views/SinObra";
 import NotFound from "./Components/views/NotFound";
 import MisObrasPage from "./features/obras/MisObrasPage";
 import ObraEntry from "./features/obras/ObraEntry";
-import HoyPage from "./features/obra/HoyPage";
 import ResumenPage from "./features/obra/ResumenPage";
 import ProgresoPage from "./features/obra/ProgresoPage";
 import TorreTab from "./features/progreso/TorreTab";
@@ -31,6 +30,7 @@ import EquiposTab from "./features/personal/EquiposTab";
 import UsuariosTab from "./features/personal/UsuariosTab";
 import MaquinasTab from "./features/personal/MaquinasTab";
 import ElegirContrasena from "./Components/views/ElegirContrasena";
+import AuthUrlGate from "./auth/AuthUrlGate";
 import AreaSelector from "./pages/AreaSelector/AreaSelector";
 import AdminProviders, {
   AdminOrgRequired,
@@ -45,6 +45,7 @@ import LedgerPage from "./features/administracion/LedgerPage";
 import ProductsPage from "./features/administracion/ProductsPage";
 import SalePage from "./features/administracion/SalePage";
 import TerminalPage from "./features/administracion/TerminalPage";
+import PlataformaPage from "./features/plataforma/PlataformaPage";
 import { ObraProvider } from "./obras/ObraProvider";
 
 const FachadaWizard = lazy(() => import("./features/fachada/FachadaWizard"));
@@ -70,6 +71,9 @@ function LegacyToConstruccion() {
 
 const router = createBrowserRouter([
   {
+    element: <AuthUrlGate />,
+    children: [
+  {
     path: "/login",
     element: <Login />,
   },
@@ -87,12 +91,21 @@ const router = createBrowserRouter([
     children: [{ index: true, element: <ElegirContrasena /> }],
   },
   {
+    path: "/nueva-contrasena",
+    element: <RequireAuth />,
+    children: [{ index: true, element: <ElegirContrasena recovery /> }],
+  },
+  {
     path: "/",
     element: <AreaSelector />,
   },
   {
     element: <RequireAuth />,
     children: [
+      {
+        element: <GlobalLayout />,
+        children: [{ path: "plataforma", element: <PlataformaPage /> }],
+      },
       {
         path: "administracion",
         element: <AdminProviders />,
@@ -146,7 +159,7 @@ const router = createBrowserRouter([
             element: <ObraLayoutWithProvider />,
             children: [
               { index: true, element: <ObraEntry /> },
-              { path: "hoy", element: <HoyPage /> },
+              { path: "hoy", element: <Navigate to="../progreso/torre" replace /> },
               { path: "resumen", element: <ResumenPage /> },
               {
                 path: "progreso",
@@ -223,6 +236,8 @@ const router = createBrowserRouter([
   {
     path: "*",
     element: <NotFound />,
+  },
+    ],
   },
 ]);
 

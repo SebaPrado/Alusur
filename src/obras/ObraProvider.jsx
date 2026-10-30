@@ -8,8 +8,8 @@ import React, {
 } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { useAuth } from "../auth/AuthProvider";
 import { useMisObras } from "./MisObrasProvider";
+import { controlTotalEnObra } from "./accesoObra";
 import { writeStoredObraId } from "./storage";
 
 const ObraContext = createContext(null);
@@ -20,7 +20,6 @@ const ObraContext = createContext(null);
  */
 export function ObraProvider({ children }) {
   const { obraId } = useParams();
-  const { isCeo } = useAuth();
   const { obras, ready } = useMisObras();
   const [permissions, setPermissions] = useState([]);
 
@@ -29,21 +28,19 @@ export function ObraProvider({ children }) {
     [obras, obraId],
   );
 
-  const mi_rol = obra?.mi_rol ?? (isCeo && obraId ? "ceo" : null);
+  const mi_rol = obra?.mi_rol ?? null;
 
   useEffect(() => {
     if (obraId) writeStoredObraId(obraId);
   }, [obraId]);
 
-  // CEO de plataforma: isCeo (profiles) o mi_rol desde v_mis_obras.
-  // Ambos deben dar acceso total; si solo mi_rol llega a 'ceo', no dejar permisos vacíos.
-  const ceoAccess = Boolean(isCeo || mi_rol === "ceo");
+  const controlTotal = controlTotalEnObra(mi_rol);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      if (ceoAccess) {
+      if (controlTotal) {
         if (!cancelled) setPermissions(["*"]);
         return;
       }
@@ -68,14 +65,14 @@ export function ObraProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [mi_rol, ceoAccess]);
+  }, [mi_rol, controlTotal]);
 
   const can = useCallback(
     (permission) => {
-      if (ceoAccess) return true;
+      if (controlTotal) return true;
       return permissions.includes(permission);
     },
-    [ceoAccess, permissions],
+    [controlTotal, permissions],
   );
 
   const value = useMemo(
@@ -85,9 +82,9 @@ export function ObraProvider({ children }) {
       mi_rol,
       can,
       ready,
-      known: Boolean(obra) || (isCeo && Boolean(obraId)),
+      known: Boolean(obra),
     }),
-    [obraId, obra, mi_rol, can, ready, isCeo],
+    [obraId, obra, mi_rol, can, ready],
   );
 
   return <ObraContext.Provider value={value}>{children}</ObraContext.Provider>;

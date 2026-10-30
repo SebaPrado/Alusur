@@ -1,9 +1,16 @@
-import React from "react";
+import React, { createContext, useContext, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Box } from "@mui/material";
 import { PageActionsProvider } from "./PageActions";
 import PageHeader, { usePagePadX } from "./PageHeader";
 import { BAR_HEIGHT } from "../../Components/shell/TopBar";
+
+/** La vista 3D informa el ancho de su columna derecha para que el encabezado no la tape. */
+const SideInsetContext = createContext(() => {});
+
+export function useSideInset() {
+  return useContext(SideInsetContext);
+}
 
 /**
  * Layout con pestañas como encabezado (Progreso, Logística).
@@ -30,9 +37,11 @@ export default function SectionTabs({
   const padX = usePagePadX();
   const bare = noPadPaths.some((p) => location.pathname.includes(`/${p}`));
   const shellH = `calc(100vh - ${BAR_HEIGHT}px)`;
+  const [sideInset, setSideInset] = useState(0);
 
   return (
     <PageActionsProvider>
+      <SideInsetContext.Provider value={setSideInset}>
       <Box
         sx={{
           display: "flex",
@@ -50,7 +59,7 @@ export default function SectionTabs({
                 position: "absolute",
                 top: 0,
                 left: 0,
-                right: 0,
+                right: sideInset,
                 zIndex: 2,
               }}
             >
@@ -120,6 +129,7 @@ export default function SectionTabs({
           </>
         )}
       </Box>
+      </SideInsetContext.Provider>
     </PageActionsProvider>
   );
 }

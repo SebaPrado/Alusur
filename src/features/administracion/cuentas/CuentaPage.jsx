@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   CircularProgress,
+  IconButton,
   Link,
   Stack,
   Tab,
@@ -22,6 +23,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { FiEdit2 } from "react-icons/fi";
 import { supabase } from "../../../lib/supabase";
 import { useAdminOrg } from "../AdminOrgProvider";
 import AnularDialog from "./AnularDialog";
@@ -96,9 +98,14 @@ function MovRowDesktop({ mv, currency, isManager, onEditar, onAnular }) {
       <TableCell align="right">
         {isManager && !anulado && (
           <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-            <Button size="small" onClick={() => onEditar(mv)}>
-              Editar
-            </Button>
+            <IconButton
+              size="small"
+              aria-label="Editar"
+              title="Editar"
+              onClick={() => onEditar(mv)}
+            >
+              <FiEdit2 size={16} />
+            </IconButton>
             <Button size="small" color="warning" onClick={() => onAnular(mv)}>
               Anular
             </Button>
@@ -139,9 +146,14 @@ function MovCard({ mv, currency, isManager, onEditar, onAnular }) {
         </Stack>
         {isManager && !anulado && (
           <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-            <Button size="small" onClick={() => onEditar(mv)}>
-              Editar
-            </Button>
+            <IconButton
+              size="small"
+              aria-label="Editar"
+              title="Editar"
+              onClick={() => onEditar(mv)}
+            >
+              <FiEdit2 size={16} />
+            </IconButton>
             <Button size="small" color="warning" onClick={() => onAnular(mv)}>
               Anular
             </Button>

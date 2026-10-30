@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
   CircularProgress,
   Paper,
+  TextField,
   Typography,
 } from "@mui/material";
 import { supabase } from "../../lib/supabase";
@@ -19,31 +20,30 @@ export default function TerminalPage() {
   const { showError, showSuccess } = useAdminToast();
   const [terminals, setTerminals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [name, setName] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!organizationId) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("admin_terminals")
+      .select("id, name")
+      .eq("organization_id", organizationId)
+      .eq("active", true)
+      .order("name");
+    if (error) {
+      showError(rpcErrorMessage(error));
+      setTerminals([]);
+    } else {
+      setTerminals(data ?? []);
+    }
+    setLoading(false);
+  }, [organizationId, showError]);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!organizationId) return;
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("admin_terminals")
-        .select("id, name")
-        .eq("organization_id", organizationId)
-        .eq("active", true)
-        .order("name");
-      if (cancelled) return;
-      if (error) {
-        showError(rpcErrorMessage(error));
-        setTerminals([]);
-      } else {
-        setTerminals(data ?? []);
-      }
-      setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [organizationId, showError]);
+    load();
+  }, [load]);
 
   if (ready && !isManager) {
     return <Navigate to="/administracion" replace />;
@@ -53,6 +53,31 @@ export default function TerminalPage() {
     writeTerminalId(id);
     showSuccess("Caja asignada a esta PC");
     navigate("/administracion", { replace: true });
+  }
+
+  async function createCaja() {
+    const n = name.trim();
+    if (!n) {
+      showError("Poné un nombre para la caja");
+      return;
+    }
+    setCreating(true);
+    const { error } = await supabase.from("admin_terminals").insert({
+      organization_id: organizationId,
+      name: n,
+    });
+    setCreating(false);
+    if (error) {
+      showError(
+        error.code === "23505"
+          ? "Ya hay una caja con ese nombre"
+          : rpcErrorMessage(error),
+      );
+      return;
+    }
+    setName("");
+    showSuccess("Caja creada");
+    load();
   }
 
   return (
@@ -71,17 +96,30 @@ export default function TerminalPage() {
           Caja de esta PC
         </Typography>
         <Typography variant="body2" color="text.secondary" mb={3}>
-          Solo dueño o admin pueden asignar o cambiar la caja. El vendedor
-          la ve fija en la barra.
+          Creá una caja y asignala a esta PC. El vendedor la ve fija en la barra.
         </Typography>
+        <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+          <TextField
+            size="small"
+            label="Nueva caja"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") createCaja();
+            }}
+            fullWidth
+            disabled={creating}
+          />
+          <Button variant="contained" onClick={createCaja} disabled={creating}>
+            Crear
+          </Button>
+        </Box>
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
             <CircularProgress size={28} />
           </Box>
         ) : terminals.length === 0 ? (
-          <Typography color="text.secondary">
-            No hay cajas activas. Creálas en la base antes de operar.
-          </Typography>
+          <Typography color="text.secondary">Todavía no hay cajas.</Typography>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {terminals.map((t) => (

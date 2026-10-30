@@ -12,28 +12,28 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { FiMenu } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { writeNavCollapsed } from "../../obras/storage";
 import { ObraNavProvider } from "../../features/obra/ObraNavContext";
 import { supabase } from "../../lib/supabase";
-import { SECTION_BAR_HEIGHT } from "../../features/obra/PageHeader";
+import { NavToggleIcon, SECTION_BAR_HEIGHT } from "../../features/obra/PageHeader";
 import TopBar, { BAR_HEIGHT } from "./TopBar";
 
 const DRAWER_WIDTH = 200;
 const NAV_TRANSITION = "width 150ms ease, margin 150ms ease";
 
 /** Estado de incidencias pendientes según el rol (count, sin traer filas). */
-function incidenciasEstadoParaRol(isCeo, mi_rol) {
-  if (isCeo || mi_rol === "ceo" || mi_rol === "superadmin") return "en_revision";
+function incidenciasEstadoParaRol(mi_rol) {
+  if (controlTotalEnObra(mi_rol) || mi_rol === "superadmin") return "en_revision";
   if (mi_rol === "admin") return "abierta";
   return null;
 }
 
-function useIncidenciasPendientes(obraId, isCeo, mi_rol) {
+function useIncidenciasPendientes(obraId, mi_rol) {
   const [count, setCount] = useState(0);
-  const estado = incidenciasEstadoParaRol(isCeo, mi_rol);
+  const estado = incidenciasEstadoParaRol(mi_rol);
 
   useEffect(() => {
     if (!obraId || !estado) {
@@ -64,39 +64,31 @@ function useIncidenciasPendientes(obraId, isCeo, mi_rol) {
 }
 
 function useObraNavItems(incidenciasCount) {
-  const { isCeo } = useAuth();
   const { obraId, mi_rol, can } = useObra();
   const role = mi_rol;
+  const controlTotal = controlTotalEnObra(role);
   // Misma base que la ruta viva (`/construccion/obra/...`). Links a `/obra/...`
   // disparan LegacyToConstruccion, remontan ObraLayout y reabren el sidebar.
   const base = `/construccion/obra/${obraId}`;
   const items = [];
 
-  // Hoy ↔ Resumen: mutuamente excluyentes. Owner ve Resumen; el resto (y CEO) ve Hoy.
-  if (role === "owner" && !isCeo) {
+  items.push({
+    to: `${base}/progreso/torre`,
+    label: "Progreso",
+    match: "/progreso",
+    iconSrc: "/calendario.png",
+  });
+
+  if (role === "owner" && !controlTotal) {
     items.push({
       to: `${base}/resumen`,
       label: "Resumen",
       match: "/resumen",
       iconSrc: "/calendario.png",
     });
-  } else {
-    items.push({
-      to: `${base}/hoy`,
-      label: "Hoy",
-      match: "/hoy",
-      iconSrc: "/calendario.png",
-    });
   }
 
-  items.push({
-    to: `${base}/progreso/torre`,
-    label: "Progreso",
-    match: "/progreso",
-    iconSrc: "/progress.png",
-  });
-
-  if (isCeo || role !== "owner") {
+  if (controlTotal || role !== "owner") {
     items.push({
       to: `${base}/logistica/contenedores`,
       label: "Logística",
@@ -113,7 +105,7 @@ function useObraNavItems(incidenciasCount) {
   }
 
   if (
-    isCeo ||
+    controlTotal ||
     can("members.manage") ||
     can("equipo.manage") ||
     can("maquina.manage")
@@ -240,7 +232,7 @@ function NavList({ onNavigate, onCollapse, incidenciasCount }) {
                   },
                 }}
               >
-                <FiMenu size={18} strokeWidth={1.75} aria-hidden />
+                <NavToggleIcon />
               </IconButton>
             </Box>
           );
@@ -283,10 +275,10 @@ export default function ObraLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   // Al entrar a una obra (p. ej. desde /) el sidebar arranca abierto.
   const [navCollapsed, setNavCollapsed] = useState(false);
-  const { loadError, isCeo } = useAuth();
+  const { loadError } = useAuth();
   const { mi_rol, ready, known, obraId: ctxObraId } = useObra();
   const { obraId } = useParams();
-  const incidenciasCount = useIncidenciasPendientes(ctxObraId ?? obraId, isCeo, mi_rol);
+  const incidenciasCount = useIncidenciasPendientes(ctxObraId ?? obraId, mi_rol);
 
   const desktopOpen = !navCollapsed;
   const navWidth = desktopOpen ? DRAWER_WIDTH : 0;

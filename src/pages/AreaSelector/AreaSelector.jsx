@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Menu, MenuItem } from "@mui/material";
 import { entryTarget } from "../../app/authRedirect";
 import { useAuth } from "../../auth/AuthProvider";
-import {
-  clearOrgId,
-  clearTerminalId,
-} from "../../features/administracion/storage";
+import { clearTerminalId } from "../../features/administracion/storage";
+import { clearStoredOrgId } from "../../org/OrganizacionProvider";
+import OrgSwitcher, { ItemPlataforma } from "../../org/OrgSwitcher";
+import { useOrganizacion } from "../../org/OrganizacionProvider";
+import { areasVisibles, destinoAlCambiarOrg } from "../../org/organizacion";
 import { supabase } from "../../lib/supabase";
 import "./AreaSelector.css";
 
@@ -31,8 +32,12 @@ export default function AreaSelector() {
   const navigate = useNavigate();
   const location = useLocation();
   const { status, session, user, profile, signOut } = useAuth();
+  const { ready: orgReady, orgActiva } = useOrganizacion();
   const [menuEl, setMenuEl] = useState(null);
   const [memberDisplayName, setMemberDisplayName] = useState(null);
+  const esObrero = Boolean(profile?.is_worker);
+  const areas = areasVisibles({ org: orgActiva, esObrero });
+  const paneles = session ? AREAS.filter((a) => areas.includes(a.key)) : AREAS;
 
   useEffect(() => {
     let cancelled = false;
@@ -73,9 +78,19 @@ export default function AreaSelector() {
   async function switchUser() {
     setMenuEl(null);
     clearTerminalId();
-    clearOrgId();
+    clearStoredOrgId();
     await signOut();
     navigate("/login", { replace: true });
+  }
+
+  if (session && (status !== "ready" || !orgReady)) {
+    return <div className="area-selector-page" />;
+  }
+
+  if (session && paneles.length === 1) {
+    return (
+      <Navigate to={destinoAlCambiarOrg({ org: orgActiva, esObrero })} replace />
+    );
   }
 
   return (
@@ -84,6 +99,7 @@ export default function AreaSelector() {
       <div className="area-selector-user">
         {session ? (
           <>
+            <OrgSwitcher soloSiHayVarias />
             <button
               type="button"
               className="area-selector-user__login"
@@ -111,6 +127,7 @@ export default function AreaSelector() {
                 paper: { sx: { borderRadius: 0, mt: 1, minWidth: 180 } },
               }}
             >
+              <ItemPlataforma onPick={() => setMenuEl(null)} />
               <MenuItem onClick={switchUser}>Cambiar de usuario</MenuItem>
             </Menu>
           </>
@@ -133,7 +150,10 @@ export default function AreaSelector() {
       </div>
 
       <main className="area-selector" aria-label="Elegir área de trabajo">
-        {AREAS.map((area) => (
+        {paneles.length === 0 ? (
+          <p className="area-panel__subtitle">Esta organización no tiene áreas habilitadas.</p>
+        ) : (
+          paneles.map((area) => (
           <button
             key={area.key}
             type="button"
@@ -147,7 +167,8 @@ export default function AreaSelector() {
               <span className="area-panel__cta">Entrar →</span>
             </div>
           </button>
-        ))}
+          ))
+        )}
       </main>
     </div>
   );

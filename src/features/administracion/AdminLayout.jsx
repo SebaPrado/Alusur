@@ -1,9 +1,9 @@
 import React from "react";
 import { Box, CircularProgress } from "@mui/material";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../../auth/AuthProvider";
 import { AdminOrgProvider, useAdminOrg } from "./AdminOrgProvider";
 import { AdminToastProvider } from "./toast";
-import ElegirOrganizacion from "./ElegirOrganizacion";
 import SinOrganizacion from "./SinOrganizacion";
 
 /** Providers comunes del área administración. */
@@ -22,7 +22,8 @@ export default function AdminProviders() {
  * No exige terminal ni caja (MIRAR ≠ OPERAR).
  */
 export function AdminOrgRequired() {
-  const { ready, memberships, organizationId, error } = useAdminOrg();
+  const { profile } = useAuth();
+  const { ready, organizationId, areas, role, error } = useAdminOrg();
 
   if (!ready) {
     return (
@@ -43,12 +44,26 @@ export function AdminOrgRequired() {
     return <Box sx={{ p: 4 }}>Error al cargar organizaciones: {error}</Box>;
   }
 
-  if (memberships.length === 0) {
-    return <SinOrganizacion />;
+  if (profile?.is_worker || role === "obra") {
+    return (
+      <Navigate
+        to={areas.includes("construccion") ? "/construccion" : "/"}
+        replace
+      />
+    );
   }
 
   if (!organizationId) {
-    return <ElegirOrganizacion />;
+    return <SinOrganizacion />;
+  }
+
+  if (!areas.includes("administracion")) {
+    return (
+      <Navigate
+        to={areas.includes("construccion") ? "/construccion" : "/"}
+        replace
+      />
+    );
   }
 
   return <Outlet />;

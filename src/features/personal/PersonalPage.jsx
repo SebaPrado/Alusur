@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Box, Button, Typography } from "@mui/material";
-import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { PageActionsProvider } from "../obra/PageActions";
 import PageHeader, { usePagePadX } from "../obra/PageHeader";
 import VincularEmpresasDialog from "./VincularEmpresasDialog";
@@ -48,8 +48,8 @@ function usePersonalTabs() {
 
 export default function PersonalPage() {
   const location = useLocation();
-  const { isCeo } = useAuth();
-  const { obraId, can, ready, known } = useObra();
+  const { obraId, can, mi_rol, ready, known } = useObra();
+  const controlTotal = controlTotalEnObra(mi_rol);
   const padX = usePagePadX();
   const [empresasOpen, setEmpresasOpen] = useState(false);
   const [empresasTick, setEmpresasTick] = useState(0);
@@ -98,7 +98,7 @@ export default function PersonalPage() {
           tabs={tabs}
           maxWidth={1200}
           end={
-            isCeo ? (
+            controlTotal ? (
               <Button
                 onClick={() => setEmpresasOpen(true)}
                 variant="outlined"
@@ -125,13 +125,13 @@ export default function PersonalPage() {
           <Outlet
             context={{
               obraId,
-              openEmpresas: isCeo ? () => setEmpresasOpen(true) : null,
+              openEmpresas: controlTotal ? () => setEmpresasOpen(true) : null,
               empresasTick,
             }}
           />
         </Box>
 
-        {isCeo && (
+        {controlTotal && (
           <VincularEmpresasDialog
             open={empresasOpen}
             onClose={() => setEmpresasOpen(false)}

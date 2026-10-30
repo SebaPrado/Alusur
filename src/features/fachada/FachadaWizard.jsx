@@ -27,6 +27,8 @@ import { supabase } from "../../lib/supabase";
 import { limpiarPrefijoObra, prefijoObraValido } from "../../lib/codigos";
 import { useAuth } from "../../auth/AuthProvider";
 import { useMisObras } from "../../obras/MisObrasProvider";
+import { useOrganizacion } from "../../org/OrganizacionProvider";
+import { puedeCrearObras } from "../../org/organizacion";
 import { BAR_HEIGHT } from "../../Components/shell/TopBar";
 import {
   DEFAULT_CONFIG,
@@ -149,7 +151,9 @@ function FilaEjes({ cara }) {
 
 export default function FachadaWizard() {
   const navigate = useNavigate();
-  const { isCeo, refresh, status: authStatus } = useAuth();
+  const { refresh, status: authStatus } = useAuth();
+  const { plataforma, orgActiva } = useOrganizacion();
+  const puedeCrear = puedeCrearObras({ plataforma, org: orgActiva });
   const { refresh: refreshObras } = useMisObras();
   const [config, setConfig] = useState(() => structuredClone(DEFAULT_CONFIG));
   const [prefijo, setPrefijo] = useState("");
@@ -237,8 +241,8 @@ export default function FachadaWizard() {
 
   const guardar = async () => {
     if (errores.length > 0 || prefijoInvalido || guardando) return;
-    if (!isCeo) {
-      setErrorGuardar("Solo un CEO puede crear una obra nueva.");
+    if (!puedeCrear) {
+      setErrorGuardar("Solo el dueño de una organización con Construcción puede crear obras.");
       return;
     }
     setGuardando(true);
@@ -249,6 +253,7 @@ export default function FachadaWizard() {
       const { data: obraId, error: errObra } = await supabase.rpc("create_obra", {
         p_nombre: nombre,
         p_ubicacion: ubicacion,
+        p_organizacion: orgActiva?.id ?? null,
       });
       if (errObra) throw errObra;
 
@@ -269,7 +274,7 @@ export default function FachadaWizard() {
       await refresh();
       await refreshObras();
       setGuardado(true);
-      navigate(`/obra/${obraId}/hoy`, { replace: true });
+      navigate(`/obra/${obraId}/progreso/torre`, { replace: true });
     } catch (e) {
       console.error(e);
       setErrorGuardar(e?.message || "No se pudo guardar la obra.");
@@ -317,8 +322,8 @@ export default function FachadaWizard() {
         }
         inputProps={{ maxLength: 3, autoCapitalize: "characters", "aria-label": "Prefijo de la obra" }}
       />
-      {!isCeo && authStatus === "ready" && (
-        <Alert severity="warning">Solo un CEO puede crear una obra nueva.</Alert>
+      {!puedeCrear && authStatus === "ready" && (
+        <Alert severity="warning">Solo el dueño de una organización con Construcción puede crear obras.</Alert>
       )}
     </Box>
   );
@@ -679,7 +684,7 @@ export default function FachadaWizard() {
             {ultimo ? (
               <Button
                 variant="contained"
-                disabled={errores.length > 0 || guardando || !isCeo}
+                disabled={errores.length > 0 || guardando || !puedeCrear}
                 onClick={guardar}
               >
                 {guardando ? "Guardando…" : "Guardar obra"}

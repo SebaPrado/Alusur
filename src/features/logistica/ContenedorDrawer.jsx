@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { supabase } from "../../lib/supabase";
 import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { C, dialogPaperSx, fieldSx, selectMenuProps } from "../personal/theme";
 import {
   confirmacionCoincide,
@@ -55,7 +56,7 @@ export default function ContenedorDrawer({
   const canImport = can("contenedor.import");
   const canTrans = can("contenedor.transicion");
   const canDelete = can("contenedor.delete");
-  const esCeo = mi_rol === "ceo";
+  const controlTotal = controlTotalEnObra(mi_rol);
 
   const open = Boolean(contenedorId);
 
@@ -511,7 +512,7 @@ export default function ContenedorDrawer({
                   {nivelError}
                 </Typography>
               )}
-              {canDelete && puedeEliminar(nivel, esCeo) && (
+              {canDelete && puedeEliminar(nivel, controlTotal) && (
                 <Button
                   onClick={abrirEliminar}
                   sx={{

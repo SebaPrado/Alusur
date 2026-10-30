@@ -6,8 +6,26 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { Alert, Snackbar } from "@mui/material";
 import { supabase } from "../lib/supabase";
 import { clearStoredObraId } from "../obras/storage";
+import {
+  PASSWORD_UPDATED,
+  RECOVERY_STORAGE_KEY,
+  urlIndicatesPasswordRecovery,
+} from "./passwordRecovery";
+
+function readRecoveryPending() {
+  if (typeof window === "undefined") return false;
+  try {
+    if (urlIndicatesPasswordRecovery(window.location.search, window.location.hash)) {
+      return true;
+    }
+    return sessionStorage.getItem(RECOVERY_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 const AuthContext = createContext(null);
 
@@ -16,14 +34,14 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loadError, setLoadError] = useState(null);
-
-  const isCeo = profile?.platform_role === "ceo";
+  const [recoveryPending, setRecoveryPending] = useState(readRecoveryPending);
+  const [passwordNotice, setPasswordNotice] = useState("");
 
   const loadUserData = useCallback(async (userId) => {
     setLoadError(null);
     const { data: profileRow, error: profileErr } = await supabase
       .from("profiles")
-      .select("id, full_name, phone, platform_role, is_worker")
+      .select("id, full_name, phone, is_worker")
       .eq("id", userId)
       .maybeSingle();
 
@@ -51,6 +69,24 @@ export function AuthProvider({ children }) {
   }, [loadUserData]);
 
   useEffect(() => {
+    try {
+      if (recoveryPending) sessionStorage.setItem(RECOVERY_STORAGE_KEY, "1");
+      else sessionStorage.removeItem(RECOVERY_STORAGE_KEY);
+    } catch {
+      /* modo privado */
+    }
+  }, [recoveryPending]);
+
+  const abandonRecovery = useCallback(() => {
+    setRecoveryPending(false);
+  }, []);
+
+  const notifyPasswordUpdated = useCallback(() => {
+    setRecoveryPending(false);
+    setPasswordNotice(PASSWORD_UPDATED);
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
 
     (async () => {
@@ -69,7 +105,18 @@ export function AuthProvider({ children }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, s) => {
       setSession(s);
-      if (event === "SIGNED_OUT" || !s?.user) {
+      if (event === "PASSWORD_RECOVERY") {
+        setRecoveryPending(true);
+      }
+      if (event === "SIGNED_OUT") {
+        setRecoveryPending(false);
+        setProfile(null);
+        setLoadError(null);
+        clearStoredObraId();
+        setStatus("ready");
+        return;
+      }
+      if (!s?.user) {
         setProfile(null);
         setLoadError(null);
         clearStoredObraId();
@@ -80,7 +127,8 @@ export function AuthProvider({ children }) {
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED" ||
         event === "USER_UPDATED" ||
-        event === "INITIAL_SESSION"
+        event === "INITIAL_SESSION" ||
+        event === "PASSWORD_RECOVERY"
       ) {
         setStatus("loading");
         await loadUserData(s.user.id);
@@ -105,15 +153,49 @@ export function AuthProvider({ children }) {
       session,
       user: session?.user ?? null,
       profile,
-      isCeo,
       loadError,
+      recoveryPending,
+      abandonRecovery,
+      notifyPasswordUpdated,
       signOut,
       refresh,
     }),
-    [status, session, profile, isCeo, loadError, signOut, refresh],
+    [
+      status,
+      session,
+      profile,
+      loadError,
+      recoveryPending,
+      abandonRecovery,
+      notifyPasswordUpdated,
+      signOut,
+      refresh,
+    ],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <Snackbar
+        open={Boolean(passwordNotice)}
+        autoHideDuration={5000}
+        onClose={(_, reason) => {
+          if (reason === "clickaway") return;
+          setPasswordNotice("");
+        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={() => setPasswordNotice("")}
+          sx={{ borderRadius: 0 }}
+        >
+          {passwordNotice}
+        </Alert>
+      </Snackbar>
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

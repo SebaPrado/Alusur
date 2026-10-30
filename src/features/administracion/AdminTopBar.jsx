@@ -17,8 +17,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { FiEdit2 } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthProvider";
+import OrgSwitcher, { ItemPlataforma } from "../../org/OrgSwitcher";
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { formatDateTime, formatRateLabel, isRateStale } from "./money";
@@ -32,6 +32,7 @@ export const ADMIN_TOPBAR_HEIGHT = 48;
 export const ADMIN_GUTTER = { xs: 2, sm: 3, md: 5 };
 
 const ROLE_LABEL = {
+  plataforma: "Plataforma",
   dueno: "Dueño",
   admin: "Admin",
   vendedor: "Vendedor",
@@ -194,14 +195,22 @@ export default function AdminTopBar({
   onRateSaved,
   onTerminalChanged,
 }) {
-  const { organizationId, organizationName, displayName, role, isManager } =
-    useAdminOrg();
+  const { organizationId, displayName, role, isManager } = useAdminOrg();
   const { signOut } = useAuth();
   const { showError, showSuccess } = useAdminToast();
   const [userMenu, setUserMenu] = useState(null);
   const [rateDialog, setRateDialog] = useState(false);
   const [rateInput, setRateInput] = useState("");
   const [busy, setBusy] = useState(false);
+
+  function openRate() {
+    if (rate?.rate != null) {
+      setRateInput(String(rate.rate).replace(".", ","));
+    } else {
+      setRateInput("");
+    }
+    setRateDialog(true);
+  }
 
   async function saveRate() {
     const n = Number(String(rateInput).replace(",", "."));
@@ -264,41 +273,47 @@ export default function AdminTopBar({
         >
           <Box
             component="img"
-            src="/iconv4.png"
+            src="/boian.svg"
             alt=""
-            sx={{ display: "block", height: 18, width: "auto", opacity: 0.45 }}
+            sx={{ display: "block", height: 18, width: "auto" }}
           />
         </Box>
-        <Typography variant="body2" noWrap sx={{ fontWeight: 600, minWidth: 0 }}>
-          {organizationName}
-        </Typography>
+        <OrgSwitcher />
         <Box sx={{ flex: 1, minWidth: 16 }} />
         <CajaSwitcher
           name={terminalName}
           terminalId={terminalId}
           onChanged={onTerminalChanged}
         />
-        <Typography
-          variant="body2"
-          noWrap
-          title={rate?.valid_from ? formatDateTime(rate.valid_from) : undefined}
+        <Box
+          component="button"
+          type="button"
+          aria-label={rateLabel ?? "Sin cotización"}
+          title="Ver cotización"
+          onClick={openRate}
           sx={{
-            ...headerValueSx,
-            ...(stale ? { color: "error.main", fontWeight: 700 } : null),
+            flexShrink: 0,
+            width: 28,
+            height: 28,
+            m: 0,
+            p: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            border: "1.5px solid",
+            borderColor: stale ? "error.main" : "text.primary",
+            color: stale ? "error.main" : "text.primary",
+            bgcolor: "transparent",
+            font: "inherit",
+            fontSize: 15,
+            fontWeight: 700,
+            lineHeight: 1,
+            cursor: "pointer",
           }}
         >
-          {rateLabel ?? "Sin cotización"}
-        </Typography>
-        {isManager && (
-          <IconButton
-            size="small"
-            aria-label="Editar cotización"
-            onClick={() => setRateDialog(true)}
-            sx={{ flexShrink: 0, color: "text.secondary" }}
-          >
-            <FiEdit2 size={16} />
-          </IconButton>
-        )}
+          $
+        </Box>
         <Divider orientation="vertical" flexItem sx={{ my: 1.25 }} />
         <Box
           component="button"
@@ -379,6 +394,7 @@ export default function AdminTopBar({
           </Box>
         </MenuItem>
         <Divider />
+        <ItemPlataforma onPick={() => setUserMenu(null)} />
         <MenuItem
           onClick={() => {
             setUserMenu(null);
@@ -395,28 +411,39 @@ export default function AdminTopBar({
         fullWidth
         maxWidth="xs"
       >
-        <DialogTitle>Nueva cotización</DialogTitle>
+        <DialogTitle>Cotización</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="text.secondary" mb={1}>
-            Pesos por 1 dólar (UYU por USD).
+          <Typography variant="h6" sx={{ mt: 0.5 }}>
+            {rateLabel ?? "Sin cotización"}
           </Typography>
-          <TextField
-            autoFocus
-            fullWidth
-            label="Cotización"
-            value={rateInput}
-            onChange={(e) => setRateInput(e.target.value)}
-            inputProps={{ inputMode: "decimal" }}
-            margin="normal"
-          />
+          <Typography variant="body2" color={stale ? "error.main" : "text.secondary"} mb={1}>
+            {rate?.valid_from
+              ? `Vigente desde ${formatDateTime(rate.valid_from)}`
+              : "Todavía no hay una cotización cargada."}
+            {stale && rateLabel ? " · es de otro día" : ""}
+          </Typography>
+          {isManager && (
+            <TextField
+              autoFocus
+              fullWidth
+              label="Nueva cotización"
+              helperText="Pesos por 1 dólar"
+              value={rateInput}
+              onChange={(e) => setRateInput(e.target.value)}
+              inputProps={{ inputMode: "decimal" }}
+              margin="normal"
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setRateDialog(false)} disabled={busy}>
-            Cancelar
+            {isManager ? "Cancelar" : "Cerrar"}
           </Button>
-          <Button variant="contained" onClick={saveRate} disabled={busy}>
-            Guardar
-          </Button>
+          {isManager && (
+            <Button variant="contained" onClick={saveRate} disabled={busy}>
+              Guardar
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </>

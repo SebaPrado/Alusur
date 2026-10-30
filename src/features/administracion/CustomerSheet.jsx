@@ -5,8 +5,10 @@ import {
   CircularProgress,
   Collapse,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Stack,
   Table,
   TableBody,
@@ -15,8 +17,9 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiEdit2, FiTrash2 } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
+import { useAdminOrg } from "./AdminOrgProvider";
 import { buildCustomerStatement } from "./customerStatement";
 import { formatDateTime, formatMoney } from "./money";
 import { rpcErrorMessage } from "./rpcError";
@@ -43,13 +46,16 @@ export default function CustomerSheet({
   onChanged,
 }) {
   const ops = useOperatingContext();
-  const { showError } = useAdminToast();
+  const { isManager } = useAdminOrg();
+  const { showError, showSuccess } = useAdminToast();
   const [customer, setCustomer] = useState(null);
   const [balance, setBalance] = useState(null);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     if (!customerId) return;
@@ -104,6 +110,28 @@ export default function CustomerSheet({
     load();
   }, [open, customerId, load]);
 
+  async function confirmDelete() {
+    if (!customer) return;
+    setDeleting(true);
+    const { data, error } = await supabase.rpc("admin_delete_customer", {
+      p_customer_id: customer.id,
+    });
+    setDeleting(false);
+    if (error) {
+      showError(rpcErrorMessage(error));
+      return;
+    }
+    showSuccess(
+      data === "inactivo"
+        ? "Tiene movimientos: quedó inactivo"
+        : "Cliente eliminado",
+    );
+    setDeleteOpen(false);
+    onChanged?.();
+    if (data !== "inactivo") onClose?.();
+    else load();
+  }
+
   const balUyu = Number(balance?.balance_uyu) || 0;
   const balUsd = Number(balance?.balance_usd) || 0;
   const limit =
@@ -124,9 +152,27 @@ export default function CustomerSheet({
           <Box sx={{ flex: 1, minWidth: 0 }}>
             {customer?.name ?? "Cliente"}
           </Box>
-          <Button size="small" onClick={() => setEditOpen(true)} disabled={!customer}>
-            Editar
-          </Button>
+          <IconButton
+            size="small"
+            aria-label="Editar"
+            title="Editar"
+            disabled={!customer}
+            onClick={() => setEditOpen(true)}
+          >
+            <FiEdit2 size={16} />
+          </IconButton>
+          {isManager && (
+            <IconButton
+              size="small"
+              color="error"
+              aria-label="Eliminar"
+              title="Eliminar"
+              disabled={!customer}
+              onClick={() => setDeleteOpen(true)}
+            >
+              <FiTrash2 size={16} />
+            </IconButton>
+          )}
           <Button
             size="small"
             variant="contained"
@@ -271,6 +317,33 @@ export default function CustomerSheet({
           onChanged?.();
         }}
       />
+      <Dialog
+        open={deleteOpen}
+        onClose={deleting ? undefined : () => setDeleteOpen(false)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Eliminar cliente</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            ¿Eliminar {customer?.name}? Si ya tiene ventas o cobranzas, queda
+            inactivo para no perder el historial.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteOpen(false)} disabled={deleting}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={confirmDelete}
+            disabled={deleting}
+          >
+            {deleting ? "Eliminando…" : "Eliminar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

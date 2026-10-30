@@ -1,14 +1,13 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { Box, Typography } from "@mui/material";
-import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { PageActionsProvider } from "./PageActions";
 import PageHeader, { usePagePadX } from "./PageHeader";
 import SinAcceso from "./SinAcceso";
 
 export default function ResumenPage() {
-  const { isCeo } = useAuth();
   const { mi_rol, ready, known } = useObra();
   const padX = usePagePadX();
 
@@ -20,8 +19,7 @@ export default function ResumenPage() {
     return <Navigate to="/obras" replace />;
   }
 
-  // Solo Owner (CEO puede entrar por URL)
-  if (!isCeo && mi_rol !== "owner") {
+  if (!controlTotalEnObra(mi_rol) && mi_rol !== "owner") {
     return <SinAcceso />;
   }
 

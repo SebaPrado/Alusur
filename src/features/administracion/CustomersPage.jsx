@@ -2,6 +2,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -11,6 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
 import CollectionDialog from "./CollectionDialog";
@@ -35,12 +41,15 @@ function docLabel(c) {
 }
 
 export default function CustomersPage() {
-  const { organizationId } = useAdminOrg();
-  const { showError } = useAdminToast();
+  const { organizationId, isManager } = useAdminOrg();
+  const { showError, showSuccess } = useAdminToast();
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [deleteCustomer, setDeleteCustomer] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [sheetId, setSheetId] = useState(null);
   const [sheetNonce, setSheetNonce] = useState(0);
   const [collectCustomer, setCollectCustomer] = useState(null);
@@ -90,6 +99,27 @@ export default function CustomersPage() {
 
   useAdminRealtime({ onTick: load, tables: BALANCE_TABLES });
 
+  async function confirmDelete() {
+    if (!deleteCustomer) return;
+    setDeleting(true);
+    const { data, error } = await supabase.rpc("admin_delete_customer", {
+      p_customer_id: deleteCustomer.id,
+    });
+    setDeleting(false);
+    if (error) {
+      showError(rpcErrorMessage(error));
+      return;
+    }
+    showSuccess(
+      data === "inactivo"
+        ? "Tiene movimientos: quedó inactivo"
+        : "Cliente eliminado",
+    );
+    if (sheetId === deleteCustomer.id && data !== "inactivo") setSheetId(null);
+    setDeleteCustomer(null);
+    load();
+  }
+
   const q = search.trim().toLowerCase();
   const visible = q
     ? rows.filter(
@@ -113,7 +143,10 @@ export default function CustomersPage() {
         <Button
           size="small"
           variant="contained"
-          onClick={() => setDialogOpen(true)}
+          onClick={() => {
+            setEditing(null);
+            setDialogOpen(true);
+          }}
         >
           + Nuevo cliente
         </Button>
@@ -127,12 +160,13 @@ export default function CustomersPage() {
               <TableCell>Teléfono</TableCell>
               <TableCell align="right">Saldo $</TableCell>
               <TableCell align="right">Saldo U$S</TableCell>
+              <TableCell />
             </TableRow>
           </TableHead>
           <TableBody>
             {!loading && visible.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <Typography variant="body2" color="text.secondary">
                     No hay clientes
                   </Typography>
@@ -158,6 +192,34 @@ export default function CustomersPage() {
                 <TableCell align="right" sx={balanceSx(c.balance_usd)}>
                   {formatMoney(c.balance_usd, "USD")}
                 </TableCell>
+                <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                  <IconButton
+                    size="small"
+                    aria-label="Editar"
+                    title="Editar"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditing(c);
+                      setDialogOpen(true);
+                    }}
+                  >
+                    <FiEdit2 size={16} />
+                  </IconButton>
+                  {isManager && (
+                    <IconButton
+                      size="small"
+                      color="error"
+                      aria-label="Eliminar"
+                      title="Eliminar"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteCustomer(c);
+                      }}
+                    >
+                      <FiTrash2 size={16} />
+                    </IconButton>
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -166,10 +228,37 @@ export default function CustomersPage() {
 
       <CustomerDialog
         open={dialogOpen}
-        customer={null}
+        customer={editing}
         onClose={() => setDialogOpen(false)}
         onSaved={load}
       />
+      <Dialog
+        open={Boolean(deleteCustomer)}
+        onClose={deleting ? undefined : () => setDeleteCustomer(null)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Eliminar cliente</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            ¿Eliminar {deleteCustomer?.name}? Si ya tiene ventas o cobranzas,
+            queda inactivo para no perder el historial.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteCustomer(null)} disabled={deleting}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={confirmDelete}
+            disabled={deleting}
+          >
+            {deleting ? "Eliminando…" : "Eliminar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <CustomerSheet
         key={`${sheetId ?? ""}-${sheetNonce}`}
         open={Boolean(sheetId)}

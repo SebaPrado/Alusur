@@ -1,6 +1,7 @@
 /**
  * Códigos de pieza, únicos en todo el sistema.
  * Contenedor: PREFIJO-C-0001. Módulo: PREFIJO-C-0001-07-X.
+ * Bulto: PREFIJO-B-0005-X.
  * La entrada acepta el prefijo de obra o no, con o sin guiones.
  * El dígito de control es Luhn mod 36 sobre el código sin ese dígito.
  */
@@ -11,11 +12,15 @@ const MODULO_CON = /^([A-Z][A-Z0-9]{2})-C-(\d{4})-(\d{2})-([0-9A-Z])$/;
 const MODULO_SIN = /^C-(\d{4})-(\d{2})-([0-9A-Z])$/;
 const CONT_CON = /^([A-Z][A-Z0-9]{2})-C-(\d{4})$/;
 const CONT_SIN = /^C-(\d{4})$/;
+const BULTO_CON = /^([A-Z][A-Z0-9]{2})-B-(\d{4})-([0-9A-Z])$/;
+const BULTO_SIN = /^B-(\d{4})-([0-9A-Z])$/;
 
 const MODULO_COMPACTO_CON = /^([A-Z][A-Z0-9]{2})C(\d{4})(\d{2})([0-9A-Z])$/;
 const MODULO_COMPACTO_SIN = /^C(\d{4})(\d{2})([0-9A-Z])$/;
 const CONT_COMPACTO_CON = /^([A-Z][A-Z0-9]{2})C(\d{4})$/;
 const CONT_COMPACTO_SIN = /^C(\d{4})$/;
+const BULTO_COMPACTO_CON = /^([A-Z][A-Z0-9]{2})B(\d{4})([0-9A-Z])$/;
+const BULTO_COMPACTO_SIN = /^B(\d{4})([0-9A-Z])$/;
 
 function limpiarEntrada(texto) {
   return String(texto ?? "")
@@ -25,9 +30,41 @@ function limpiarEntrada(texto) {
 
 function partesConGuiones(texto) {
   let m = texto.match(MODULO_CON);
-  if (m) return { prefijo: m[1], contenedor: m[2], posicion: m[3], control: m[4] };
+  if (m) {
+    return {
+      prefijo: m[1],
+      contenedor: m[2],
+      posicion: m[3],
+      control: m[4],
+    };
+  }
   m = texto.match(MODULO_SIN);
-  if (m) return { prefijo: null, contenedor: m[1], posicion: m[2], control: m[3] };
+  if (m) {
+    return {
+      prefijo: null,
+      contenedor: m[1],
+      posicion: m[2],
+      control: m[3],
+    };
+  }
+  m = texto.match(BULTO_CON);
+  if (m) {
+    return {
+      prefijo: m[1],
+      tipo: "bulto",
+      numero: m[2],
+      control: m[3],
+    };
+  }
+  m = texto.match(BULTO_SIN);
+  if (m) {
+    return {
+      prefijo: null,
+      tipo: "bulto",
+      numero: m[1],
+      control: m[2],
+    };
+  }
   m = texto.match(CONT_CON);
   if (m) return { prefijo: m[1], contenedor: m[2], posicion: null, control: null };
   m = texto.match(CONT_SIN);
@@ -38,9 +75,41 @@ function partesConGuiones(texto) {
 function partesCompacto(texto) {
   const compacto = texto.replace(/-/g, "");
   let m = compacto.match(MODULO_COMPACTO_CON);
-  if (m) return { prefijo: m[1], contenedor: m[2], posicion: m[3], control: m[4] };
+  if (m) {
+    return {
+      prefijo: m[1],
+      contenedor: m[2],
+      posicion: m[3],
+      control: m[4],
+    };
+  }
   m = compacto.match(MODULO_COMPACTO_SIN);
-  if (m) return { prefijo: null, contenedor: m[1], posicion: m[2], control: m[3] };
+  if (m) {
+    return {
+      prefijo: null,
+      contenedor: m[1],
+      posicion: m[2],
+      control: m[3],
+    };
+  }
+  m = compacto.match(BULTO_COMPACTO_CON);
+  if (m) {
+    return {
+      prefijo: m[1],
+      tipo: "bulto",
+      numero: m[2],
+      control: m[3],
+    };
+  }
+  m = compacto.match(BULTO_COMPACTO_SIN);
+  if (m) {
+    return {
+      prefijo: null,
+      tipo: "bulto",
+      numero: m[1],
+      control: m[2],
+    };
+  }
   m = compacto.match(CONT_COMPACTO_CON);
   if (m) return { prefijo: m[1], contenedor: m[2], posicion: null, control: null };
   m = compacto.match(CONT_COMPACTO_SIN);
@@ -73,6 +142,10 @@ export function partesCodigo(codigo) {
 }
 
 export function formatearCodigo(partes) {
+  if (partes?.tipo === "bulto" && partes?.numero) {
+    const cabeza = `${partes.prefijo ? `${partes.prefijo}-` : ""}B-${partes.numero}`;
+    return partes.control != null ? `${cabeza}-${partes.control}` : cabeza;
+  }
   if (!partes?.contenedor) return "";
   const cabeza = `${partes.prefijo ? `${partes.prefijo}-` : ""}C-${partes.contenedor}`;
   if (partes.posicion == null) return cabeza;
@@ -88,13 +161,26 @@ export function normalizarCodigo(texto) {
 
 export function esCodigoContenedor(texto) {
   const partes = partesCodigo(texto);
-  return Boolean(partes && partes.posicion == null && partes.control == null);
+  return Boolean(
+    partes &&
+      partes.tipo !== "bulto" &&
+      partes.posicion == null &&
+      partes.control == null,
+  );
 }
 
 export function esCodigoModulo(texto) {
   const partes = partesCodigo(texto);
-  if (!partes || partes.posicion == null || partes.control == null) return false;
+  if (!partes || partes.tipo === "bulto") return false;
+  if (partes.posicion == null || partes.control == null) return false;
   const base = `${partes.prefijo ? `${partes.prefijo}-` : ""}C-${partes.contenedor}-${partes.posicion}`;
+  return partes.control === digitoControl(base);
+}
+
+export function esCodigoBulto(texto) {
+  const partes = partesCodigo(texto);
+  if (!partes || partes.tipo !== "bulto" || partes.control == null) return false;
+  const base = `${partes.prefijo ? `${partes.prefijo}-` : ""}B-${partes.numero}`;
   return partes.control === digitoControl(base);
 }
 
@@ -103,6 +189,12 @@ export function mismoCodigo(a, b) {
   const pa = partesCodigo(a);
   const pb = partesCodigo(b);
   if (!pa || !pb) return false;
+  if (pa.tipo === "bulto" || pb.tipo === "bulto") {
+    if (pa.tipo !== "bulto" || pb.tipo !== "bulto") return false;
+    if (pa.numero !== pb.numero || pa.control !== pb.control) return false;
+    if (pa.prefijo && pb.prefijo) return pa.prefijo === pb.prefijo;
+    return true;
+  }
   if (pa.contenedor !== pb.contenedor || pa.posicion !== pb.posicion || pa.control !== pb.control) {
     return false;
   }

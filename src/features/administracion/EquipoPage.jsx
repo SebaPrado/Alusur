@@ -19,8 +19,9 @@ import {
   TableHead,
   TableRow,
   Typography,
+  IconButton,
 } from "@mui/material";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiEdit2, FiTrash2 } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthProvider";
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
@@ -334,8 +335,10 @@ export default function EquipoPage() {
                     <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                       {canEdit && (
                         <>
-                          <Button
+                          <IconButton
                             size="small"
+                            aria-label="Cambiar rol"
+                            title="Cambiar rol"
                             onClick={() => {
                               setRolPick(
                                 ROLE_OPTIONS.includes(row.role)
@@ -345,16 +348,18 @@ export default function EquipoPage() {
                               setRolDlg(row);
                             }}
                           >
-                            Cambiar rol
-                          </Button>
+                            <FiEdit2 size={16} />
+                          </IconButton>
                           {row.active ? (
-                            <Button
+                            <IconButton
                               size="small"
                               color="error"
+                              aria-label="Dar de baja"
+                              title="Dar de baja"
                               onClick={() => setBajaDlg(row)}
                             >
-                              Dar de baja
-                            </Button>
+                              <FiTrash2 size={16} />
+                            </IconButton>
                           ) : (
                             <>
                               <Button
@@ -363,13 +368,15 @@ export default function EquipoPage() {
                               >
                                 Reactivar
                               </Button>
-                              <Button
+                              <IconButton
                                 size="small"
                                 color="error"
+                                aria-label="Eliminar"
+                                title="Eliminar"
                                 onClick={() => setEliminarDlg(row)}
                               >
-                                Eliminar
-                              </Button>
+                                <FiTrash2 size={16} />
+                              </IconButton>
                             </>
                           )}
                         </>

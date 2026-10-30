@@ -3,13 +3,12 @@ import { Box, IconButton } from "@mui/material";
 import { FiRefreshCw } from "react-icons/fi";
 import { useObra } from "../../obras/ObraProvider";
 import { ProgresoProvider, useProgreso } from "../progreso/useProgresoData.jsx";
-import RecorridoDrawer from "../progreso/RecorridoDrawer";
 import SectionTabs from "./SectionTabs";
 
 const TABS = [
   { path: "torre", label: "3D", iconSrc: "/progress.png" },
   { path: "pisos", label: "Por piso", iconSrc: "/piso.png" },
-  { path: "seguimiento", label: "Avance", iconSrc: "/seguimiento.png" },
+  { path: "seguimiento", label: "Avance", iconSrc: "/calendario.png" },
 ];
 
 /** Progreso: visible para todos (Owner en solo lectura). */
@@ -50,7 +49,6 @@ export default function ProgresoPage() {
         noPadPaths={["torre"]}
         headerEnd={<HeaderEnd />}
       />
-      <RecorridoDrawer />
     </ProgresoProvider>
   );
 }

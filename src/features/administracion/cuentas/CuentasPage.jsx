@@ -7,10 +7,12 @@ import {
   Checkbox,
   CircularProgress,
   FormControlLabel,
+  IconButton,
   Link,
   Stack,
   Typography,
 } from "@mui/material";
+import { FiEdit2 } from "react-icons/fi";
 import { supabase } from "../../../lib/supabase";
 import { useAdminOrg } from "../AdminOrgProvider";
 import ContraparteDialog from "./ContraparteDialog";
@@ -258,8 +260,10 @@ export default function CuentasPage() {
                     <Typography variant="body1">{filaFrase(row)}</Typography>
                   </Link>
                   {isManager && (
-                    <Button
+                    <IconButton
                       size="small"
+                      aria-label="Editar"
+                      title="Editar"
                       onClick={async (e) => {
                         e.preventDefault();
                         const { data, error: err } = await supabase
@@ -289,8 +293,8 @@ export default function CuentasPage() {
                         setDialogOpen(true);
                       }}
                     >
-                      Editar
-                    </Button>
+                      <FiEdit2 size={16} />
+                    </IconButton>
                   )}
                 </Box>
               ))}

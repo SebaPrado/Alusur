@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
-import { Alert, Box, Button, Stack } from "@mui/material";
-import { FiArrowDown, FiArrowUp, FiLock, FiPrinter } from "react-icons/fi";
+import { Alert, Box, Button } from "@mui/material";
+import { FiArrowDown, FiArrowUp, FiLock } from "react-icons/fi";
 import AdminTopBar, { ADMIN_GUTTER, ADMIN_TOPBAR_HEIGHT } from "./AdminTopBar";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { useOperatingContext } from "./useOperatingContext";
@@ -21,23 +21,6 @@ function NavImage({ src }) {
       className="nav-ico"
       sx={{ width: 16, height: 16, objectFit: "contain", display: "block" }}
     />
-  );
-}
-
-function NavSign({ children }) {
-  return (
-    <Box
-      component="span"
-      sx={{
-        width: 16,
-        textAlign: "center",
-        fontWeight: 700,
-        fontSize: 16,
-        lineHeight: 1,
-      }}
-    >
-      {children}
-    </Box>
   );
 }
 
@@ -133,142 +116,144 @@ export default function AdminShell() {
             {banner}
           </Box>
         )}
-        <Stack
-          direction="row"
-          spacing={1}
+        <Box
           sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            columnGap: 2,
+            rowGap: 1,
             px: ADMIN_GUTTER,
             py: 2.25,
             borderBottom: 1,
             borderColor: "divider",
-            flexWrap: "wrap",
-            gap: 1,
             flexShrink: 0,
-            alignItems: "center",
           }}
         >
-          <Button
-            size="small"
-            variant={pathname === "/administracion" ? "contained" : "outlined"}
-            component={RouterLink}
-            to="/administracion"
-            startIcon={<NavImage src="/calendario.png" />}
-            sx={{
-              "&.Mui-disabled .nav-ico": { opacity: 0.4 },
-              "&.MuiButton-contained": {
-                bgcolor: "background.paper",
-                color: "text.primary",
-                border: "1px solid #249596",
-                "&:hover": { bgcolor: "background.paper" },
-              },
-            }}
-          >
-            Movimientos
-          </Button>
-          <Button
-            size="small"
-            variant={pathname.startsWith("/administracion/productos") ? "contained" : "outlined"}
-            component={RouterLink}
-            to="/administracion/productos"
-            startIcon={<NavImage src="/agregar-producto.png" />}
-            sx={navBtnSx}
-          >
-            Productos
-          </Button>
-          <Button
-            size="small"
-            variant={pathname.startsWith("/administracion/venta") ? "contained" : "outlined"}
-            disabled={!ops.canOperate}
-            component={ops.canOperate ? RouterLink : "button"}
-            to={ops.canOperate ? "/administracion/venta" : undefined}
-            title={ops.canOperate ? undefined : "Abrí la caja para vender"}
-            startIcon={<NavSign>+</NavSign>}
-          >
-            Venta
-          </Button>
-          <Button
-            size="small"
-            variant={pathname.startsWith("/administracion/clientes") ? "contained" : "outlined"}
-            component={RouterLink}
-            to="/administracion/clientes"
-            startIcon={<NavImage src="/cliente-nuevo.png" />}
-            sx={navBtnSx}
-          >
-            Clientes
-          </Button>
-          <Button
-            size="small"
-            variant={pathname.startsWith("/administracion/cajas") ? "contained" : "outlined"}
-            component={RouterLink}
-            to="/administracion/cajas"
-            startIcon={<NavImage src="/abrir-documento.png" />}
-            sx={navBtnSx}
-          >
-            Cajas
-          </Button>
-          <Button
-            size="small"
-            variant={pathname.startsWith("/administracion/cuentas") ? "contained" : "outlined"}
-            component={RouterLink}
-            to="/administracion/cuentas"
-            startIcon={<NavImage src="/abrir-documento.png" />}
-            sx={navBtnSx}
-          >
-            Cuentas corrientes
-          </Button>
-          {canManageMembers && (
+          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1 }}>
             <Button
               size="small"
-              variant={pathname.startsWith("/administracion/equipo") ? "contained" : "outlined"}
+              variant={pathname === "/administracion" ? "contained" : "outlined"}
               component={RouterLink}
-              to="/administracion/equipo"
-              startIcon={<NavImage src="/personal.png" />}
+              to="/administracion"
+              startIcon={<NavImage src="/calendario.png" />}
+              sx={{
+                "&.Mui-disabled .nav-ico": { opacity: 0.4 },
+                "&.MuiButton-contained": {
+                  bgcolor: "background.paper",
+                  color: "text.primary",
+                  border: "1px solid #249596",
+                  "&:hover": { bgcolor: "background.paper" },
+                },
+              }}
+            >
+              Movimientos
+            </Button>
+            <Button
+              size="small"
+              variant={pathname.startsWith("/administracion/productos") ? "contained" : "outlined"}
+              component={RouterLink}
+              to="/administracion/productos"
+              startIcon={<NavImage src="/agregar-producto.png" />}
               sx={navBtnSx}
             >
-              Equipo
+              Productos
             </Button>
-          )}
-          <Box sx={{ flex: 1 }} />
-          <Button
-            size="small"
-            variant="outlined"
-            disabled={!ops.canOperate}
-            title={ops.canOperate ? undefined : "Abrí la caja para cobrar"}
-            onClick={() => setCollectionOpen(true)}
-            startIcon={<FiArrowDown size={16} />}
-          >
-            Cobranza
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            disabled={!ops.canOperate}
-            title={ops.canOperate ? undefined : "Abrí la caja para retirar"}
-            onClick={() => setCashOutOpen(true)}
-            startIcon={<FiArrowUp size={16} />}
-          >
-            Retiro
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            disabled
-            title="Próxima entrega"
-            startIcon={<FiPrinter size={16} />}
-          >
-            Imprimir
-          </Button>
-          <Button
-            size="small"
-            variant="contained"
-            color="warning"
-            disabled={!ops.canOperate}
-            onClick={() => setCloseCash(true)}
-            startIcon={<FiLock size={16} />}
-          >
-            Cerrar caja
-          </Button>
-        </Stack>
+            <Button
+              size="small"
+              variant={pathname.startsWith("/administracion/clientes") ? "contained" : "outlined"}
+              component={RouterLink}
+              to="/administracion/clientes"
+              startIcon={<NavImage src="/cliente-nuevo.png" />}
+              sx={navBtnSx}
+            >
+              Clientes
+            </Button>
+            <Button
+              size="small"
+              variant={pathname.startsWith("/administracion/cajas") ? "contained" : "outlined"}
+              component={RouterLink}
+              to="/administracion/cajas"
+              startIcon={<NavImage src="/abrir-documento.png" />}
+              sx={navBtnSx}
+            >
+              Cajas
+            </Button>
+            <Button
+              size="small"
+              variant={pathname.startsWith("/administracion/cuentas") ? "contained" : "outlined"}
+              component={RouterLink}
+              to="/administracion/cuentas"
+              startIcon={<NavImage src="/abrir-documento.png" />}
+              sx={navBtnSx}
+            >
+              Cuentas corrientes
+            </Button>
+            {canManageMembers && (
+              <Button
+                size="small"
+                variant={pathname.startsWith("/administracion/equipo") ? "contained" : "outlined"}
+                component={RouterLink}
+                to="/administracion/equipo"
+                startIcon={<NavImage src="/personal.png" />}
+                sx={navBtnSx}
+              >
+                Equipo
+              </Button>
+            )}
+          </Box>
+          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1, ml: "auto" }}>
+            <Button
+              size="small"
+              variant={pathname.startsWith("/administracion/venta") ? "contained" : "outlined"}
+              disabled={!ops.canOperate}
+              component={ops.canOperate ? RouterLink : "button"}
+              to={ops.canOperate ? "/administracion/venta" : undefined}
+              title={ops.canOperate ? undefined : "Abrí la caja para vender"}
+              startIcon={
+                <Box
+                  component="span"
+                  sx={{ width: 16, textAlign: "center", fontWeight: 700, fontSize: 16, lineHeight: 1 }}
+                >
+                  +
+                </Box>
+              }
+            >
+              Venta
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={!ops.canOperate}
+              title={ops.canOperate ? undefined : "Abrí la caja para cobrar"}
+              onClick={() => setCollectionOpen(true)}
+              startIcon={<FiArrowDown size={16} />}
+            >
+              Cobranza
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={!ops.canOperate}
+              title={ops.canOperate ? undefined : "Abrí la caja para retirar"}
+              onClick={() => setCashOutOpen(true)}
+              startIcon={<FiArrowUp size={16} />}
+            >
+              Retiro
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              color="warning"
+              disabled={!ops.canOperate}
+              onClick={() => setCloseCash(true)}
+              startIcon={<FiLock size={16} />}
+            >
+              Cerrar caja
+            </Button>
+          </Box>
+        </Box>
         <Box
           sx={{
             flex: 1,

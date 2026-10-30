@@ -13,7 +13,8 @@ import {
   Typography,
 } from "@mui/material";
 import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../auth/AuthProvider";
+import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { C, dialogPaperSx, fieldSx, selectMenuProps } from "./theme";
 
 const ROLE_LABEL = {
@@ -31,7 +32,8 @@ export default function NuevoUsuarioDialog({
   onOpenEmpresas = null,
   empresasTick = 0,
 }) {
-  const { isCeo } = useAuth();
+  const { mi_rol } = useObra();
+  const controlTotal = controlTotalEnObra(mi_rol);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [empresaId, setEmpresaId] = useState("");
@@ -219,7 +221,7 @@ export default function NuevoUsuarioDialog({
             )}
           </Select>
         </FormControl>
-        {empresas.length === 0 && isCeo && onOpenEmpresas && (
+        {empresas.length === 0 && controlTotal && onOpenEmpresas && (
           <Button
             onClick={onOpenEmpresas}
             sx={{

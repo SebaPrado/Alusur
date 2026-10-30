@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   digitoControl,
   ejemploCodigoModulo,
+  esCodigoBulto,
   esCodigoContenedor,
   esCodigoModulo,
   normalizarCodigo,
@@ -101,5 +102,41 @@ describe("prefijo de obra", () => {
     expect(prefijoObraValido("CI")).toBe(false);
     expect(ejemploCodigoModulo("cip")).toBe("CIP-C-0142-07-K");
     expect(ejemploCodigoModulo("")).toBe("C-0142-07-K");
+  });
+});
+
+describe("esCodigoBulto", () => {
+  it("acepta CIP-B-0005-2 con dígito correcto", () => {
+    expect(digitoControl("CIP-B-0005")).toBe("2");
+    expect(esCodigoBulto("CIP-B-0005-2")).toBe(true);
+    expect(partesCodigo("CIP-B-0005-2")).toEqual({
+      prefijo: "CIP",
+      tipo: "bulto",
+      numero: "0005",
+      control: "2",
+    });
+    expect(normalizarCodigo("cipb00052")).toBe("CIP-B-0005-2");
+  });
+
+  it("rechaza un dígito de control mal", () => {
+    expect(esCodigoBulto("CIP-B-0005-X")).toBe(false);
+    expect(esCodigoBulto("CIP-B-0005-0")).toBe(false);
+  });
+
+  it("acepta sin prefijo", () => {
+    expect(digitoControl("B-0005")).toBe("4");
+    expect(esCodigoBulto("B-0005-4")).toBe(true);
+    expect(esCodigoBulto("b00054")).toBe(true);
+  });
+
+  it("acepta en minúsculas", () => {
+    expect(esCodigoBulto("cip-b-0005-2")).toBe(true);
+  });
+
+  it("no confunde bulto con contenedor o módulo", () => {
+    expect(esCodigoContenedor("CIP-B-0005-2")).toBe(false);
+    expect(esCodigoModulo("CIP-B-0005-2")).toBe(false);
+    expect(esCodigoBulto("CIP-C-0001")).toBe(false);
+    expect(esCodigoBulto("CIP-C-0001-07-6")).toBe(false);
   });
 });

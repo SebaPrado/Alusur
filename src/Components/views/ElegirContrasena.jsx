@@ -11,9 +11,10 @@ import {
 } from "@mui/material";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../auth/AuthProvider";
+import { validateNewPassword } from "../../auth/passwordRecovery";
 
-export default function ElegirContrasena() {
-  const { session, status } = useAuth();
+export default function ElegirContrasena({ recovery = false }) {
+  const { session, status, recoveryPending, notifyPasswordUpdated } = useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -42,19 +43,20 @@ export default function ElegirContrasena() {
     return <Navigate to="/login" replace />;
   }
 
-  if (!mustChange) {
+  if (recovery) {
+    if (!recoveryPending && !mustChange) {
+      return <Navigate to="/" replace />;
+    }
+  } else if (!mustChange) {
     return <Navigate to="/" replace />;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    if (password.length < 8) {
-      setError("La contraseña tiene que tener al menos 8 caracteres");
-      return;
-    }
-    if (password !== confirm) {
-      setError("Las contraseñas no coinciden");
+    const validation = validateNewPassword(password, confirm);
+    if (validation) {
+      setError(validation);
       return;
     }
     setBusy(true);
@@ -62,23 +64,26 @@ export default function ElegirContrasena() {
       const { error: updErr } = await supabase.auth.updateUser({ password });
       if (updErr) throw new Error(updErr.message);
 
-      const { data, error: fnErr } = await supabase.functions.invoke(
-        "admin-users",
-        { body: { action: "clear_must_change_password" } },
-      );
-      if (fnErr) {
-        let msg = fnErr.message;
-        try {
-          const body = await fnErr.context?.json?.();
-          if (body?.error) msg = body.error;
-        } catch {
-          /* ignore */
+      if (mustChange) {
+        const { data, error: fnErr } = await supabase.functions.invoke(
+          "admin-users",
+          { body: { action: "clear_must_change_password" } },
+        );
+        if (fnErr) {
+          let msg = fnErr.message;
+          try {
+            const body = await fnErr.context?.json?.();
+            if (body?.error) msg = body.error;
+          } catch {
+            /* ignore */
+          }
+          throw new Error(msg);
         }
-        throw new Error(msg);
+        if (data?.error) throw new Error(data.error);
+        await supabase.auth.refreshSession();
       }
-      if (data?.error) throw new Error(data.error);
 
-      await supabase.auth.refreshSession();
+      if (recovery) notifyPasswordUpdated();
       navigate("/", { replace: true });
     } catch (err) {
       setError(err.message || "No se pudo guardar la contraseña");
@@ -103,7 +108,9 @@ export default function ElegirContrasena() {
           Elegí tu contraseña
         </Typography>
         <Typography variant="body2" color="text.secondary" mb={3}>
-          Es tu primer ingreso. Elegí una contraseña nueva para seguir.
+          {recovery
+            ? "Elegí una contraseña nueva para seguir."
+            : "Es tu primer ingreso. Elegí una contraseña nueva para seguir."}
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit} noValidate>

@@ -1,14 +1,13 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { Box, Typography } from "@mui/material";
-import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 import { PageActionsProvider } from "./PageActions";
 import PageHeader, { usePagePadX } from "./PageHeader";
 import SinAcceso from "./SinAcceso";
 
 export default function HoyPage() {
-  const { isCeo } = useAuth();
   const { mi_rol, ready, known } = useObra();
   const padX = usePagePadX();
 
@@ -21,7 +20,7 @@ export default function HoyPage() {
   }
 
   // Owner usa Resumen; el menú lo oculta, la URL a mano muestra Sin acceso
-  if (!isCeo && mi_rol === "owner") {
+  if (!controlTotalEnObra(mi_rol) && mi_rol === "owner") {
     return <SinAcceso />;
   }
 

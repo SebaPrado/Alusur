@@ -15,7 +15,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useAuth } from "../../auth/AuthProvider";
-import { useMisObras } from "../../obras/MisObrasProvider";
+import { useObrasDeLaOrg } from "../../org/OrganizacionProvider";
+import OrgSwitcher, { ItemPlataforma } from "../../org/OrgSwitcher";
+import { controlTotalEnObra } from "../../obras/accesoObra";
 
 const BAR_HEIGHT = 48;
 
@@ -44,12 +46,16 @@ const headerButtonSx = {
 };
 
 const ROL_LABEL = {
-  ceo: "CEO",
   superadmin: "SuperAdmin",
   admin: "Admin",
   owner: "Owner",
   obrero: "Obrero",
 };
+
+function etiquetaRol(mi_rol) {
+  if (controlTotalEnObra(mi_rol)) return "Dueño";
+  return ROL_LABEL[mi_rol] ?? null;
+}
 
 function NombreObra({ nombre, prefijo }) {
   return (
@@ -95,18 +101,20 @@ function NombreObra({ nombre, prefijo }) {
 }
 
 function sectionAfterObra(pathname, obraId) {
-  const prefix = `/obra/${obraId}`;
-  if (!pathname.startsWith(prefix)) return "hoy";
-  const rest = pathname.slice(prefix.length).replace(/^\//, "");
-  return rest || "hoy";
+  const marker = `/obra/${obraId}`;
+  const at = pathname.indexOf(marker);
+  if (at < 0) return "progreso/torre";
+  const rest = pathname.slice(at + marker.length).replace(/^\//, "");
+  if (!rest || rest === "hoy") return "progreso/torre";
+  return rest;
 }
 
 export default function TopBar({
   showObraSwitcher = false,
   mi_rol = null,
 }) {
-  const { profile, isCeo, signOut } = useAuth();
-  const { obras } = useMisObras();
+  const { profile, signOut } = useAuth();
+  const { obras } = useObrasDeLaOrg();
   const { obraId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -118,10 +126,10 @@ export default function TopBar({
   const showObraMenu =
     showObraSwitcher &&
     obraActual &&
-    (isCeo || obras.length > 1);
+    obraActual &&
+    obras.length > 1;
 
-  const rolLabel =
-    ROL_LABEL[mi_rol] ?? (isCeo ? "CEO" : null);
+  const rolLabel = etiquetaRol(mi_rol);
   const userName = profile?.full_name || "Usuario";
 
   function switchObra(nextId) {
@@ -169,11 +177,12 @@ export default function TopBar({
           >
             <Box
               component="img"
-              src="/iconv4.png"
+              src="/boian.svg"
               alt=""
-              sx={{ display: "block", height: 16, width: "auto", opacity: 0.4 }}
+              sx={{ display: "block", height: 16, width: "auto" }}
             />
           </Box>
+          <OrgSwitcher soloSiHayVarias />
 
           {showObraSwitcher && obraActual && (
             <>
@@ -318,6 +327,7 @@ export default function TopBar({
           </Box>
         </MenuItem>
         <Divider />
+        <ItemPlataforma onPick={() => setUserMenu(null)} />
         <MenuItem
           onClick={() => {
             setUserMenu(null);

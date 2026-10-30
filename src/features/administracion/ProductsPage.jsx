@@ -14,7 +14,9 @@ import {
   TableRow,
   TextField,
   Typography,
+  IconButton,
 } from "@mui/material";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { supabase } from "../../lib/supabase";
 import { useAdminOrg } from "./AdminOrgProvider";
 import { formatCents } from "./money";
@@ -169,25 +171,29 @@ export default function ProductsPage() {
                   <TableCell align="right">{formatStock(p.stock)}</TableCell>
                   {isManager && (
                     <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
-                      <Button
+                      <IconButton
                         size="small"
+                        aria-label="Editar"
+                        title="Editar"
                         onClick={() => {
                           setEditing(p);
                           setDialogOpen(true);
                         }}
                       >
-                        Editar
-                      </Button>
+                        <FiEdit2 size={16} />
+                      </IconButton>
                       <Button size="small" onClick={() => setStockProduct(p)}>
                         Cargar stock
                       </Button>
-                      <Button
+                      <IconButton
                         size="small"
                         color="error"
+                        aria-label="Eliminar"
+                        title="Eliminar"
                         onClick={() => setDeleteProduct(p)}
                       >
-                        Eliminar
-                      </Button>
+                        <FiTrash2 size={16} />
+                      </IconButton>
                     </TableCell>
                   )}
                 </TableRow>

@@ -5,11 +5,11 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useObra } from "../../obras/ObraProvider";
 import { resolveObraHome } from "../../app/resolveHome";
 
-/** Index de `/obra/:obraId` → hoy o resumen según rol. */
+/** Index de `/obra/:obraId` → Progreso. */
 export default function ObraEntry() {
   const { obraId } = useParams();
-  const { status, isCeo } = useAuth();
-  const { obra, mi_rol, ready, known } = useObra();
+  const { status } = useAuth();
+  const { obra, ready, known } = useObra();
 
   if (status === "loading" || !ready) {
     return (
@@ -19,13 +19,8 @@ export default function ObraEntry() {
     );
   }
 
-  if (!known && !isCeo) {
-    return <Navigate to="/obras" replace />;
-  }
-
-  if (!obra && isCeo) {
-    // CEO puede abrir una obra aún no listada en caché recién creada
-    return <Navigate to={`/obra/${obraId}/hoy`} replace />;
+  if (!known) {
+    return <Navigate to="/construccion/obras" replace />;
   }
 
   if (!obra) {
@@ -36,6 +31,6 @@ export default function ObraEntry() {
     );
   }
 
-  const dest = resolveObraHome({ mi_rol });
+  const dest = resolveObraHome();
   return <Navigate to={`/obra/${obraId}/${dest}`} replace />;
 }
